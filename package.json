@@ -4,7 +4,12 @@
   "scripts": {
     "dev": "npm --prefix frontend start",
     "build": "npm --prefix frontend run build",
-    "test": "npm --prefix frontend run test"
+    "test": "npm --prefix frontend run test",
+    "netlify:build": "netlify build --offline",
+    "netlify:dev": "netlify dev --offline --no-open"
+  },
+  "devDependencies": {
+    "netlify-cli": "^22.4.0"
   }
 }
 

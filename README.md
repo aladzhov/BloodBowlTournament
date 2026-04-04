@@ -48,5 +48,26 @@ npm run build
 npm test
 ```
 
+## Deploy to Netlify
+
+This repository includes a root `netlify.toml` configured for Netlify.
+
+It tells Netlify to:
+
+- use `frontend/` as the base directory
+- run `npm run build`
+- publish `frontend/dist/frontend`
+- redirect all routes to `index.html` for Angular SPA routing
+
+If you connect the repository in Netlify, no extra build settings are required.
+
+Equivalent Netlify settings:
+
+```text
+Base directory: frontend
+Build command: npm run build
+Publish directory: dist/frontend
+```
+
 
 

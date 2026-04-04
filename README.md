@@ -1,6 +1,6 @@
 # BloodBowlTournament
 
-Frontend-only workspace for the Bulgarian Blood Bowl Cup site.
+Angular-only workspace for the Bulgarian Blood Bowl Cup site.
 
 ## Project structure
 
@@ -48,13 +48,5 @@ npm run build
 npm test
 ```
 
-## Gradle tasks
-
-Frontend-only aggregate tasks are still available from the repository root:
-
-```bash
-./gradlew buildAll
-./gradlew checkAll
-```
 
 

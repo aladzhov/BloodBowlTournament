@@ -12,13 +12,13 @@ subprojects {
 
 tasks.register("buildAll") {
     group = "build"
-    description = "Builds both backend and frontend modules."
-    dependsOn(":backend:build", ":frontend:build")
+    description = "Builds the frontend module."
+    dependsOn(":frontend:build")
 }
 
 tasks.register("checkAll") {
     group = "verification"
-    description = "Runs backend and frontend verification tasks."
-    dependsOn(":backend:test", ":frontend:test")
+    description = "Runs frontend verification tasks."
+    dependsOn(":frontend:test")
 }
 

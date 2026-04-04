@@ -30,7 +30,7 @@ val npmTest by tasks.registering(Exec::class) {
     description = "Runs the Angular unit tests once."
     dependsOn(npmInstall)
     workingDir = projectDir
-    commandLine("npm", "run", "test", "--", "--watch=false")
+    commandLine("npm", "run", "test")
 
     inputs.files("package.json", "package-lock.json", "angular.json", "tsconfig.json", "tsconfig.spec.json")
     inputs.dir("src")

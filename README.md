@@ -1,18 +1,15 @@
 # BloodBowlTournament
 
-Multi-module workspace with:
-
-- `backend/` — Kotlin + Spring Boot REST API
-- `frontend/` — Angular 21 application consuming the backend API
+Frontend-only workspace for the Bulgarian Blood Bowl Cup site.
 
 ## Project structure
 
-- `backend/src/main/kotlin/bloodbowltournament/` contains the crawler, Spring Boot app, REST controller, and CORS config.
-- `frontend/src/app/` contains the Angular UI and the service that calls `/api/tournaments`.
+- `frontend/` — Angular 21 application
+- `frontend/src/app/` — UI components and static tournament/standings data
+- `frontend/src/assets/` — bundled assets such as local fonts
+- `frontend/public/` — static assets
 
 ## Run locally
-
-## Run both modules with a single command
 
 From the repository root:
 
@@ -20,37 +17,13 @@ From the repository root:
 npm run dev
 ```
 
-What it does:
-
-- starts `backend` with `./gradlew :backend:bootRun`
-- starts `frontend` with `npm start`
-- installs frontend dependencies automatically the first time if `frontend/node_modules/` is missing
-
-Then open:
+This starts the Angular dev server on:
 
 ```text
 http://localhost:4200
 ```
 
-Use `Ctrl+C` once in that terminal to stop both processes.
-
-### Backend
-
-From the repository root, use Gradle to run the backend module:
-
-```bash
-./gradlew :backend:bootRun
-```
-
-If your environment does not yet have the Gradle wrapper scripts available, run Gradle directly after installing it:
-
-```bash
-gradle :backend:bootRun
-```
-
-The backend API will be available at `http://localhost:8080/api/tournaments`.
-
-### Frontend
+You can also run it directly from the frontend module:
 
 ```bash
 cd frontend
@@ -58,28 +31,30 @@ npm install
 npm start
 ```
 
-The Angular dev server runs on `http://localhost:4200` and proxies `/api` requests to the backend.
-
 ## Build and test
 
-### Frontend only
+From the repository root:
+
+```bash
+npm run build
+npm run test
+```
+
+Or use the frontend module directly:
 
 ```bash
 cd frontend
-npm test -- --watch=false
 npm run build
+npm test
 ```
 
-### Multi-module Gradle build
+## Gradle tasks
+
+Frontend-only aggregate tasks are still available from the repository root:
 
 ```bash
 ./gradlew buildAll
 ./gradlew checkAll
 ```
 
-## API example
-
-```bash
-curl "http://localhost:8080/api/tournaments?countries=Bulgaria&countries=Greece&startDate=2026-04-02&variant=Blood%20Bowl%202025"
-```
 

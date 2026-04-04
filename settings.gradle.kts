@@ -1,3 +1,3 @@
 rootProject.name = "BloodBowlTournament"
 
-include("backend", "frontend")
+include("frontend")

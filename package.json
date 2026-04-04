@@ -1,0 +1,8 @@
+{
+  "name": "blood-bowl-tournament-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "node ./scripts/dev.mjs"
+  }
+}
+

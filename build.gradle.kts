@@ -1,42 +1,24 @@
 plugins {
-    kotlin("jvm") version "2.3.20"
-    kotlin("plugin.spring") version "2.3.20"
-    id("org.springframework.boot") version "4.0.4"
-    id("io.spring.dependency-management") version "1.1.7"
+    base
 }
 
 group = "com.bloodbowltournament"
 version = "0.0.1-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+subprojects {
+    group = rootProject.group
+    version = rootProject.version
 }
 
-repositories {
-    mavenCentral()
+tasks.register("buildAll") {
+    group = "build"
+    description = "Builds both backend and frontend modules."
+    dependsOn(":backend:build", ":frontend:build")
 }
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jsoup:jsoup:1.22.1")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+tasks.register("checkAll") {
+    group = "verification"
+    description = "Runs backend and frontend verification tasks."
+    dependsOn(":backend:test", ":frontend:test")
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-Xannotation-default-target=param-property"
-        )
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}

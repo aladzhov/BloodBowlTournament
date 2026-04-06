@@ -68,6 +68,18 @@ export class MainTabComponent {
       }));
   }
 
+  getFlagEmoji(countryCode: string): string {
+    const normalized = countryCode.trim().toUpperCase();
+
+    if (!/^[A-Z]{2}$/.test(normalized)) {
+      return '🏳️';
+    }
+
+    return String.fromCodePoint(
+      ...[...normalized].map((char) => 127397 + char.charCodeAt(0))
+    );
+  }
+
   get upcomingTournaments(): Tournament[] {
     const today = this.startOfDay(new Date());
 

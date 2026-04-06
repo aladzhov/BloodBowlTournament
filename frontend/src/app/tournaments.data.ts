@@ -14,7 +14,8 @@ export const allTournaments: Tournament[] = [
     location: 'Mox Games, Sofia',
     dates: '04 April 2026',
     format: 'EuroBowl 2026 v3',
-    url: 'https://tourplay.net/en/blood-bowl/mootland-grand-half-bowl-2026/classifications'
+    url: 'https://tourplay.net/en/blood-bowl/mootland-grand-half-bowl-2026/classifications',
+    tracked: true
   },
   {
     name: 'TBD',

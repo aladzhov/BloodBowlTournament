@@ -180,6 +180,22 @@
   font-weight: 500;
 }
 
+.coach-with-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.coach-flag {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.coach-name {
+  min-width: 0;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -350,6 +366,11 @@ tbody tr:hover {
   .standings-table td[data-label='Coach'] {
     gap: 0.3rem;
     font-weight: 500;
+  }
+
+  .coach-with-flag {
+    display: inline-flex;
+    flex-wrap: wrap;
   }
 
   .standings-table td[data-label='Coach'],

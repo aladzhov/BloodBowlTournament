@@ -12,11 +12,11 @@ interface FumbblPlayer {
   position: string;
   race: string;
   imageLabel: string;
-  st: number;
-  ag: number;
-  pa: number;
-  ma: number;
-  av: number;
+  st: string;
+  ag: string;
+  pa: string;
+  ma: string;
+  av: string;
   skills: string;
   primary: string;
   secondary: string;
@@ -30,8 +30,6 @@ interface FumbblPlayer {
   styleUrl: './bulgarian-fumbbl-tab.component.css'
 })
 export class BulgarianFumbblTabComponent {
-  readonly fumbblUrl = 'https://fumbbl.com/';
-
   readonly teams: FumbblTeam[] = [
     {
       name: 'Dobroto',
@@ -47,12 +45,12 @@ export class BulgarianFumbblTabComponent {
           position: 'Zmey',
           race: 'Big Guy, Dragon',
           imageLabel: 'Z',
-          st: 5,
-          ag: 4,
-          pa: 5,
-          ma: 8,
-          av: 10,
-          skills: 'Unchanelled Fury, Breath Fire, Mighty Blow, Claws',
+          ma: '8',
+          st: '5',
+          ag: '4+',
+          pa: '5+',
+          av: '10+',
+          skills: 'Breath Fire, Claws, Mighty Blow +1, Unchanelled Fury',
           primary: 'GSM',
           secondary: '—',
           cost: '150,000'
@@ -62,12 +60,12 @@ export class BulgarianFumbblTabComponent {
           position: 'Zmey',
           race: 'Big Guy, Human',
           imageLabel: 'Z',
-          st: 3,
-          ag: 2,
-          pa: 4,
-          ma: 5,
-          av: 10,
-          skills: 'Dauntless, Frenzy, Block, Leap',
+          ma: '5',
+          st: '3',
+          ag: '2+',
+          pa: '4+',
+          av: '10+',
+          skills: 'Block, Dauntless, Frenzy, Leap',
           primary: 'GAS',
           secondary: '—',
           cost: '120,000'
@@ -77,11 +75,11 @@ export class BulgarianFumbblTabComponent {
           position: 'Kuker',
           race: 'Blitzer, Human',
           imageLabel: 'K',
-          st: 3,
-          ag: 4,
-          pa: 4,
-          ma: 5,
-          av: 9,
+          ma: '5',
+          st: '3',
+          ag: '4+',
+          pa: '4+',
+          av: '9+',
           skills: 'Arm Bar, Block, Tackle',
           primary: 'GS',
           secondary: 'A',
@@ -92,13 +90,13 @@ export class BulgarianFumbblTabComponent {
           position: 'Samodiva',
           race: 'Runner, Human',
           imageLabel: 'S',
-          st: 2,
-          ag: 2,
-          pa: 5,
-          ma: 7,
-          av: 8,
-          skills: 'Dodge, Sidestep, Taunt',
-          primary: 'AP',
+          ma: '7',
+          st: '2',
+          ag: '2+',
+          pa: '-',
+          av: '8+',
+          skills: 'Dodge, My Ball, Sidestep, Taunt, Trickster',
+          primary: 'A',
           secondary: 'G',
           cost: '80,000'
         },
@@ -107,11 +105,11 @@ export class BulgarianFumbblTabComponent {
           position: 'Shepherd',
           race: 'Lineman, Human',
           imageLabel: 'Sh',
-          st: 3,
-          ag: 3,
-          pa: 4,
-          ma: 5,
-          av: 9,
+          ma: '5',
+          st: '3',
+          ag: '3+',
+          pa: '4+',
+          av: '9+',
           skills: 'Jump Up',
           primary: 'GA',
           secondary: 'S',
@@ -124,7 +122,7 @@ export class BulgarianFumbblTabComponent {
       logo: '/logo-zloto.png',
       details: [
         'Re-rolls: 70,000 gp.',
-        'Apothecary: Yes',
+        'Apothecary: No',
         'Leagues: Chaos Clash'
       ],
       roster: [
@@ -133,12 +131,12 @@ export class BulgarianFumbblTabComponent {
           position: 'Lamia',
           race: 'Big Guy, Dragon',
           imageLabel: 'L',
-          st: 6,
-          ag: 5,
-          pa: 5,
-          ma: 3,
-          av: 10,
-          skills: 'Loner 3+, Mighty Blow, Claws, Multiple Block, Prehensile Tail, Regeneration',
+          ma: '3',
+          st: '6',
+          ag: '5+',
+          pa: '5+',
+          av: '10+',
+          skills: 'Claws, Loner 3+, Mighty Blow +1, Multiple Block, Prehensile Tail, Regeneration, Thick Skull',
           primary: 'SM',
           secondary: '—',
           cost: '150,000'
@@ -148,12 +146,12 @@ export class BulgarianFumbblTabComponent {
           position: 'Hala',
           race: 'Blitzer, Elemental',
           imageLabel: 'H',
-          st: 4,
-          ag: 3,
-          pa: 0,
-          ma: 6,
-          av: 9,
-          skills: 'Disturbing Presence, Frenzy, Brawler, No Hands',
+          ma: '6',
+          st: '4',
+          ag: '3+',
+          pa: '-',
+          av: '9+',
+          skills: 'Brawler, Disturbing Presence, Foul Appearance, Frenzy, No Hands',
           primary: 'GSM',
           secondary: 'A',
           cost: '110,000'
@@ -163,27 +161,27 @@ export class BulgarianFumbblTabComponent {
           position: 'Talasum',
           race: 'Blocker, Spirit, Undead',
           imageLabel: 'T',
-          st: 3,
-          ag: 3,
-          pa: 4,
-          ma: 5,
-          av: 9,
-          skills: 'Shadowing, Tackle, No Hands, Regeneration',
+          ma: '5',
+          st: '3',
+          ag: '3+',
+          pa: '-',
+          av: '9+',
+          skills: 'No Hands, Regeneration, Shadowing, Tackle',
           primary: 'GD',
           secondary: 'A',
           cost: '80,000'
         },
         {
-          quantity: '0-12',
+          quantity: '0-16',
           position: 'Karakondjul',
           race: 'Lineman, Beastman',
           imageLabel: 'K',
-          st: 3,
-          ag: 2,
-          pa: 3,
-          ma: 6,
-          av: 9,
-          skills: 'Give and Go, Pile Driver, Eye Gouge',
+          ma: '6',
+          st: '2',
+          ag: '2+',
+          pa: '3+',
+          av: '8+',
+          skills: 'Dodge, Fumblerooski, Stunty',
           primary: 'D',
           secondary: 'AP',
           cost: '50,000'

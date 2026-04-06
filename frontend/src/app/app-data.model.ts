@@ -1,4 +1,5 @@
 export interface RankingEntry {
+  country: string;
   coach: string;
   points: number;
   touchdowns: number;

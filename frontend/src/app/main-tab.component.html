@@ -58,7 +58,12 @@
             @for (entry of standings; track entry.rank) {
               <tr>
                 <td data-label="#">{{ entry.rank }}</td>
-                <td data-label="Coach">{{ entry.coach }}</td>
+                <td data-label="Coach">
+                  <span class="coach-with-flag">
+                    <span class="coach-flag" [attr.aria-label]="entry.country.toUpperCase() + ' flag'">{{ getFlagEmoji(entry.country) }}</span>
+                    <span class="coach-name">{{ entry.coach }}</span>
+                  </span>
+                </td>
                 <td data-label="Points">{{ entry.points }}</td>
                 <td data-label="Touchdowns">{{ entry.touchdowns }}</td>
                 <td data-label="Casualties">{{ entry.casualties }}</td>
@@ -130,7 +135,7 @@
       </a>
       <span class="community-contact">
         <span>or contact us at</span>
-        <a class="community-email" href="mailto:bbbg@abv.bg">bbbg@abv.bg</a>
+        <a class="community-email" href="mailto:bbbg@abv.bg">bbbg&#64;abv.bg</a>
       </span>
     </div>
   </section>

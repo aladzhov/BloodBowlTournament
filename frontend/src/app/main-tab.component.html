@@ -1,0 +1,145 @@
+<main>
+
+  <section class="section container">
+    <div class="section-heading">
+      <h2 class="heading-flag-green">Upcoming Tournaments</h2>
+      <div class="section-rule green"></div>
+    </div>
+
+    <div class="card-grid three-up">
+      @for (tournament of upcomingTournaments; track tournament.name) {
+        @if (tournament.url) {
+          <a class="card-link" [href]="tournament.url" target="_blank" rel="noopener noreferrer">
+            <article class="card tournament-card archive-card">
+              <span class="card-title-link">{{ tournament.name }}</span>
+              <ul class="meta-list">
+                <li><strong>Location:</strong> {{ tournament.location }}</li>
+                <li><strong>Date:</strong> {{ tournament.dates }}</li>
+                <li><strong>Format:</strong> {{ tournament.format }}</li>
+              </ul>
+            </article>
+          </a>
+        } @else {
+          <article class="card tournament-card archive-card no-link-card">
+            <span class="card-title-link">{{ tournament.name }}</span>
+            <ul class="meta-list">
+              <li><strong>Location:</strong> {{ tournament.location }}</li>
+              <li><strong>Date:</strong> {{ tournament.dates }}</li>
+              <li><strong>Format:</strong> {{ tournament.format }}</li>
+            </ul>
+          </article>
+        }
+      }
+    </div>
+  </section>
+
+  <section class="section container" id="standings">
+    <div class="section-heading">
+      <h2 class="heading-flag-red">Season Standings {{ season }}</h2>
+      @if (latestTrackedPastTournament; as latestTournament) {
+        <p class="section-subtitle">Updated after {{ latestTournament.name }}</p>
+      }
+      <div class="section-rule red"></div>
+    </div>
+
+    <div class="card standings-card">
+      <div class="table-wrapper">
+        <table class="standings-table">
+          <thead>
+            <tr>
+              <th style="width: 5%">#</th>
+              <th style="width: 50%">Coach</th>
+              <th style="width: 15%">Points</th>
+              <th style="width: 15%">Touchdowns</th>
+              <th style="width: 15%">Casualties</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of standings; track entry.rank) {
+              <tr>
+                <td data-label="#">{{ entry.rank }}</td>
+                <td data-label="Coach">{{ entry.coach }}</td>
+                <td data-label="Points">{{ entry.points }}</td>
+                <td data-label="Touchdowns">{{ entry.touchdowns }}</td>
+                <td data-label="Casualties">{{ entry.casualties }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-heading archive-heading">
+      <h2 class="heading-flag-green">Past Tournaments</h2>
+      <div class="section-rule green"></div>
+    </div>
+
+    <div class="card-grid three-up">
+      @for (tournament of pastTournaments; track tournament.name) {
+        @if (tournament.url) {
+          <a class="card-link" [href]="tournament.url" target="_blank" rel="noopener noreferrer">
+            <article class="card tournament-card archive-card">
+              <span class="card-title-link">{{ tournament.name }}</span>
+              <ul class="meta-list">
+                <li><strong>Location:</strong> {{ tournament.location }}</li>
+                <li><strong>Date:</strong> {{ tournament.dates }}</li>
+                <li><strong>Format:</strong> {{ tournament.format }}</li>
+              </ul>
+            </article>
+          </a>
+        } @else {
+          <article class="card tournament-card archive-card no-link-card">
+            <span class="card-title-link">{{ tournament.name }}</span>
+            <ul class="meta-list">
+              <li><strong>Location:</strong> {{ tournament.location }}</li>
+              <li><strong>Date:</strong> {{ tournament.dates }}</li>
+              <li><strong>Format:</strong> {{ tournament.format }}</li>
+            </ul>
+          </article>
+        }
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-heading">
+        <h2 class="heading-flag-red">About the Bulgarian Blood Bowl Cup</h2>
+        <div class="section-rule red"></div>
+      </div>
+
+      <div class="card-grid three-up">
+        @for (feature of featureCards; track feature.title) {
+          <article class="card feature-card">
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
+            @if (feature.details?.length) {
+              <ul class="feature-list">
+                @for (detail of feature.details; track detail) {
+                  <li>{{ detail }}</li>
+                }
+              </ul>
+            }
+          </article>
+        }
+      </div>
+    </div>
+    <div class="community-link">
+      <a class="community-cta" href="https://www.facebook.com/groups/1092384540884398" target="_blank" rel="noopener noreferrer">
+        Join our Facebook Group
+      </a>
+      <span class="community-contact">
+        <span>or contact us at</span>
+        <a class="community-email" href="mailto:bbbg@abv.bg">bbbg@abv.bg</a>
+      </span>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>© {{ season }} {{ title }}. All rights reserved.</p>
+    <p>Blood Bowl is a trademark of Games Workshop Ltd.</p>
+  </div>
+</footer>
+

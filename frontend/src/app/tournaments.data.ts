@@ -3,7 +3,7 @@ import { Tournament } from './app-data.model';
 export const allTournaments: Tournament[] = [
   {
     name: 'Surva Bowl 2026',
-    location: 'Sofia',
+    location: 'Другият Замък, Sofia',
     dates: '18 January 2026',
     format: 'EuroBowl 2026 v2',
     url: 'https://tourplay.net/en/blood-bowl/surva-bowl-2026/classifications',
@@ -17,14 +17,14 @@ export const allTournaments: Tournament[] = [
     url: 'https://tourplay.net/en/blood-bowl/mootland-grand-half-bowl-2026/classifications'
   },
   {
-    name: 'Zmey Cup',
-    location: 'TBD, Sofia',
-    dates: '10 May 2026',
+    name: 'TBD',
+    location: 'Другият Замък, Sofia',
+    dates: 'TBD May 2026',
     format: 'EuroBowl 2026 v3',
     url: ''
   },
   {
-    name: 'The Scorchers',
+    name: 'Купа Горещниците',
     location: 'TBD, Sofia',
     dates: '19 July 2026',
     format: 'EuroBowl 2026 v3',

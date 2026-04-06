@@ -1,0 +1,96 @@
+<section class="fumbbl-tab">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Bulgarian Fumbbl</h2>
+      <p>Concept teams based on Bulgarian mythology</p>
+    </div>
+
+    <div class="teams-list">
+      @for (team of teams; track team.name) {
+        <article class="team-card">
+          <div class="team-logo-wrap">
+            <img class="team-logo" [src]="team.logo" [alt]="team.name + ' logo'">
+          </div>
+
+          <div class="team-content">
+            <div class="team-header-row">
+              <div>
+                <h3>{{ team.name }}</h3>
+              </div>
+              <span class="team-badge">Bulgarian FUMBBL</span>
+            </div>
+
+            <ul class="team-details">
+              @for (detail of team.details; track detail) {
+                <li>{{ detail }}</li>
+              }
+            </ul>
+
+            <div class="roster-section">
+              <div class="roster-heading-row">
+                <h4>Roster</h4>
+                <span>{{ team.roster.length }} position{{ team.roster.length === 1 ? '' : 's' }}</span>
+              </div>
+
+              <div class="roster-table-wrap">
+                <table class="roster-table">
+                  <colgroup>
+                    <col class="col-position">
+                    <col class="col-stat">
+                    <col class="col-stat">
+                    <col class="col-stat">
+                    <col class="col-stat">
+                    <col class="col-stat">
+                    <col class="col-skills">
+                    <col class="col-primary">
+                    <col class="col-secondary">
+                    <col class="col-cost">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Position</th>
+                      <th>ST</th>
+                      <th>AG</th>
+                      <th>PA</th>
+                      <th>MA</th>
+                      <th>AV</th>
+                      <th>Skills</th>
+                      <th>PRM</th>
+                      <th>SEC</th>
+                      <th>Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (player of team.roster; track player.quantity + '-' + player.position + '-' + player.skills) {
+                      <tr>
+                        <td data-label="Position">
+                          <div class="player-cell">
+                            <div class="player-image-slot" aria-hidden="true">{{ player.imageLabel }}</div>
+                            <div class="player-meta">
+                              <span class="player-position">{{ player.position }}</span>
+                              <span class="player-quantity">{{ player.quantity }} ({{player.race}})</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td data-label="ST">{{ player.st }}</td>
+                        <td data-label="AG">{{ player.ag }}</td>
+                        <td data-label="PA">{{ player.pa }}</td>
+                        <td data-label="MA">{{ player.ma }}</td>
+                        <td data-label="AV">{{ player.av }}</td>
+                        <td data-label="Skills">{{ player.skills }}</td>
+                        <td data-label="Primary">{{ player.primary }}</td>
+                        <td data-label="Secondary">{{ player.secondary }}</td>
+                        <td data-label="Cost">{{ player.cost }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+

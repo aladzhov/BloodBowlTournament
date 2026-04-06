@@ -1,16 +1,18 @@
 import { App } from './app';
 
 describe('App', () => {
-  it('exposes the expected site title', () => {
+  it('defaults to the main tab', () => {
     const app = new App();
 
-    expect(app.title).toBe('Bulgarian Blood Bowl Cup');
+    expect(app.activeTab).toBe('main');
   });
 
-  it('exposes the current season', () => {
+  it('keeps the previous seasons tab disabled', () => {
     const app = new App();
 
-    expect(app.season).toBe('2026');
+    app.selectTab('previous-seasons');
+
+    expect(app.activeTab).toBe('main');
   });
 });
 

@@ -1,0 +1,374 @@
+:host {
+  --bg-green: #00966e;
+  --bg-green-dark: #007a59;
+  --bg-red: #d62612;
+  --text-dark: #1a1a1a;
+  --text-muted: #6b7280;
+  --border-light: #e5e7eb;
+  display: block;
+  color: var(--text-dark);
+}
+
+.container {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.section {
+  padding: 4.5rem 0;
+}
+
+.section-heading {
+  margin-bottom: 2rem;
+}
+
+.section-heading h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+}
+
+.section-subtitle {
+  margin: 0 0 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.heading-flag-green {
+  color: var(--bg-green);
+}
+
+.heading-flag-red {
+  color: var(--bg-red);
+}
+
+.section-rule {
+  width: 4rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  margin-top: 0.9rem;
+}
+
+.section-rule.green {
+  background: var(--bg-green);
+}
+
+.section-rule.red {
+  background: var(--bg-red);
+}
+
+.archive-heading {
+  margin-top: 4rem;
+}
+
+.community-link .community-cta {
+  border: 0;
+  border-radius: 0.8rem;
+  padding: 0.95rem 1.15rem;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.community-link .community-cta:hover {
+  transform: translateY(-1px);
+}
+
+.card-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.no-link-card {
+  cursor: default;
+}
+
+.card-grid.three-up {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(26, 26, 26, 0.06);
+}
+
+.tournament-card,
+.feature-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tournament-card:hover,
+.feature-card:hover,
+.archive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(26, 26, 26, 0.12);
+}
+
+.card h3 {
+  margin: 0 0 0.8rem;
+  font-size: 1.2rem;
+}
+
+.card p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.feature-list {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+}
+
+.feature-list li + li {
+  margin-top: 0.45rem;
+}
+
+.meta-list {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  color: var(--text-muted);
+}
+
+.meta-list strong {
+  color: var(--text-dark);
+}
+
+.standings-card {
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.standings-table {
+  width: 100%;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.standings-table th:first-child,
+.standings-table td:first-child {
+  white-space: nowrap;
+}
+
+.standings-table th:nth-child(n + 3),
+.standings-table td:nth-child(n + 3) {
+  text-align: right;
+}
+
+.standings-table tbody td {
+  font-weight: 400;
+}
+
+.standings-table tbody td[data-label='Coach'] {
+  font-weight: 500;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.95rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+th {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+tbody tr:hover {
+  background: rgba(0, 150, 110, 0.035);
+}
+
+.card-title-link {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: var(--bg-green);
+  font-weight: 800;
+}
+
+.card-link:hover .card-title-link {
+  color: var(--bg-green-dark);
+}
+
+.community-link {
+  margin-top: 2rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.community-link .community-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1877f2;
+  color: #fff;
+}
+
+.community-link .community-cta:hover {
+  background: #166fe5;
+}
+
+.community-contact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--text-muted);
+}
+
+.community-email {
+  color: var(--bg-green-dark);
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.community-email:hover {
+  text-decoration: underline;
+}
+
+.site-footer {
+  background: var(--text-dark);
+  color: rgba(255, 255, 255, 0.68);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 1.75rem 0;
+}
+
+.site-footer p {
+  margin: 0.25rem 0;
+}
+
+@media (max-width: 900px) {
+  .card-grid.three-up {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .card-grid.three-up {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(1.6rem, 7vw, 2rem);
+  }
+
+  .standings-card {
+    padding: 1rem;
+  }
+
+  .table-wrapper {
+    overflow-x: visible;
+  }
+
+  .standings-table,
+  .standings-table tbody,
+  .standings-table tr,
+  .standings-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .standings-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .standings-table tr {
+    padding: 1rem 0;
+  }
+
+  .standings-table tbody tr + tr {
+    border-top: 1px solid var(--border-light);
+  }
+
+  .standings-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .standings-table td + td {
+    margin-top: 0.65rem;
+  }
+
+  .standings-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .standings-table td[data-label='Coach'] {
+    gap: 0.3rem;
+    font-weight: 500;
+  }
+
+  .standings-table td[data-label='Coach'],
+  .standings-table td[data-label='Coach']::before {
+    font-weight: 600;
+  }
+
+  .standings-table td[data-label='Coach']::before {
+    color: var(--bg-green-dark);
+  }
+
+  .community-link {
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .community-contact {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+}
+

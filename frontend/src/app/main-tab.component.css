@@ -186,6 +186,14 @@
   gap: 0.55rem;
 }
 
+.coach-rank {
+  display: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .coach-flag {
   flex: 0 0 auto;
   font-size: 1rem;
@@ -194,6 +202,7 @@
 
 .coach-name {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 table {
@@ -285,19 +294,48 @@ tbody tr:hover {
 }
 
 @media (max-width: 900px) {
+  .section {
+    padding: 3.5rem 0;
+  }
+
+  .section-heading {
+    margin-bottom: 1.5rem;
+  }
+
   .card-grid.three-up {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .card-grid {
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .archive-heading {
+    margin-top: 3rem;
+  }
+
+  th,
+  td {
+    padding: 0.8rem 0.7rem;
   }
 }
 
 @media (max-width: 680px) {
 
   .section {
-    padding: 3rem 0;
+    padding: 2.5rem 0;
   }
 
   .card-grid.three-up {
     grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 1.1rem;
   }
 
   .section-heading h2 {
@@ -318,6 +356,14 @@ tbody tr:hover {
   .standings-table td {
     display: block;
     width: 100%;
+  }
+
+  .standings-table td[data-label='#'] {
+    display: none;
+  }
+
+  .desktop-stat-cell {
+    display: none;
   }
 
   .standings-table thead {
@@ -342,7 +388,7 @@ tbody tr:hover {
 
   .standings-table td {
     display: grid;
-    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 5.75rem) minmax(0, 1fr);
     gap: 0.75rem;
     align-items: start;
     padding: 0;
@@ -371,6 +417,12 @@ tbody tr:hover {
   .coach-with-flag {
     display: inline-flex;
     flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .coach-rank {
+    display: inline;
+    color: var(--bg-green-dark);
   }
 
   .standings-table td[data-label='Coach'],
@@ -384,12 +436,27 @@ tbody tr:hover {
 
   .community-link {
     flex-direction: column;
+    margin-top: 1.5rem;
     gap: 0.9rem;
   }
 
   .community-contact {
     flex-direction: column;
     gap: 0.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(1.45rem, 8vw, 1.85rem);
+  }
+
+  .standings-table td::before {
+    font-size: 0.68rem;
   }
 }
 

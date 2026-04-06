@@ -124,45 +124,38 @@
   font-size: 1rem;
 }
 
-.roster-heading-row span {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
 .roster-table-wrap {
-  overflow-x: auto;
   border: 1px solid #e5e7eb;
   border-radius: 0.85rem;
 }
 
 .roster-table {
   width: 100%;
-  min-width: 58rem;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 0.92rem;
 }
 
 .roster-table .col-position {
-  width: 20%;
+  width: 19%;
 }
 
 .roster-table .col-stat {
-  width: 3.4%;
+  width: 3%;
 }
 
 .roster-table .col-skills {
-  width: 34%;
+  width: 38%;
 }
 
 .roster-table .col-primary,
 .roster-table .col-secondary {
-  width: 6%;
+  width: 5.5%;
 }
 
 .roster-table .col-cost {
-  width: 17%;
+  width: 15%;
 }
 
 .roster-table th,
@@ -201,11 +194,16 @@
   white-space: nowrap;
 }
 
+.roster-table td:nth-child(7) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .player-cell {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  min-width: 10rem;
+  min-width: 0;
 }
 
 .player-image-slot {
@@ -239,6 +237,36 @@
   font-size: 0.6rem;
 }
 
+@media (max-width: 980px) {
+  .fumbbl-tab {
+    padding: 3.5rem 0 4.5rem;
+  }
+
+  .team-card {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .team-logo-wrap {
+    max-width: 11rem;
+  }
+
+  .roster-table th,
+  .roster-table td {
+    padding: 0.65rem 0.6rem;
+  }
+
+  .roster-table th {
+    font-size: 0.72rem;
+  }
+
+  .player-image-slot {
+    flex-basis: 2.35rem;
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+}
+
 @media (max-width: 680px) {
   .fumbbl-tab {
     padding: 3rem 0 4rem;
@@ -256,6 +284,15 @@
 
   .team-logo-wrap {
     max-width: 12rem;
+  }
+
+  .team-details {
+    gap: 0.55rem;
+  }
+
+  .team-details li {
+    width: 100%;
+    text-align: center;
   }
 
   .team-badge {
@@ -301,6 +338,13 @@
     text-align: left;
   }
 
+  .roster-table td:nth-child(7),
+  .roster-table td:nth-child(8),
+  .roster-table td:nth-child(9),
+  .roster-table td:nth-child(10) {
+    white-space: normal;
+  }
+
   .roster-table td + td {
     margin-top: 0.55rem;
   }
@@ -315,7 +359,22 @@
   }
 
   .player-cell {
+    align-items: flex-start;
     min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .fumbbl-tab {
+    padding: 2.5rem 0 3.5rem;
+  }
+
+  .team-card {
+    padding: 1.1rem;
+  }
+
+  .roster-table td::before {
+    font-size: 0.72rem;
   }
 }
 

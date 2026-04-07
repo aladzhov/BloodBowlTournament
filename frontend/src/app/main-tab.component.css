@@ -126,6 +126,108 @@
   color: var(--text-muted);
 }
 
+.feature-image-frame,
+.feature-image-trigger {
+  display: block;
+  margin-bottom: 1rem;
+  border-radius: 0.9rem;
+}
+
+.feature-image-trigger {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.feature-image-trigger:hover {
+  transform: translateY(-1px);
+}
+
+.feature-image-frame {
+  display: block;
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.feature-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.feature-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  animation: featureLightboxFade 0.2s ease;
+}
+
+.feature-lightbox-panel {
+  position: relative;
+  width: min(52rem, 100%);
+  max-height: min(90vh, 52rem);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+  animation: featureLightboxZoom 0.22s ease;
+}
+
+.feature-lightbox-image {
+  display: block;
+  width: 100%;
+  max-height: min(90vh, 52rem);
+  object-fit: contain;
+  background: #fff;
+}
+
+.feature-lightbox-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@keyframes featureLightboxFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes featureLightboxZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .feature-list {
   margin: 1rem 0 0;
   padding-left: 1.2rem;
@@ -449,6 +551,15 @@ tbody tr:hover {
 @media (max-width: 480px) {
   .card {
     padding: 1rem;
+  }
+
+  .feature-lightbox {
+    padding: 1rem;
+  }
+
+  .feature-lightbox-close {
+    top: 0.5rem;
+    right: 0.5rem;
   }
 
   .section-heading h2 {

@@ -25,7 +25,7 @@ export const allTournaments: Tournament[] = [
     url: ''
   },
   {
-    name: 'Купа Горещниците',
+    name: 'Scorchers Cup',
     location: 'TBD, Sofia',
     dates: '19 July 2026',
     format: 'EuroBowl 2026 v3',

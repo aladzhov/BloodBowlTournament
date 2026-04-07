@@ -126,6 +126,17 @@
                 }
               </ul>
             }
+            @if (feature.imageSrc) {
+              <button
+                type="button"
+                class="feature-image-trigger"
+                [attr.aria-label]="'Open larger image for ' + feature.title"
+                (click)="openFeatureImage(feature)">
+                <span class="feature-image-frame">
+                  <img class="feature-image" [src]="feature.imageSrc" [alt]="feature.imageAlt ?? feature.title">
+                </span>
+              </button>
+            }
           </article>
         }
       </div>
@@ -137,6 +148,15 @@
     </div>
   </section>
 </main>
+
+@if (selectedFeatureImage; as image) {
+  <div class="feature-lightbox" role="dialog" aria-modal="true" [attr.aria-label]="image.title" (click)="closeFeatureImage()">
+    <div class="feature-lightbox-panel" (click)="$event.stopPropagation()">
+      <button type="button" class="feature-lightbox-close" aria-label="Close image" (click)="closeFeatureImage()">×</button>
+      <img class="feature-lightbox-image" [src]="image.imageSrc!" [alt]="image.imageAlt ?? image.title">
+    </div>
+  </div>
+}
 
 <footer class="site-footer">
   <div class="container">

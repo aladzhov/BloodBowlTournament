@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RankingEntry, Tournament } from './app-data.model';
 import { standingsEntries } from './standings.data';
 import { allTournaments } from './tournaments.data';
@@ -7,6 +7,9 @@ interface FeatureCard {
   title: string;
   description: string;
   details?: string[];
+  imageSrc?: string;
+  imageAlt?: string;
+  href?: string;
 }
 
 interface RankedEntry extends RankingEntry {
@@ -27,19 +30,21 @@ export class MainTabComponent {
   readonly featureCards: FeatureCard[] = [
     {
       title: 'The Cup',
-      description: 'Every tournament held in Bulgaria contributes toward the annual cup standings and the race for the crown.'
+      description: 'Battle for Bulgaria! Every tournament, every match counts. Every win brings the Crown closer!'
     },
     {
       title: 'The Points',
-      description: 'The top 10 players of each tournament earn points depending on their rank',
+      description: 'Top 10 finishers bag the points',
       details: [
-        'The tournament winner get one bonus point',
-        'In a tie, Touchdowns take priority, followed by Casualties.'
+        'Tournament winner get one bonus',
+        'Tie-breaks: Touchdowns and then broken bones'
       ]
     },
     {
-      title: 'The Prizes',
-      description: 'TBD :)'
+      title: 'The Prize',
+      description: 'One Champion, one Prize, one Legendary Ball',
+      imageSrc: '/tomy-prize.jpg',
+      imageAlt: 'Blood Bowl plush'
     }
   ];
 
@@ -48,6 +53,8 @@ export class MainTabComponent {
 
   readonly standingsEntries = standingsEntries;
   readonly allTournaments = allTournaments;
+
+  selectedFeatureImage: Pick<FeatureCard, 'title' | 'imageSrc' | 'imageAlt'> | null = null;
 
   get standings(): RankedEntry[] {
     return [...this.standingsEntries]
@@ -78,6 +85,29 @@ export class MainTabComponent {
     return String.fromCodePoint(
       ...[...normalized].map((char) => 127397 + char.charCodeAt(0))
     );
+  }
+
+  openFeatureImage(feature: FeatureCard): void {
+    if (!feature.imageSrc) {
+      return;
+    }
+
+    this.selectedFeatureImage = {
+      title: feature.title,
+      imageSrc: feature.imageSrc,
+      imageAlt: feature.imageAlt
+    };
+  }
+
+  closeFeatureImage(): void {
+    this.selectedFeatureImage = null;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.selectedFeatureImage) {
+      this.closeFeatureImage();
+    }
   }
 
   get upcomingTournaments(): Tournament[] {

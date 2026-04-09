@@ -36,13 +36,13 @@ export class MainTabComponent {
       title: 'The Points',
       description: 'Top 10 finishers bag the points',
       details: [
-        'Tournament winner get one bonus',
+        'Tournament winners get one bonus',
         'Tie-breaks: Touchdowns and then broken bones'
       ]
     },
     {
       title: 'The Prize',
-      description: 'One Champion, one Prize, one Legendary Ball',
+      description: 'One Champion, one Prize, one Legendary Ball:',
       imageSrc: '/tomy-prize.jpg',
       imageAlt: 'Blood Bowl plush'
     }

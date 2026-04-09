@@ -1,4 +1,6 @@
-import {Component} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject, OnInit } from '@angular/core';
+import { Meta, Title } from '@angular/platform-browser';
 
 type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl';
 
@@ -14,9 +16,11 @@ interface TabDefinition {
   standalone: false,
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
+  private readonly siteUrl = 'https://www.bgbb.eu';
   title = 'Bulgarian Blood Bowl Cup';
   season = '2026';
+  private readonly defaultDescription = 'Follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
 
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
@@ -26,6 +30,16 @@ export class App {
 
   activeTab: TabId = 'main';
 
+  constructor(
+    private readonly titleService: Title,
+    private readonly metaService: Meta,
+    @Inject(DOCUMENT) private readonly document: Document
+  ) {}
+
+  ngOnInit(): void {
+    this.updateSeo();
+  }
+
   selectTab(tabId: TabId): void {
     const tab = this.tabs.find(({ id }) => id === tabId);
     if (!tab || tab.disabled) {
@@ -33,5 +47,90 @@ export class App {
     }
 
     this.activeTab = tabId;
+    this.updateSeo();
+  }
+
+  private updateSeo(): void {
+    const metadata = this.getSeoMetadata(this.activeTab);
+    const pageUrl = this.getAbsoluteUrl(typeof window !== 'undefined' ? window.location.pathname : '/');
+    const imageUrl = this.getAbsoluteUrl('/bbbg-banner.png');
+
+    this.titleService.setTitle(metadata.title);
+    this.metaService.updateTag({ name: 'description', content: metadata.description });
+    this.metaService.updateTag({ property: 'og:title', content: metadata.title });
+    this.metaService.updateTag({ property: 'og:description', content: metadata.description });
+    this.metaService.updateTag({ property: 'og:url', content: pageUrl });
+    this.metaService.updateTag({ property: 'og:image', content: imageUrl });
+
+    this.updateCanonicalLink(pageUrl);
+    this.updateStructuredData(pageUrl, imageUrl);
+  }
+
+  private getAbsoluteUrl(path: string): string {
+    return new URL(path, `${this.siteUrl}/`).toString();
+  }
+
+  private getSeoMetadata(tabId: TabId): { title: string; description: string } {
+    switch (tabId) {
+      case 'bulgarian-fumbbl':
+        return {
+          title: `${this.title} ${this.season} | Bulgarian Fumbbl Teams and Rosters`,
+          description: 'Explore Bulgarian Fumbbl teams, custom rosters, player positions, and team identity for Dobroto and Zloto.'
+        };
+      case 'previous-seasons':
+        return {
+          title: `${this.title} | Previous Seasons`,
+          description: 'Browse the Bulgarian Blood Bowl Cup archive and previous season results.'
+        };
+      case 'main':
+      default:
+        return {
+          title: `${this.title} ${this.season} | Tournaments, Standings and Community`,
+          description: this.defaultDescription
+        };
+    }
+  }
+
+  private updateCanonicalLink(url: string): void {
+    let canonicalLink = this.document.querySelector('link[rel="canonical"]');
+
+    if (!canonicalLink) {
+      canonicalLink = this.document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      this.document.head.appendChild(canonicalLink);
+    }
+
+    canonicalLink.setAttribute('href', url);
+  }
+
+  private updateStructuredData(url: string, imageUrl: string): void {
+    const existingScript = this.document.getElementById('structured-data');
+    const script = existingScript ?? this.document.createElement('script');
+    script.id = 'structured-data';
+    script.setAttribute('type', 'application/ld+json');
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          name: this.title,
+          url,
+          description: this.defaultDescription,
+          inLanguage: 'en'
+        },
+        {
+          '@type': 'Organization',
+          name: this.title,
+          url,
+          logo: this.getAbsoluteUrl('/favicon.png'),
+          image: imageUrl,
+          sameAs: ['https://www.facebook.com/groups/1092384540884398']
+        }
+      ]
+    });
+
+    if (!existingScript) {
+      this.document.head.appendChild(script);
+    }
   }
 }

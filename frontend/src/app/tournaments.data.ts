@@ -20,7 +20,7 @@ export const allTournaments: Tournament[] = [
   {
     name: 'TBD',
     location: 'The Other Castle, Sofia',
-    dates: 'TBD May 2026',
+    dates: '31 May 2026',
     format: 'EuroBowl 2026 v3',
     url: ''
   },

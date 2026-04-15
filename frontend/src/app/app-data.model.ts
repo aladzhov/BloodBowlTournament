@@ -12,6 +12,7 @@ export interface Tournament {
   dates: string;
   format: string;
   url: string;
+  sponsors?: string[];
   tracked?: boolean;
 }
 

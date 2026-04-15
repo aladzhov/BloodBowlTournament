@@ -29,7 +29,8 @@ export const allTournaments: Tournament[] = [
     location: 'The Other Castle, Sofia',
     dates: '19 July 2026',
     format: 'EuroBowl 2026 v3',
-    url: 'https://tourplay.net/en/blood-bowl/scorchers-cup'
+    url: 'https://tourplay.net/en/blood-bowl/scorchers-cup',
+    sponsors: ["charlie-vector-logo.png"]
   },
   {
     name: 'Melon Field Bowl 7',

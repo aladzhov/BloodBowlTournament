@@ -14,8 +14,14 @@
 
           <div class="team-content">
             <div class="team-header-row">
-              <div>
+              <div class="team-header-text">
                 <h3>{{ team.name }}</h3>
+
+                @if (team.stl) {
+                  <a class="team-stl-link" [href]="'/' + team.stl" target="_blank" rel="noopener">
+                    STL file
+                  </a>
+                }
               </div>
             </div>
 
@@ -60,7 +66,7 @@
                   </thead>
                   <tbody>
                     @for (player of team.roster; track player.quantity + '-' + player.position + '-' + player.skills) {
-                      <tr>
+                      <tr class="player-main-row">
                         <td data-label="Position">
                           <div class="player-cell">
                             <div class="player-image-slot" aria-hidden="true">{{ player.imageLabel }}</div>
@@ -75,11 +81,32 @@
                         <td data-label="AG">{{ player.ag }}</td>
                         <td data-label="PA">{{ player.pa }}</td>
                         <td data-label="AV">{{ player.av }}</td>
-                        <td data-label="Skills">{{ player.skills }}</td>
+                        <td data-label="Skills">
+                          <div class="player-skills">{{ player.skills }}</div>
+                        </td>
                         <td data-label="Primary">{{ player.primary }}</td>
                         <td data-label="Secondary">{{ player.secondary }}</td>
                         <td data-label="Cost">{{ player.cost }}</td>
                       </tr>
+
+                      @if (player.motivation || player.song) {
+                        <tr class="player-lore-row">
+                          <td class="player-lore-cell" colspan="10">
+                            @if (player.motivation) {
+                              <div class="player-motivation">
+                                <span class="player-lore-label">Motivation:</span>
+                                <span>{{ player.motivation }}</span>
+                              </div>
+                            }
+
+                            @if (player.song) {
+                              <div class="player-song">
+                                <span><em>{{ player.song }}</em></span>
+                              </div>
+                            }
+                          </td>
+                        </tr>
+                      }
                     }
                   </tbody>
                 </table>

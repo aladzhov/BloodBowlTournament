@@ -76,6 +76,24 @@
   font-size: 1.35rem;
 }
 
+.team-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.team-stl-link {
+  width: fit-content;
+  color: #00966e;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.team-stl-link:hover {
+  text-decoration: underline;
+}
+
 .team-badge {
   display: inline-flex;
   align-items: center;
@@ -179,6 +197,14 @@
   border-bottom: 0;
 }
 
+.player-main-row td {
+  border-bottom: 0;
+}
+
+.player-lore-row td {
+  border-bottom: 1px solid #e5e7eb;
+}
+
 .roster-table td:nth-child(2),
 .roster-table td:nth-child(3),
 .roster-table td:nth-child(4),
@@ -197,6 +223,45 @@
 .roster-table td:nth-child(7) {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.player-skills {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.player-lore-cell {
+  padding-top: 0.1rem;
+  padding-bottom: 0.9rem;
+  background: #fcfdfd;
+}
+
+.player-motivation,
+.player-song {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.player-song {
+  margin-top: 0.45rem;
+}
+
+.player-motivation {
+  margin-top: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.player-lore-label {
+  margin-right: 0.25rem;
+  color: #334155;
+  font-weight: 700;
+}
+
+.player-song em {
+  font-style: italic;
 }
 
 .player-cell {
@@ -328,7 +393,8 @@
     padding: 0.9rem;
   }
 
-  .roster-table tbody tr + tr {
+  .roster-table tbody tr.player-main-row + tr.player-main-row,
+  .roster-table tbody tr.player-lore-row + tr.player-main-row {
     border-top: 1px solid #e5e7eb;
   }
 
@@ -349,6 +415,25 @@
     margin-top: 0.55rem;
   }
 
+  .player-main-row,
+  .player-lore-row {
+    padding: 0.9rem;
+  }
+
+  .player-lore-row {
+    padding-top: 0;
+  }
+
+  .player-lore-cell {
+    margin-top: 0.8rem;
+    padding: 0;
+    background: transparent;
+  }
+
+  .player-lore-cell::before {
+    content: none;
+  }
+
   .roster-table td::before {
     content: attr(data-label) ': ';
     color: #64748b;
@@ -361,6 +446,15 @@
   .player-cell {
     align-items: flex-start;
     min-width: 0;
+  }
+
+  .player-motivation,
+  .player-song {
+    margin-top: 0.4rem;
+  }
+
+  .player-motivation:first-child {
+    margin-top: 0;
   }
 }
 

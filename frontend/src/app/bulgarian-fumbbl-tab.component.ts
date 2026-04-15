@@ -5,6 +5,7 @@ interface FumbblTeam {
   logo: string;
   details: string[];
   roster: FumbblPlayer[];
+  stl: string;
 }
 
 interface FumbblPlayer {
@@ -21,6 +22,8 @@ interface FumbblPlayer {
   primary: string;
   secondary: string;
   cost: string;
+  motivation: string;
+  song: string;
 }
 
 @Component({
@@ -39,12 +42,13 @@ export class BulgarianFumbblTabComponent {
         'Apothecary: Yes',
         'Leagues: Old World Classic'
       ],
+      stl: "",
       roster: [
         {
           quantity: '0-1',
           position: 'Zmey',
           race: 'Big Guy, Dragon',
-          imageLabel: 'Z',
+          imageLabel: 'Zm',
           ma: '8',
           st: '5',
           ag: '4+',
@@ -53,13 +57,15 @@ export class BulgarianFumbblTabComponent {
           skills: 'Breath Fire, Claws, Mighty Blow +1, Unchanelled Fury',
           primary: 'GSM',
           secondary: '—',
-          cost: '150,000'
+          cost: '150,000',
+          motivation: "The zmey (dragon form) is colossal winged serpent with human-like intelligence. A guardian who protect the harvest. The idea in the team is to pick one of the Zmeys",
+          song: "Очи му са като звезди, крила му са позлатени.",
         },
         {
           quantity: '0-1',
           position: 'Zmey',
           race: 'Big Guy, Human',
-          imageLabel: 'Z',
+          imageLabel: 'Zm',
           ma: '5',
           st: '3',
           ag: '2+',
@@ -68,7 +74,9 @@ export class BulgarianFumbblTabComponent {
           skills: 'Block, Dauntless, Frenzy, Leap',
           primary: 'GAS',
           secondary: '—',
-          cost: '120,000'
+          cost: '120,000',
+          motivation: "The zmey (human form) is a powerful warrior hiding his wings and scales beneath a cloak. He walks among people to experience the world he protects. The idea in the team is to pick one of the Zmeys",
+          song: "Че змей е Стоян, мале мо, змей е и змейски ще си остане.",
         },
         {
           quantity: '0-3',
@@ -83,22 +91,26 @@ export class BulgarianFumbblTabComponent {
           skills: 'Arm Bar, Block, Tackle',
           primary: 'GS',
           secondary: 'A',
-          cost: '90,000'
+          cost: '90,000',
+          motivation: "A masked ritualist draped in heavy furs and massive copper bells. They seek spiritual purification frightening away the darkness with noise and dance",
+          song: "Хлопайте, хлопки, звънете, звънци, да бягат надалеч злите духци!"
         },
         {
-          quantity: '0-2',
-          position: 'Samodiva',
+          quantity: '0-1',
+          position: 'Zlatna Yabalka',
           race: 'Runner, Human',
-          imageLabel: 'S',
-          ma: '7',
+          imageLabel: 'ZY',
+          ma: '6',
           st: '2',
-          ag: '2+',
-          pa: '-',
+          ag: '3+',
+          pa: '3+',
           av: '8+',
-          skills: 'Dodge, My Ball, Sidestep, Taunt, Trickster',
-          primary: 'A',
-          secondary: 'G',
-          cost: '80,000'
+          skills: 'Fend, Leader, Pick-me-up, Sure Hands',
+          primary: 'GP',
+          secondary: 'A',
+          cost: '90,000',
+          motivation: "The zlatna yabalka (golden apple) is a symbol of life, health, and cosmic order",
+          song: "Велике, моме цървена,\nта що си толко хубава"
         },
         {
           quantity: '0-12',
@@ -113,7 +125,9 @@ export class BulgarianFumbblTabComponent {
           skills: 'Jump Up',
           primary: 'GA',
           secondary: 'S',
-          cost: '60,000'
+          cost: '60,000',
+          motivation: "The symbol of the common man’s resilience. Armed only with a wooden flute and a pole (krivachka), he is the bridge between the mundane and the magical, often outsmarting ancient beings through folk wisdom and patience",
+          song: "Излезли са три сюрии,\nтри сюрии с три овчаре"
         }
       ]
     },
@@ -125,10 +139,11 @@ export class BulgarianFumbblTabComponent {
         'Apothecary: No',
         'Leagues: Chaos Clash'
       ],
+      stl: "",
       roster: [
         {
           quantity: '0-1',
-          position: 'Lamia',
+          position: 'Lamya',
           race: 'Big Guy, Dragon',
           imageLabel: 'L',
           ma: '3',
@@ -139,7 +154,9 @@ export class BulgarianFumbblTabComponent {
           skills: 'Claws, Loner 3+, Mighty Blow +1, Multiple Block, Prehensile Tail, Regeneration, Thick Skull',
           primary: 'SM',
           secondary: '—',
-          cost: '150,000'
+          cost: '150,000',
+          motivation: "A multi-headed reptilian horror with a cavernous maw. Unlike the noble Zmey, the Lamya is pure malice. She \"locks\" the communal wells and rivers, demanding human sacrifices just to allow the water to flow.",
+          song: ""
         },
         {
           quantity: '0-2',
@@ -154,11 +171,13 @@ export class BulgarianFumbblTabComponent {
           skills: 'Brawler, Disturbing Presence, Foul Appearance, Frenzy, No Hands',
           primary: 'GSM',
           secondary: 'A',
-          cost: '110,000'
+          cost: '110,000',
+          motivation: "A monstrous, shapeless spirit of the vortex. She is the literal incarnation of the devouring storm. Her only motivation is consumption—she swallows the sun and moon during eclipses and destroys everything in her path just to feed her bottomless hunger",
+          song: ""
         },
         {
           quantity: '0-4',
-          position: 'Talasum',
+          position: 'Talasam',
           race: 'Blocker, Spirit, Undead',
           imageLabel: 'T',
           ma: '5',
@@ -169,11 +188,30 @@ export class BulgarianFumbblTabComponent {
           skills: 'No Hands, Regeneration, Shadowing, Tackle',
           primary: 'GD',
           secondary: 'A',
-          cost: '80,000'
+          cost: '80,000',
+          motivation: "A shadowy spirit bound to a specific place or treasure. He is a restless guardian born from blood or gold. While usually content to stay hidden, he can turn lethal if his territory is encroached upon, dragging victims into the shadows to join his eternal watch",
+          song: ""
+        },
+        {
+          quantity: '0-2',
+          position: 'Samodiva',
+          race: 'Runner, Spirit',
+          imageLabel: 'S',
+          ma: '7',
+          st: '2',
+          ag: '2+',
+          pa: '-',
+          av: '8+',
+          skills: 'Dodge, My Ball, Sidestep, Taunt, Trickster',
+          primary: 'A',
+          secondary: 'G',
+          cost: '80,000',
+          motivation: "A forest nymph of breathtaking beauty, protector of the 'untouched'. Samodivas are notoriously fickle and vengeful. They are known to sometimes lure travelers into \"death-dances\"",
+          song: "Самодиви в бяла премена, чудни, прекрасни, песен подемат"
         },
         {
           quantity: '0-16',
-          position: 'Karakondjul',
+          position: 'Karakondzhul',
           race: 'Lineman, Beastman',
           imageLabel: 'K',
           ma: '6',
@@ -184,7 +222,9 @@ export class BulgarianFumbblTabComponent {
           skills: 'Dodge, Fumblerooski, Stunty',
           primary: 'D',
           secondary: 'AP',
-          cost: '50,000'
+          cost: '50,000',
+          motivation: "A part man, part beast, often with horse-like hooves. He is motivated by pure, chaotic mischief",
+          song: ""
         }
       ]
     }

@@ -1,7 +1,7 @@
-import { Component, HostListener } from '@angular/core';
-import { RankingEntry, Tournament } from './app-data.model';
-import { standingsEntries } from './standings.data';
-import { allTournaments } from './tournaments.data';
+import {Component, HostListener} from '@angular/core';
+import {RankingEntry, Tournament} from './app-data.model';
+import {standingsEntries} from './standings.data';
+import {allTournaments} from './tournaments.data';
 
 interface FeatureCard {
   title: string;
@@ -85,6 +85,14 @@ export class MainTabComponent {
     return String.fromCodePoint(
       ...[...normalized].map((char) => 127397 + char.charCodeAt(0))
     );
+  }
+
+  openExternal(url: string): void {
+    if (!url) {
+      return;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   openFeatureImage(feature: FeatureCard): void {

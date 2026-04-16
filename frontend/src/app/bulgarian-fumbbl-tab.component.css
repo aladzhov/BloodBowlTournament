@@ -129,17 +129,38 @@
   margin-top: 1.5rem;
 }
 
-.roster-heading-row {
+.team-subtab-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 0.85rem;
 }
 
-.roster-heading-row h4 {
-  margin: 0;
-  font-size: 1rem;
+.team-subtab-button {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-subtab-button:hover {
+  transform: translateY(-1px);
+  border-color: #00966e;
+  color: #00966e;
+}
+
+.team-subtab-button.active {
+  background: #00966e;
+  border-color: #00966e;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 150, 110, 0.18);
 }
 
 .roster-table-wrap {
@@ -302,6 +323,44 @@
   font-size: 0.6rem;
 }
 
+.concept-gallery-wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, #fcfdfd, #f8fafc);
+  padding: 1rem;
+}
+
+.concept-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+}
+
+.concept-card {
+  margin: 0;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.concept-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #f8fafc;
+}
+
+.concept-card figcaption {
+  padding: 0.7rem 0.85rem 0.8rem;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 @media (max-width: 980px) {
   .fumbbl-tab {
     padding: 3.5rem 0 4.5rem;
@@ -329,6 +388,10 @@
     flex-basis: 2.35rem;
     width: 2.35rem;
     height: 2.35rem;
+  }
+
+  .concept-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   }
 }
 
@@ -364,9 +427,14 @@
     width: fit-content;
   }
 
-  .roster-heading-row {
-    align-items: flex-start;
-    flex-direction: column;
+  .team-subtab-bar {
+    gap: 0.65rem;
+  }
+
+  .team-subtab-button {
+    flex: 1 1 0;
+    justify-content: center;
+    text-align: center;
   }
 
   .roster-table,
@@ -456,6 +524,15 @@
   .player-motivation:first-child {
     margin-top: 0;
   }
+
+  .concept-gallery-wrap {
+    padding: 0.85rem;
+  }
+
+  .concept-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
 }
 
 @media (max-width: 420px) {
@@ -469,6 +546,18 @@
 
   .roster-table td::before {
     font-size: 0.72rem;
+  }
+
+  .team-subtab-bar {
+    flex-direction: column;
+  }
+
+  .team-subtab-button {
+    width: 100%;
+  }
+
+  .concept-gallery {
+    grid-template-columns: 1fr;
   }
 }
 

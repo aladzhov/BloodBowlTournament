@@ -108,6 +108,20 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.tournament-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.interactive-tournament-card {
+  cursor: pointer;
+}
+
+.interactive-tournament-card:focus-visible {
+  outline: 2px solid var(--bg-green);
+  outline-offset: 3px;
+}
+
 .tournament-card:hover,
 .feature-card:hover,
 .archive-card:hover {
@@ -249,6 +263,57 @@
 
 .meta-list strong {
   color: var(--text-dark);
+}
+
+.tournament-sponsors {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-height: 3.4rem;
+  margin-top: 1rem;
+  padding-top: 0.15rem;
+}
+
+.tournament-sponsors-label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tournament-sponsor-logos {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.tournament-sponsor-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(5.2rem, calc((100% - 1.2rem) / 3));
+  min-width: 0;
+  height: 3.1rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  text-decoration: none;
+}
+
+.tournament-sponsor-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+
+.tournament-sponsor-logo-wrap:hover .tournament-sponsor-logo {
+  transform: scale(1.3);
 }
 
 .standings-card {
@@ -416,6 +481,18 @@ tbody tr:hover {
     padding: 1.25rem;
   }
 
+  .tournament-sponsors {
+    min-height: 3.1rem;
+  }
+
+  .tournament-sponsor-logos {
+    gap: 0.55rem;
+  }
+
+  .tournament-sponsor-logo-wrap {
+    height: 2.9rem;
+  }
+
   .archive-heading {
     margin-top: 3rem;
   }
@@ -438,6 +515,21 @@ tbody tr:hover {
 
   .card {
     padding: 1.1rem;
+  }
+
+  .tournament-sponsors {
+    gap: 0.4rem;
+    min-height: 3rem;
+  }
+
+  .tournament-sponsor-logos {
+    gap: 0.5rem;
+  }
+
+  .tournament-sponsor-logo-wrap {
+    width: min(4.9rem, calc((100% - 1rem) / 3));
+    height: 2.75rem;
+    padding: 0.3rem 0.4rem;
   }
 
   .section-heading h2 {

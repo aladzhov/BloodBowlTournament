@@ -12,7 +12,11 @@ export interface Tournament {
   dates: string;
   format: string;
   url: string;
-  sponsors?: string[];
+  sponsors?: Sponsor[];
   tracked?: boolean;
 }
 
+export interface Sponsor {
+  logo: string;
+  url: string;
+}

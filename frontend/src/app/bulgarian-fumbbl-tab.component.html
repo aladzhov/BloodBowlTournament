@@ -32,85 +32,107 @@
             </ul>
 
             <div class="roster-section">
-              <div class="roster-heading-row">
-                <h4>Roster</h4>
+              <div class="team-subtab-bar" role="tablist" [attr.aria-label]="team.name + ' sections'">
+                @for (tab of teamTabs; track tab.id) {
+                  <button
+                    type="button"
+                    class="team-subtab-button"
+                    [class.active]="isTeamTabActive(team.name, tab.id)"
+                    [attr.aria-selected]="isTeamTabActive(team.name, tab.id)"
+                    (click)="selectTeamTab(team.name, tab.id)">
+                    {{ tab.label }}
+                  </button>
+                }
               </div>
 
-              <div class="roster-table-wrap">
-                <table class="roster-table">
-                  <colgroup>
-                    <col class="col-position">
-                    <col class="col-stat">
-                    <col class="col-stat">
-                    <col class="col-stat">
-                    <col class="col-stat">
-                    <col class="col-stat">
-                    <col class="col-skills">
-                    <col class="col-primary">
-                    <col class="col-secondary">
-                    <col class="col-cost">
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>Position</th>
-                      <th>MA</th>
-                      <th>ST</th>
-                      <th>AG</th>
-                      <th>PA</th>
-                      <th>AV</th>
-                      <th>Skills</th>
-                      <th>PRM</th>
-                      <th>SEC</th>
-                      <th>Cost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (player of team.roster; track player.quantity + '-' + player.position + '-' + player.skills) {
-                      <tr class="player-main-row">
-                        <td data-label="Position">
-                          <div class="player-cell">
-                            <div class="player-image-slot" aria-hidden="true">{{ player.imageLabel }}</div>
-                            <div class="player-meta">
-                              <span class="player-position">{{ player.position }}</span>
-                              <span class="player-quantity">{{ player.quantity }} ({{player.race}})</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td data-label="MA">{{ player.ma }}</td>
-                        <td data-label="ST">{{ player.st }}</td>
-                        <td data-label="AG">{{ player.ag }}</td>
-                        <td data-label="PA">{{ player.pa }}</td>
-                        <td data-label="AV">{{ player.av }}</td>
-                        <td data-label="Skills">
-                          <div class="player-skills">{{ player.skills }}</div>
-                        </td>
-                        <td data-label="Primary">{{ player.primary }}</td>
-                        <td data-label="Secondary">{{ player.secondary }}</td>
-                        <td data-label="Cost">{{ player.cost }}</td>
+              @if (isTeamTabActive(team.name, 'roster')) {
+                <div class="roster-table-wrap">
+                  <table class="roster-table">
+                    <colgroup>
+                      <col class="col-position">
+                      <col class="col-stat">
+                      <col class="col-stat">
+                      <col class="col-stat">
+                      <col class="col-stat">
+                      <col class="col-stat">
+                      <col class="col-skills">
+                      <col class="col-primary">
+                      <col class="col-secondary">
+                      <col class="col-cost">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th>Position</th>
+                        <th>MA</th>
+                        <th>ST</th>
+                        <th>AG</th>
+                        <th>PA</th>
+                        <th>AV</th>
+                        <th>Skills</th>
+                        <th>PRM</th>
+                        <th>SEC</th>
+                        <th>Cost</th>
                       </tr>
-
-                      @if (player.motivation || player.song) {
-                        <tr class="player-lore-row">
-                          <td class="player-lore-cell" colspan="10">
-                            @if (player.motivation) {
-                              <div class="player-motivation">
-                                <span class="player-lore-label">Motivation:</span>
-                                <span>{{ player.motivation }}</span>
+                    </thead>
+                    <tbody>
+                      @for (player of team.roster; track player.quantity + '-' + player.position + '-' + player.skills) {
+                        <tr class="player-main-row">
+                          <td data-label="Position">
+                            <div class="player-cell">
+                              <div class="player-image-slot" aria-hidden="true">{{ player.imageLabel }}</div>
+                              <div class="player-meta">
+                                <span class="player-position">{{ player.position }}</span>
+                                <span class="player-quantity">{{ player.quantity }} ({{player.race}})</span>
                               </div>
-                            }
-
-                            @if (player.song) {
-                              <div class="player-song">
-                                <span><em>{{ player.song }}</em></span>
-                              </div>
-                            }
+                            </div>
                           </td>
+                          <td data-label="MA">{{ player.ma }}</td>
+                          <td data-label="ST">{{ player.st }}</td>
+                          <td data-label="AG">{{ player.ag }}</td>
+                          <td data-label="PA">{{ player.pa }}</td>
+                          <td data-label="AV">{{ player.av }}</td>
+                          <td data-label="Skills">
+                            <div class="player-skills">{{ player.skills }}</div>
+                          </td>
+                          <td data-label="Primary">{{ player.primary }}</td>
+                          <td data-label="Secondary">{{ player.secondary }}</td>
+                          <td data-label="Cost">{{ player.cost }}</td>
                         </tr>
+
+                        @if (player.motivation || player.song) {
+                          <tr class="player-lore-row">
+                            <td class="player-lore-cell" colspan="10">
+                              @if (player.motivation) {
+                                <div class="player-motivation">
+                                  <span class="player-lore-label">Motivation:</span>
+                                  <span>{{ player.motivation }}</span>
+                                </div>
+                              }
+
+                              @if (player.song) {
+                                <div class="player-song">
+                                  <span><em>{{ player.song }}</em></span>
+                                </div>
+                              }
+                            </td>
+                          </tr>
+                        }
                       }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <div class="concept-gallery-wrap">
+                  <div class="concept-gallery">
+                    @for (image of team.conceptImages; track image.src) {
+                      <figure class="concept-card">
+                        <img class="concept-image" [src]="image.src" [alt]="image.alt" loading="lazy">
+                        <figcaption>{{ image.title }}</figcaption>
+                      </figure>
                     }
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+              }
             </div>
           </div>
         </article>

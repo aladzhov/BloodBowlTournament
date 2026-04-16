@@ -1,11 +1,20 @@
 import { Component } from '@angular/core';
 
+type TeamViewTab = 'roster' | 'concept';
+
 interface FumbblTeam {
   name: string;
   logo: string;
   details: string[];
   roster: FumbblPlayer[];
   stl: string;
+  conceptImages: FumbblConceptImage[];
+}
+
+interface FumbblConceptImage {
+  src: string;
+  alt: string;
+  title: string;
 }
 
 interface FumbblPlayer {
@@ -43,6 +52,28 @@ export class BulgarianFumbblTabComponent {
         'Leagues: Old World Classic'
       ],
       stl: "",
+      conceptImages: [
+        {
+          src: '/dobroto/kuker.png',
+          alt: 'Dobroto 3D concept of a Kuker',
+          title: 'Kuker Concept'
+        },
+        {
+          src: '/dobroto/kuker2.png',
+          alt: 'Dobroto alternate 3D concept of a Kuker',
+          title: 'Kuker Alternate Concept'
+        },
+        {
+          src: '/dobroto/shepherd.png',
+          alt: 'Dobroto 3D concept of a Shepherd',
+          title: 'Shepherd Concept'
+        },
+        {
+          src: '/dobroto/yabalka.png',
+          alt: 'Dobroto 3D concept of Zlatna Yabalka',
+          title: 'Zlatna Yabalka Concept'
+        }
+      ],
       roster: [
         {
           quantity: '0-1',
@@ -140,6 +171,28 @@ export class BulgarianFumbblTabComponent {
         'Leagues: Chaos Clash'
       ],
       stl: "",
+      conceptImages: [
+        {
+          src: '/zloto/lamya.png',
+          alt: 'Zloto 3D concept of a Lamya',
+          title: 'Lamya Concept'
+        },
+        {
+          src: '/zloto/hala.png',
+          alt: 'Zloto 3D concept of a Hala',
+          title: 'Hala Concept'
+        },
+        {
+          src: '/zloto/samodiva1.png',
+          alt: 'Zloto 3D concept of a Samodiva',
+          title: 'Samodiva Concept I'
+        },
+        {
+          src: '/zloto/samodiva2.png',
+          alt: 'Zloto alternate 3D concept of a Samodiva',
+          title: 'Samodiva Concept II'
+        }
+      ],
       roster: [
         {
           quantity: '0-1',
@@ -229,5 +282,23 @@ export class BulgarianFumbblTabComponent {
       ]
     }
   ];
+
+  readonly teamTabs: Array<{ id: TeamViewTab; label: string }> = [
+    { id: 'roster', label: 'Roster' },
+    { id: 'concept', label: '3D Concept' }
+  ];
+
+  readonly activeTeamTabs = this.teams.reduce<Record<string, TeamViewTab>>((tabs, team) => {
+    tabs[team.name] = 'roster';
+    return tabs;
+  }, {});
+
+  selectTeamTab(teamName: string, tabId: TeamViewTab): void {
+    this.activeTeamTabs[teamName] = tabId;
+  }
+
+  isTeamTabActive(teamName: string, tabId: TeamViewTab): boolean {
+    return this.activeTeamTabs[teamName] === tabId;
+  }
 }
 

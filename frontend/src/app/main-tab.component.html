@@ -9,16 +9,41 @@
     <div class="card-grid three-up">
       @for (tournament of upcomingTournaments; track tournament.name) {
         @if (tournament.url) {
-          <a class="card-link" [href]="tournament.url" target="_blank" rel="noopener noreferrer">
-            <article class="card tournament-card archive-card">
-              <span class="card-title-link">{{ tournament.name }}</span>
-              <ul class="meta-list">
-                <li><strong>Location:</strong> {{ tournament.location }}</li>
-                <li><strong>Date:</strong> {{ tournament.dates }}</li>
-                <li><strong>Format:</strong> {{ tournament.format }}</li>
-              </ul>
-            </article>
-          </a>
+          <article
+            class="card tournament-card archive-card interactive-tournament-card"
+            tabindex="0"
+            [attr.aria-label]="'Open ' + tournament.name"
+            (click)="openExternal(tournament.url)"
+            (keydown.enter)="openExternal(tournament.url)"
+            (keydown.space)="$event.preventDefault(); openExternal(tournament.url)">
+            <span class="card-title-link">{{ tournament.name }}</span>
+            <ul class="meta-list">
+              <li><strong>Location:</strong> {{ tournament.location }}</li>
+              <li><strong>Date:</strong> {{ tournament.dates }}</li>
+              <li><strong>Format:</strong> {{ tournament.format }}</li>
+            </ul>
+            @if (tournament.sponsors && tournament.sponsors.length > 0) {
+              <div class="tournament-sponsors" aria-label="Sponsors">
+                <span class="tournament-sponsors-label">Sponsored by:</span>
+                <div class="tournament-sponsor-logos">
+                  @for (sponsor of tournament.sponsors; track sponsor.logo) {
+                    <a
+                      class="tournament-sponsor-logo-wrap"
+                      [href]="sponsor.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="tournament.name + ' sponsor'"
+                      (click)="$event.stopPropagation()">
+                      <img
+                        class="tournament-sponsor-logo"
+                        [src]="'/' + sponsor.logo"
+                        [alt]="tournament.name + ' sponsor logo'">
+                    </a>
+                  }
+                </div>
+              </div>
+            }
+          </article>
         } @else {
           <article class="card tournament-card archive-card no-link-card">
             <span class="card-title-link">{{ tournament.name }}</span>
@@ -27,6 +52,26 @@
               <li><strong>Date:</strong> {{ tournament.dates }}</li>
               <li><strong>Format:</strong> {{ tournament.format }}</li>
             </ul>
+            @if (tournament.sponsors && tournament.sponsors.length > 0) {
+              <div class="tournament-sponsors"  aria-label="Sponsors">
+                <span class="tournament-sponsors-label">Sponsored by:</span>
+                <div class="tournament-sponsor-logos">
+                  @for (sponsor of tournament.sponsors; track sponsor.logo) {
+                    <a
+                      class="tournament-sponsor-logo-wrap"
+                      [href]="sponsor.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="tournament.name + ' sponsor'">
+                    <img
+                      class="tournament-sponsor-logo"
+                      [src]="'/' + sponsor.logo"
+                      [alt]="tournament.name + ' sponsor logo'">
+                    </a>
+                  }
+                </div>
+              </div>
+            }
           </article>
         }
       }
@@ -83,16 +128,41 @@
     <div class="card-grid three-up">
       @for (tournament of pastTournaments; track tournament.name) {
         @if (tournament.url) {
-          <a class="card-link" [href]="tournament.url" target="_blank" rel="noopener noreferrer">
-            <article class="card tournament-card archive-card">
-              <span class="card-title-link">{{ tournament.name }}</span>
-              <ul class="meta-list">
-                <li><strong>Location:</strong> {{ tournament.location }}</li>
-                <li><strong>Date:</strong> {{ tournament.dates }}</li>
-                <li><strong>Format:</strong> {{ tournament.format }}</li>
-              </ul>
-            </article>
-          </a>
+          <article
+            class="card tournament-card archive-card interactive-tournament-card"
+            tabindex="0"
+            [attr.aria-label]="'Open ' + tournament.name"
+            (click)="openExternal(tournament.url)"
+            (keydown.enter)="openExternal(tournament.url)"
+            (keydown.space)="$event.preventDefault(); openExternal(tournament.url)">
+            <span class="card-title-link">{{ tournament.name }}</span>
+            <ul class="meta-list">
+              <li><strong>Location:</strong> {{ tournament.location }}</li>
+              <li><strong>Date:</strong> {{ tournament.dates }}</li>
+              <li><strong>Format:</strong> {{ tournament.format }}</li>
+            </ul>
+            @if (tournament.sponsors && tournament.sponsors.length > 0) {
+              <div class="tournament-sponsors" aria-label="Sponsors">
+                <span class="tournament-sponsors-label">Sponsored by:</span>
+                <div class="tournament-sponsor-logos">
+                  @for (sponsor of tournament.sponsors; track sponsor.logo) {
+                    <a
+                      class="tournament-sponsor-logo-wrap"
+                      [href]="sponsor.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="tournament.name + ' sponsor'"
+                      (click)="$event.stopPropagation()">
+                      <img
+                        class="tournament-sponsor-logo"
+                        [src]="'/' + sponsor.logo"
+                        [alt]="tournament.name + ' sponsor logo'">
+                    </a>
+                  }
+                </div>
+              </div>
+            }
+          </article>
         } @else {
           <article class="card tournament-card archive-card no-link-card">
             <span class="card-title-link">{{ tournament.name }}</span>
@@ -101,6 +171,26 @@
               <li><strong>Date:</strong> {{ tournament.dates }}</li>
               <li><strong>Format:</strong> {{ tournament.format }}</li>
             </ul>
+            @if (tournament.sponsors && tournament.sponsors.length > 0) {
+              <div class="tournament-sponsors" aria-label="Sponsors">
+                <span class="tournament-sponsors-label">Sponsored by:</span>
+                <div class="tournament-sponsor-logos">
+                  @for (sponsor of tournament.sponsors; track sponsor.logo) {
+                    <a
+                      class="tournament-sponsor-logo-wrap"
+                      [href]="sponsor.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="tournament.name + ' sponsor'">
+                    <img
+                      class="tournament-sponsor-logo"
+                      [src]="'/' + sponsor.logo"
+                      [alt]="tournament.name + ' sponsor logo'">
+                    </a>
+                  }
+                </div>
+              </div>
+            }
           </article>
         }
       }

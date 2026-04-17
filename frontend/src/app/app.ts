@@ -18,14 +18,15 @@ interface TabDefinition {
 })
 export class App implements OnInit {
   private readonly siteUrl = 'https://www.bgbb.eu';
+  private readonly seoSiteName = 'Blood Bowl Bulgaria';
   title = 'Bulgarian Blood Bowl Cup';
   season = '2026';
-  private readonly defaultDescription = 'Follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
+  private readonly defaultDescription = 'Blood Bowl Bulgaria: follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
 
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
     { id: 'previous-seasons', label: 'Previous Seasons', disabled: true },
-    { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
+    // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
   ];
 
   activeTab: TabId = 'main';
@@ -57,10 +58,12 @@ export class App implements OnInit {
 
     this.titleService.setTitle(metadata.title);
     this.metaService.updateTag({ name: 'description', content: metadata.description });
+    this.metaService.updateTag({ name: 'keywords', content: 'Blood Bowl Bulgaria, Bulgarian Blood Bowl, Blood Bowl tournaments Bulgaria, Blood Bowl Cup Bulgaria, Bulgarian Fumbbl' });
     this.metaService.updateTag({ property: 'og:title', content: metadata.title });
     this.metaService.updateTag({ property: 'og:description', content: metadata.description });
     this.metaService.updateTag({ property: 'og:url', content: pageUrl });
     this.metaService.updateTag({ property: 'og:image', content: imageUrl });
+    this.metaService.updateTag({ property: 'og:site_name', content: this.seoSiteName });
 
     this.updateCanonicalLink(pageUrl);
     this.updateStructuredData(pageUrl, imageUrl);
@@ -74,18 +77,18 @@ export class App implements OnInit {
     switch (tabId) {
       case 'bulgarian-fumbbl':
         return {
-          title: `${this.title} ${this.season} | Bulgarian Fumbbl Teams and Rosters`,
-          description: 'Explore Bulgarian Fumbbl teams, custom rosters, player positions, and team identity for Dobroto and Zloto.'
+          title: `${this.seoSiteName} | Bulgarian Fumbbl Teams and Rosters ${this.season}`,
+          description: 'Blood Bowl Bulgaria custom teams: explore Bulgarian Fumbbl rosters, player positions, and team identity for Dobroto and Zloto.'
         };
       case 'previous-seasons':
         return {
-          title: `${this.title} | Previous Seasons`,
-          description: 'Browse the Bulgarian Blood Bowl Cup archive and previous season results.'
+          title: `${this.seoSiteName} | Previous Seasons and Results`,
+          description: 'Blood Bowl Bulgaria archive: browse previous Bulgarian Blood Bowl Cup seasons and results.'
         };
       case 'main':
       default:
         return {
-          title: `${this.title} ${this.season} | Tournaments, Standings and Community`,
+          title: `${this.seoSiteName} ${this.season} | Tournaments, Standings and Community`,
           description: this.defaultDescription
         };
     }
@@ -113,14 +116,14 @@ export class App implements OnInit {
       '@graph': [
         {
           '@type': 'WebSite',
-          name: this.title,
+          name: this.seoSiteName,
           url,
           description: this.defaultDescription,
           inLanguage: 'en'
         },
         {
           '@type': 'Organization',
-          name: this.title,
+          name: this.seoSiteName,
           url,
           logo: this.getAbsoluteUrl('/favicon.png'),
           image: imageUrl,

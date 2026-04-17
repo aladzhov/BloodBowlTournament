@@ -37,7 +37,7 @@ export const allTournaments: Tournament[] = [
   {
     name: 'Melon Field Bowl 7',
     location: 'TBD, Sofia',
-    dates: 'TBD November 2026',
+    dates: 'TBD 2026',
     format: 'EuroBowl 2026',
     url: ''
   }

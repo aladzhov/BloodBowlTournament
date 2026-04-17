@@ -19,6 +19,7 @@
 }
 
 .section-heading {
+  margin-top: 3rem;
   margin-bottom: 2rem;
 }
 
@@ -267,7 +268,7 @@
 
 .tournament-sponsors {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
   gap: 0.45rem;
   min-height: 3.4rem;
@@ -491,10 +492,6 @@ tbody tr:hover {
 
   .tournament-sponsor-logo-wrap {
     height: 2.9rem;
-  }
-
-  .archive-heading {
-    margin-top: 3rem;
   }
 
   th,

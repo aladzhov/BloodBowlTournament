@@ -31,7 +31,12 @@
 
   @switch (activeTab) {
     @case ('main') {
-      <app-main-tab></app-main-tab>
+      <app-main-tab (coachInterviewSelected)="openCoachInterview($event)"></app-main-tab>
+    }
+    @case ('coach-card') {
+      <app-coach-card
+        [selectedCoach]="selectedCoachForInterview"
+        (selectedCoachChange)="setSelectedCoach($event)"></app-coach-card>
     }
     @case ('bulgarian-fumbbl') {
       <app-bulgarian-fumbbl-tab></app-bulgarian-fumbbl-tab>

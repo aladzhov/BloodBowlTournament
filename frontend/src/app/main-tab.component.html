@@ -105,7 +105,17 @@
                   <span class="coach-with-flag">
                     <span class="coach-rank">#{{ entry.rank }}</span>
                     <span class="coach-flag" [attr.aria-label]="entry.country.toUpperCase() + ' flag'">{{ getFlagEmoji(entry.country) }}</span>
-                    <span class="coach-name">{{ entry.coach }}</span>
+                    @if (entry.interviewed) {
+                      <a
+                        class="coach-name coach-interview-link"
+                        href="/#coach-cards"
+                        [attr.aria-label]="'Open coach interview for ' + entry.coach"
+                        (click)="$event.preventDefault(); openCoachInterview(entry.coach)">
+                        {{ entry.coach }}
+                      </a>
+                    } @else {
+                      <span class="coach-name">{{ entry.coach }}</span>
+                    }
                   </span>
                 </td>
                 <td class="desktop-stat-cell" data-label="Points">{{ entry.points }}</td>

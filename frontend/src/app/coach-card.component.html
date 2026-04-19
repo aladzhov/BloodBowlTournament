@@ -1,0 +1,63 @@
+<section class="coach-card-tab">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Coach Cards</h2>
+    </div>
+
+    <div class="coach-tab-bar" role="tablist" aria-label="Bulgarian coaches">
+      @for (coach of coaches; track coach.coach) {
+        @if (coach.interviewed) {
+          <button
+            type="button"
+            class="coach-tab-button"
+            [class.active]="isActiveCoach(coach.coach)"
+            [attr.aria-selected]="isActiveCoach(coach.coach)"
+            (click)="selectCoach(coach.coach)">
+            <span class="coach-tab-name">{{ coach.coach }}</span>
+          </button>
+        }
+      }
+    </div>
+
+    @if (activeCoachEntry && activeInterview) {
+      <article class="coach-interview-card">
+        <header class="coach-header">
+          <div>
+            <p class="coach-country">Bulgaria</p>
+            <h3>{{ activeCoachEntry.coach }}</h3>
+            <p class="coach-intro">{{ activeInterview.intro }}</p>
+          </div>
+
+          <dl class="coach-stats">
+            <div>
+              <dt>Current Rank</dt>
+              <dd>#{{ activeCoachEntry.rank }}</dd>
+            </div>
+            <div>
+              <dt>Points</dt>
+              <dd>{{ activeCoachEntry.points }}</dd>
+            </div>
+            <div>
+              <dt>Touchdowns</dt>
+              <dd>{{ activeCoachEntry.touchdowns }}</dd>
+            </div>
+            <div>
+              <dt>Casualties</dt>
+              <dd>{{ activeCoachEntry.casualties }}</dd>
+            </div>
+          </dl>
+        </header>
+
+        <div class="qa-list">
+          @for (item of activeInterview.questions; track item.question) {
+            <section class="qa-item">
+              <h4>{{ item.question }}</h4>
+              <p>{{ item.answer }}</p>
+            </section>
+          }
+        </div>
+      </article>
+    }
+  </div>
+</section>
+

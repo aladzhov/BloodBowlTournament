@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
-type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl';
+type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl' | 'coach-card';
 
 interface TabDefinition {
   id: TabId;
@@ -26,10 +26,12 @@ export class App implements OnInit {
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
     { id: 'previous-seasons', label: 'Previous Seasons', disabled: true },
+    // { id: 'coach-card', label: 'Coach Cards' },
     // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
   ];
 
   activeTab: TabId = 'main';
+  selectedCoachForInterview: string | null = null;
 
   constructor(
     private readonly titleService: Title,
@@ -49,6 +51,16 @@ export class App implements OnInit {
 
     this.activeTab = tabId;
     this.updateSeo();
+  }
+
+  openCoachInterview(coach: string): void {
+    this.selectedCoachForInterview = coach;
+    this.activeTab = 'coach-card';
+    this.updateSeo();
+  }
+
+  setSelectedCoach(coach: string): void {
+    this.selectedCoachForInterview = coach;
   }
 
   private updateSeo(): void {
@@ -79,6 +91,11 @@ export class App implements OnInit {
         return {
           title: `${this.seoSiteName} | Bulgarian Fumbbl Teams and Rosters ${this.season}`,
           description: 'Blood Bowl Bulgaria custom teams: explore Bulgarian Fumbbl rosters, player positions, and team identity for Dobroto and Zloto.'
+        };
+      case 'coach-card':
+        return {
+          title: `${this.seoSiteName} | Coach Cards`,
+          description: 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.'
         };
       case 'previous-seasons':
         return {

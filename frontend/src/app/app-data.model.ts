@@ -4,6 +4,7 @@ export interface RankingEntry {
   points: number;
   touchdowns: number;
   casualties: number;
+  interviewed: boolean;
 }
 
 export interface Tournament {

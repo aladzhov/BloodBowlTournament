@@ -1,0 +1,215 @@
+:host {
+  display: block;
+}
+
+.container {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.coach-card-tab {
+  padding: 4rem 0 5rem;
+}
+
+.section-heading {
+  margin-bottom: 1.5rem;
+}
+
+.section-heading h2 {
+  margin: 0 0 0.75rem;
+  color: #00966e;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.section-heading p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.coach-tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.coach-tab-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.coach-tab-button:hover {
+  transform: translateY(-1px);
+  border-color: #00966e;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.coach-tab-button.active {
+  border-color: #00966e;
+  background: #00966e;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(0, 150, 110, 0.18);
+}
+
+.coach-tab-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.82rem;
+}
+
+.coach-tab-button:not(.active) .coach-tab-rank {
+  background: #f1f5f9;
+  color: #00966e;
+}
+
+.coach-interview-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(26, 26, 26, 0.06);
+}
+
+.coach-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.coach-country {
+  margin: 0 0 0.45rem;
+  color: #00966e;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coach-header h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.coach-intro {
+  margin: 0.75rem 0 0;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.coach-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.coach-stats div {
+  border-radius: 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  padding: 0.9rem;
+}
+
+.coach-stats dt {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.coach-stats dd {
+  margin: 0.35rem 0 0;
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.qa-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.qa-item {
+  border-radius: 0.9rem;
+  border: 1px solid #e5e7eb;
+  background: #fcfdfd;
+  padding: 1rem 1.1rem;
+}
+
+.qa-item h4 {
+  margin: 0 0 0.45rem;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.qa-item p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .coach-header {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .coach-card-tab {
+    padding: 3rem 0 4rem;
+  }
+
+  .coach-tab-bar {
+    gap: 0.6rem;
+  }
+
+  .coach-tab-button {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .coach-interview-card {
+    padding: 1.2rem;
+  }
+
+  .coach-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .coach-card-tab {
+    padding: 2.5rem 0 3.5rem;
+  }
+
+  .coach-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-tab-button {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+

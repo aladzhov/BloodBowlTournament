@@ -1,4 +1,4 @@
-import {Component, HostListener} from '@angular/core';
+import {Component, EventEmitter, HostListener, Output} from '@angular/core';
 import {RankingEntry, Tournament} from './app-data.model';
 import {standingsEntries} from './standings.data';
 import {allTournaments} from './tournaments.data';
@@ -27,6 +27,8 @@ interface DatedArchiveTournament extends Tournament {
   styleUrl: './main-tab.component.css'
 })
 export class MainTabComponent {
+  @Output() readonly coachInterviewSelected = new EventEmitter<string>();
+
   readonly featureCards: FeatureCard[] = [
     {
       title: 'The Cup',
@@ -85,6 +87,10 @@ export class MainTabComponent {
     return String.fromCodePoint(
       ...[...normalized].map((char) => 127397 + char.charCodeAt(0))
     );
+  }
+
+  openCoachInterview(coach: string): void {
+    this.coachInterviewSelected.emit(coach);
   }
 
   openExternal(url: string): void {

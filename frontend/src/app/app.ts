@@ -1,6 +1,8 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, HostListener, Inject, OnInit } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
+
+import { findCoachBySlug, getCoachCardPath, rankedBulgarianCoachEntries } from './coach-card.data';
 
 type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl' | 'coach-card';
 
@@ -19,6 +21,7 @@ interface TabDefinition {
 export class App implements OnInit {
   private readonly siteUrl = 'https://www.bgbb.eu';
   private readonly seoSiteName = 'Blood Bowl Bulgaria';
+  private readonly defaultCoach = rankedBulgarianCoachEntries[0]?.coach ?? null;
   title = 'Bulgarian Blood Bowl Cup';
   season = '2026';
   private readonly defaultDescription = 'Blood Bowl Bulgaria: follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
@@ -26,7 +29,7 @@ export class App implements OnInit {
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
     { id: 'previous-seasons', label: 'Previous Seasons', disabled: true },
-    // { id: 'coach-card', label: 'Coach Cards' },
+    { id: 'coach-card', label: 'Coach Cards' },
     // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
   ];
 
@@ -40,7 +43,12 @@ export class App implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.updateSeo();
+    this.syncStateFromPath(this.currentPath(), true);
+  }
+
+  @HostListener('window:popstate')
+  onPopState(): void {
+    this.syncStateFromPath(this.currentPath(), false);
   }
 
   selectTab(tabId: TabId): void {
@@ -49,18 +57,32 @@ export class App implements OnInit {
       return;
     }
 
+    if (tabId === 'coach-card') {
+      const coach = this.selectedCoachForInterview ?? this.defaultCoach;
+
+      if (coach) {
+        this.navigateToCoach(coach);
+      }
+
+      return;
+    }
+
     this.activeTab = tabId;
+    this.selectedCoachForInterview = null;
+    this.updateUrl('/', false);
     this.updateSeo();
   }
 
   openCoachInterview(coach: string): void {
-    this.selectedCoachForInterview = coach;
-    this.activeTab = 'coach-card';
-    this.updateSeo();
+    this.navigateToCoach(coach);
   }
 
   setSelectedCoach(coach: string): void {
-    this.selectedCoachForInterview = coach;
+    if (!coach) {
+      return;
+    }
+
+    this.navigateToCoach(coach);
   }
 
   private updateSeo(): void {
@@ -94,8 +116,12 @@ export class App implements OnInit {
         };
       case 'coach-card':
         return {
-          title: `${this.seoSiteName} | Coach Cards`,
-          description: 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.'
+          title: this.selectedCoachForInterview
+            ? `${this.seoSiteName} | Coach Card | ${this.selectedCoachForInterview}`
+            : `${this.seoSiteName} | Coach Cards`,
+          description: this.selectedCoachForInterview
+            ? `Blood Bowl Bulgaria coach card for ${this.selectedCoachForInterview}: browse interview Q&A highlights and current season standing details.`
+            : 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.'
         };
       case 'previous-seasons':
         return {
@@ -152,5 +178,61 @@ export class App implements OnInit {
     if (!existingScript) {
       this.document.head.appendChild(script);
     }
+  }
+
+  private navigateToCoach(coach: string): void {
+    this.selectedCoachForInterview = coach;
+    this.activeTab = 'coach-card';
+    this.updateUrl(getCoachCardPath(coach), false);
+    this.updateSeo();
+  }
+
+  private syncStateFromPath(pathname: string, replaceInvalidPath: boolean): void {
+    const coachSlug = this.extractCoachSlug(pathname);
+
+    if (coachSlug !== null) {
+      const matchedCoach = findCoachBySlug(coachSlug);
+      const fallbackCoach = matchedCoach ?? this.defaultCoach;
+
+      if (fallbackCoach) {
+        this.selectedCoachForInterview = fallbackCoach;
+        this.activeTab = 'coach-card';
+
+        if (replaceInvalidPath) {
+          this.updateUrl(getCoachCardPath(fallbackCoach), true);
+        }
+
+        this.updateSeo();
+        return;
+      }
+    }
+
+    this.selectedCoachForInterview = null;
+    this.activeTab = 'main';
+
+    if (replaceInvalidPath && pathname !== '/') {
+      this.updateUrl('/', true);
+    }
+
+    this.updateSeo();
+  }
+
+  private extractCoachSlug(pathname: string): string | null {
+    const match = pathname.match(/^\/coach\/([^/]+)\/?$/);
+    return match?.[1] ?? null;
+  }
+
+  private currentPath(): string {
+    return this.document.defaultView?.location.pathname ?? '/';
+  }
+
+  private updateUrl(path: string, replace: boolean): void {
+    const browserWindow = this.document.defaultView;
+    if (!browserWindow || browserWindow.location.pathname === path) {
+      return;
+    }
+
+    const historyMethod = replace ? 'replaceState' : 'pushState';
+    browserWindow.history[historyMethod](null, '', path);
   }
 }

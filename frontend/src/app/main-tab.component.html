@@ -105,12 +105,12 @@
                   <span class="coach-with-flag">
                     <span class="coach-rank">#{{ entry.rank }}</span>
                     <span class="coach-flag" [attr.aria-label]="entry.country.toUpperCase() + ' flag'">{{ getFlagEmoji(entry.country) }}</span>
-                    @if (entry.interviewed) {
+                    @if (hasCoachInterview(entry.coach)) {
                       <a
                         class="coach-name coach-interview-link"
-                        href="/#coach-cards"
+                        [href]="coachInterviewHref(entry.coach)"
                         [attr.aria-label]="'Open coach interview for ' + entry.coach"
-                        (click)="$event.preventDefault(); openCoachInterview(entry.coach)">
+                        (click)="onCoachInterviewLinkClick($event, entry.coach)">
                         {{ entry.coach }}
                       </a>
                     } @else {

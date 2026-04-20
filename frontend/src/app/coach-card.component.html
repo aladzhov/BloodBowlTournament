@@ -6,7 +6,7 @@
 
     <div class="coach-tab-bar" role="tablist" aria-label="Bulgarian coaches">
       @for (coach of coaches; track coach.coach) {
-        @if (coach.interviewed) {
+        @if (hasCoachInterview(coach.coach)) {
           <button
             type="button"
             class="coach-tab-button"
@@ -23,7 +23,6 @@
       <article class="coach-interview-card">
         <header class="coach-header">
           <div>
-            <p class="coach-country">Bulgaria</p>
             <h3>{{ activeCoachEntry.coach }}</h3>
             <p class="coach-intro">{{ activeInterview.intro }}</p>
           </div>
@@ -51,8 +50,8 @@
         <div class="qa-list">
           @for (item of activeInterview.questions; track item.question) {
             <section class="qa-item">
-              <h4>{{ item.question }}</h4>
-              <p>{{ item.answer }}</p>
+              <p>Q: {{ item.question }}</p>
+              <h4>A: {{ item.answer }}</h4>
             </section>
           }
         </div>

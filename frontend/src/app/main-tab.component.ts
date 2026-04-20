@@ -1,5 +1,7 @@
 import {Component, EventEmitter, HostListener, Output} from '@angular/core';
 import {RankingEntry, Tournament} from './app-data.model';
+import { getCoachCardPath } from './coach-card.data';
+import { hasCoachInterview } from './coach-interviews.data';
 import {standingsEntries} from './standings.data';
 import {allTournaments} from './tournaments.data';
 
@@ -14,6 +16,7 @@ interface FeatureCard {
 
 interface RankedEntry extends RankingEntry {
   rank: number;
+  interviewed: boolean;
 }
 
 interface DatedArchiveTournament extends Tournament {
@@ -73,7 +76,8 @@ export class MainTabComponent {
       })
       .map((entry, index) => ({
         ...entry,
-        rank: index + 1
+        rank: index + 1,
+        interviewed: hasCoachInterview(entry.coach)
       }));
   }
 
@@ -90,7 +94,24 @@ export class MainTabComponent {
   }
 
   openCoachInterview(coach: string): void {
+    if (!hasCoachInterview(coach)) {
+      return;
+    }
+
     this.coachInterviewSelected.emit(coach);
+  }
+
+  coachInterviewHref(coach: string): string {
+    return getCoachCardPath(coach);
+  }
+
+  onCoachInterviewLinkClick(event: MouseEvent, coach: string): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    event.preventDefault();
+    this.openCoachInterview(coach);
   }
 
   openExternal(url: string): void {
@@ -205,5 +226,7 @@ export class MainTabComponent {
   private startOfDay(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
+
+  protected readonly hasCoachInterview = hasCoachInterview;
 }
 

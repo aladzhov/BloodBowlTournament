@@ -95,15 +95,6 @@
   margin-bottom: 1.5rem;
 }
 
-.coach-country {
-  margin: 0 0 0.45rem;
-  color: #00966e;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .coach-header h3 {
   margin: 0;
   font-size: clamp(1.5rem, 3vw, 2rem);
@@ -158,15 +149,18 @@
 }
 
 .qa-item h4 {
-  margin: 0 0 0.45rem;
-  color: #1e293b;
-  font-size: 1rem;
+  margin: 0;
+  /*color: #1e293b;*/
+  color: #6b7280;
+  line-height: 2;
+  font-size: 0.9rem;
 }
 
 .qa-item p {
-  margin: 0;
-  color: #475569;
-  line-height: 1.7;
+  margin: 0 0 0.45rem;
+  color: #00966e;
+  line-height: 2;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 900px) {

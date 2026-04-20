@@ -1,12 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { RankingEntry } from './app-data.model';
-import { CoachInterview, getCoachInterview } from './coach-interviews.data';
-import { standingsEntries } from './standings.data';
-
-interface RankedCoachEntry extends RankingEntry {
-  rank: number;
-}
+import { RankedCoachEntry, rankedBulgarianCoachEntries } from './coach-card.data';
+import {CoachInterview, getCoachInterview, hasCoachInterview} from './coach-interviews.data';
 
 @Component({
   selector: 'app-coach-card',
@@ -15,23 +10,7 @@ interface RankedCoachEntry extends RankingEntry {
   styleUrl: './coach-card.component.css'
 })
 export class CoachCardComponent {
-  readonly coaches: RankedCoachEntry[] = standingsEntries
-    .filter((entry) => entry.country === 'bg')
-    .sort((left, right) => {
-      if (right.points !== left.points) {
-        return right.points - left.points;
-      }
-
-      if (right.touchdowns !== left.touchdowns) {
-        return right.touchdowns - left.touchdowns;
-      }
-
-      return right.casualties - left.casualties;
-    })
-    .map((entry, index) => ({
-      ...entry,
-      rank: index + 1
-    }));
+  readonly coaches = rankedBulgarianCoachEntries;
 
   activeCoach = '';
 
@@ -63,5 +42,7 @@ export class CoachCardComponent {
 
     return getCoachInterview(this.activeCoach);
   }
+
+  protected readonly hasCoachInterview = hasCoachInterview;
 }
 

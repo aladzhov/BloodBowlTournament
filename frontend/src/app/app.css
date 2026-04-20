@@ -2,10 +2,7 @@
   --bg-green: #00966e;
   --bg-green-dark: #007a59;
   --bg-red: #d62612;
-  --bg-red-dark: #b81f0e;
   --text-dark: #1a1a1a;
-  --text-muted: #6b7280;
-  --border-light: #e5e7eb;
   display: block;
   min-height: 100vh;
   color: var(--text-dark);
@@ -188,11 +185,6 @@
     text-align: center;
   }
 
-  .tab-button.active {
-    background: var(--bg-green);
-    border-color: var(--bg-green);
-    color: #fff;
-  }
 
   .flag-band {
     height: 0.45rem;

@@ -21,14 +21,14 @@ export const allTournaments: Tournament[] = [
     name: 'THE WYRM-UP',
     location: 'The Other Castle, Sofia',
     dates: '31 May 2026',
-    format: 'EuroBowl 2026 v3',
+    format: 'EuroBowl 2026',
     url: 'https://tourplay.net/en/blood-bowl/the-wyrm-up'
   },
   {
     name: 'Scorchers Cup',
     location: 'The Other Castle, Sofia',
     dates: '19 July 2026',
-    format: 'EuroBowl 2026 v3',
+    format: 'EuroBowl 2026',
     url: 'https://tourplay.net/en/blood-bowl/scorchers-cup',
     sponsors: [{
       logo: "charlie-vector-logo.png",

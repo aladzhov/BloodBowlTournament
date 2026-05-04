@@ -43,7 +43,7 @@ export const coachInterviews: Record<string, CoachInterview> = {
     ]
   },
   'Nikolay Arabadzhiev': {
-    intro: `Our Blood Bowl leagues admin`,
+    intro: `The national team captain`,
     questions: [
       {
         question: "When and how did you start playing?",

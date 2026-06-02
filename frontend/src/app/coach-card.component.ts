@@ -10,7 +10,10 @@ import {CoachInterview, getCoachInterview, hasCoachInterview} from './coach-inte
   styleUrl: './coach-card.component.css'
 })
 export class CoachCardComponent {
-  readonly coaches = rankedBulgarianCoachEntries;
+  readonly coaches = rankedBulgarianCoachEntries.sort((a, b) => {
+    if (a.coach > b.coach) return 1
+    else return -1
+  });
 
   activeCoach = '';
 

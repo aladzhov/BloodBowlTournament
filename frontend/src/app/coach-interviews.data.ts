@@ -50,32 +50,65 @@ export const coachInterviews: Record<string, CoachInterview> = {
         answer: "I started with Blood Bowl Chaos edition on PC around 2014. I couldn't make much sense of it but always enjoyed turn based strategy games like X-Com and it looked fun. I mostly watched cKnoor's tutorials on youtube until the BB2016 was announced."
       },
       {
-        question: "Who introduced you to Blood Bowl",
+        question: "Who introduced you to Blood Bowl?",
         answer: "I found the game by myself looking through Steam discount deals. Initially I overlooked Blood Bowl as it seemed like a NFL/FIFA game, but my interest peaked when I realized it's turn based."
       },
       {
-        question: "1-5 - how competitive are you",
+        question: "1-5 - how competitive are you?",
         answer: "For BB I would say 2. It's hard to try-hard in a dice game, but it is fun to consider probabilities and try to play to the best of my abilities."
       },
       {
-        question: "Which is your favorite team",
+        question: "Which is your favorite team?",
         answer: "While I haven't yet played all the teams, I find Imperial Nobility to fit me the best so far. I am excited to give OWA a try with the new ruleset."
       },
       {
-        question: "Who is your favorite player",
+        question: "Who is your favorite player?",
         answer: "I don't think I have one that really stands out, I look at the game in more of a team vibe along with the model sculpts. I guess to give an answer, the human linemen as the baseline of average, universally ok, but not special. I look at the models as very representative of the concept of BB."
       },
       {
-        question: "If there is one thing you can change in Blood Bowl, what would it be",
+        question: "If there is one thing you can change in Blood Bowl, what would it be?",
         answer: "Minor changes to streamline rules and rules writing. I don't like rules about something that only works on the first Tuesday of the month before noon in the summer..."
       },
       {
-        question: "What are some of your most memorable moments",
+        question: "What are some of your most memorable moments?",
         answer: "Uphilling a troll into a KO and triple skulling a block ogre into a knoblar (the dumb fun ones). The first Eurobowl (Europen) experience in Wales 2018 was special, a very fun time and meeting so many people who love the same hobby. Also the first time we played in the actual Eurobowl as a national team in Greece in 2024. Everyone seemed to feel more relaxed and we got to have drinks with the Germany team which was fun."
       },
       {
-        question: "What do you like about Blood Bowl in general",
+        question: "What do you like about Blood Bowl in general?",
         answer: "It is a non-war related table top game which is mostly miniature-agnostic. It gives me creative freedom for the hobby side and it's probably the most comfortable duration to banter and chat over a drink. Being a dice game, I get to witness emergent stories unfold and it's hard to take it too seriously which makes it a chill social activity."
+      }
+    ]
+  },
+  'Martin Pearson': {
+    intro: `Winner of the Wyrm-Up tournament`,
+    questions: [
+      {
+        question: "When and how did you start playing?",
+        answer: "My brother got me into Games Workshop as a kid, but I wasn't really introduced to Blood Bowl by anyone. I love American football, and while we were on holiday in America in 1995, we found and bought the first-ever Blood Bowl PC game. I remember I couldn't wait to get home from the holiday and start playing it! 😂"
+      },
+      {
+        question: "1-5 - how competitive are you?",
+        answer: "I'd say I'm about a 3 out of 5 when it comes to competitiveness. Sometimes I'll take a strong team, and other times I'll take Goblins just for a laugh."
+      },
+      {
+        question: "Which is your favorite team?",
+        answer: "My favourite team is the Tomb Kings, but I really enjoy the new High Elves as well."
+      },
+      {
+        question: "Who is your favorite player?",
+        answer: "My favourite player is the Tomb Guard. They're so much better now with the Brawler skill, and I think they're quite scary now that Break Tackle is a lot better in this edition."
+      },
+      {
+        question: "If there is one thing you can change in Blood Bowl, what would it be?",
+        answer: "Right now, I'm pretty happy with this edition. I think most of the rule changes were good, and I think the stalling rule makes games more interesting. So I wouldn't change anything."
+      },
+      {
+        question: "What are some of your most memorable moments?",
+        answer: "A very recent memorable moment was winning my last tournament, as it was my first proper tournament victory. 🏆"
+      },
+      {
+        question: "What do you like about Blood Bowl in general?",
+        answer: "I think it's the best board game you can play, and for me personally, it helped me settle into Bulgaria much more easily. It's given me a social circle, and I've made some great friends through it."
       }
     ]
   }

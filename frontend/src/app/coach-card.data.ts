@@ -17,13 +17,11 @@ function compareCoachEntries(left: RankingEntry, right: RankingEntry): number {
   return right.casualties - left.casualties;
 }
 
-export const rankedBulgarianCoachEntries: RankedCoachEntry[] = standingsEntries
-  .filter((entry) => entry.country === 'bg')
-  .sort(compareCoachEntries)
-  .map((entry, index) => ({
-    ...entry,
-    rank: index + 1
-  }));
+export const rankedBulgarianCoachEntries: RankedCoachEntry[] = (() => {
+  return [...standingsEntries]
+    .sort(compareCoachEntries)
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+})();
 
 export const bulgarianCoachNames = rankedBulgarianCoachEntries.map(({ coach }) => coach);
 

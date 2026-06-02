@@ -185,6 +185,7 @@ export class App implements OnInit {
     this.activeTab = 'coach-card';
     this.updateUrl(getCoachCardPath(coach), false);
     this.updateSeo();
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   private syncStateFromPath(pathname: string, replaceInvalidPath: boolean): void {

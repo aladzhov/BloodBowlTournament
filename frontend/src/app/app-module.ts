@@ -1,6 +1,5 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing-module';
@@ -22,7 +21,6 @@ import { PuzzlesTabComponent } from './puzzles-tab.component';
   ],
   imports: [
     BrowserModule,
-    FormsModule,
     AppRoutingModule
   ],
   providers: [

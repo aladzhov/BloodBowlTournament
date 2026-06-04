@@ -82,11 +82,6 @@
   gap: 1.5rem;
 }
 
-.card-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-}
 
 .no-link-card {
   cursor: default;
@@ -421,9 +416,6 @@ tbody tr:hover {
   font-weight: 800;
 }
 
-.card-link:hover .card-title-link {
-  color: var(--bg-green-dark);
-}
 
 .community-link {
   margin-top: 2rem;

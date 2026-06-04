@@ -200,6 +200,13 @@ export class PuzzleSessionService implements OnDestroy {
       return; // square occupied
     }
 
+    // A player with 0 passing (PA=0) cannot pick up the ball.
+    const ballOnTarget = board.ball.x === x && board.ball.y === y;
+    const alreadyCarrying = board.ball.x === selected.x && board.ball.y === selected.y;
+    if (ballOnTarget && !alreadyCarrying && selected.characteristics.passing === 0) {
+      return;
+    }
+
     const players = board.players.map((p) => ({ ...p }));
 
     // A move out of an enemy tackle zone is a Dodge; fold its success chance in.
@@ -209,6 +216,9 @@ export class PuzzleSessionService implements OnDestroy {
     const rushChance = isRush
       ? this.engine.rushProbability(board, selected)
       : 1;
+
+    // Bone Head: 2+ on D6 required before the player's first action (5/6 chance).
+    const boneHeadChance = this.boneHeadChance(selected);
 
     // Moving a different player finalizes (activates) the previously moved one.
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
@@ -246,7 +256,7 @@ export class PuzzleSessionService implements OnDestroy {
       lastMovedPlayerId: selected.id,
       selectedPlayerId: solved ? null : selected.id,
       solved,
-      successChance: board.successChance * dodgeChance * rushChance
+      successChance: board.successChance * dodgeChance * rushChance * boneHeadChance
     });
 
     if (solved) {
@@ -268,11 +278,18 @@ export class PuzzleSessionService implements OnDestroy {
       return;
     }
 
+    // A player with PA=0 cannot throw or catch the ball.
+    const passerCheck = board.players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
+    if ((passerCheck && passerCheck.characteristics.passing === 0) || target.characteristics.passing === 0) {
+      return;
+    }
+
     // Compute probability before mutating players (passer must still be on the ball).
     const passerOrig = board.players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
     const passChance = passerOrig
       ? this.engine.passProbability(board, passerOrig, target)
       : 1;
+    const passerBoneHead = passerOrig ? this.boneHeadChance(passerOrig) : 1;
 
     const players = board.players.map((p) => ({ ...p }));
 
@@ -291,7 +308,7 @@ export class PuzzleSessionService implements OnDestroy {
       passUsed: true,
       selectedPlayerId: null,
       solved,
-      successChance: board.successChance * passChance
+      successChance: board.successChance * passChance * passerBoneHead
     });
 
     if (solved) {
@@ -313,6 +330,12 @@ export class PuzzleSessionService implements OnDestroy {
       return;
     }
 
+    // A player with PA=0 cannot catch the ball.
+    if (target.characteristics.passing === 0) {
+      return;
+    }
+
+    const carrierOrig = board.players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
     const players = board.players.map((p) => ({ ...p }));
 
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
@@ -321,6 +344,7 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const catchChance = this.engine.handoffProbability(board, target);
+    const carrierBoneHead = carrierOrig ? this.boneHeadChance(carrierOrig) : 1;
     const solved = board.puzzleType === 'score' && target.x === 0;
 
     boardSignal.set({
@@ -330,7 +354,7 @@ export class PuzzleSessionService implements OnDestroy {
       handoffUsed: true,
       selectedPlayerId: null,
       solved,
-      successChance: board.successChance * catchChance
+      successChance: board.successChance * catchChance * carrierBoneHead
     });
 
     if (solved) {
@@ -385,6 +409,8 @@ export class PuzzleSessionService implements OnDestroy {
     if (attackerId) {
       const attacker = players.find((p) => p.id === attackerId);
       if (attacker) {
+        // Bone Head: fold in the 2+ roll chance if this is the attacker's first action.
+        blockChance *= this.boneHeadChance(attacker);
         attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
         attacker.hasMoved = true;
       }
@@ -407,6 +433,10 @@ export class PuzzleSessionService implements OnDestroy {
       const playerToRemove = players.find((p) => p.id === removePlayerId);
       if (playerToRemove && playerToRemove.team === 'away' && board.puzzleType === 'surf') {
         solved = true;
+      }
+      // If the removed player was carrying the ball, the ball leaves the pitch too.
+      if (carrier && removePlayerId === carrier.id) {
+        ball = { x: -1, y: -1 };
       }
       // Remove the player from the board.
       const idx = players.findIndex((p) => p.id === removePlayerId);
@@ -450,6 +480,14 @@ export class PuzzleSessionService implements OnDestroy {
   private hasSkill(player: WorkingPlayer, skill: string): boolean {
     const target = skill.toLowerCase().replace(/[^a-z]/g, '');
     return player.skills.some((s) => s.toLowerCase().replace(/[^a-z]/g, '') === target);
+  }
+
+  /**
+   * Returns 5/6 if the player has Bone Head and hasn't acted yet this puzzle
+   * (i.e. the Bone Head 2+ roll is still pending), otherwise 1.
+   */
+  private boneHeadChance(player: WorkingPlayer): number {
+    return (!player.hasMoved && this.hasSkill(player, 'Bone Head')) ? 5 / 6 : 1;
   }
 
   private boardSignal(key: string, data: PuzzleData, puzzleType: PuzzleType = 'score'): WritableSignal<WorkingBoard> {

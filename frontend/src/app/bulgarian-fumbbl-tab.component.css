@@ -94,18 +94,6 @@
   text-decoration: underline;
 }
 
-.team-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 0.45rem 0.8rem;
-  background: rgba(0, 150, 110, 0.08);
-  color: #00966e;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
 
 .team-details {
   display: flex;
@@ -423,9 +411,6 @@
     text-align: center;
   }
 
-  .team-badge {
-    width: fit-content;
-  }
 
   .team-subtab-bar {
     gap: 0.65rem;

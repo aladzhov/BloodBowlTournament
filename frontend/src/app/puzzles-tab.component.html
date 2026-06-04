@@ -177,7 +177,9 @@
                 </div>
               </div>
 
-              <aside class="player-details" [class.empty]="!hoveredPlayer()">
+              <div class="board-side">
+                <p class="objective-label">🎯 {{ objectiveLabel() }}</p>
+                <aside class="player-details" [class.empty]="!hoveredPlayer()">
                 @if (hoveredPlayer(); as player) {
                   <h4
                     class="details-name"
@@ -206,7 +208,8 @@
                 } @else {
                   <p class="details-hint">Hover a player to see their stats and skills</p>
                 }
-              </aside>
+                </aside>
+              </div>
             </div>
           </div>
 

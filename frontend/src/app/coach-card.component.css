@@ -63,21 +63,6 @@
   box-shadow: 0 12px 24px rgba(0, 150, 110, 0.18);
 }
 
-.coach-tab-rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.15rem;
-  height: 2.15rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  font-size: 0.82rem;
-}
-
-.coach-tab-button:not(.active) .coach-tab-rank {
-  background: #f1f5f9;
-  color: #00966e;
-}
 
 .coach-interview-card {
   background: #fff;

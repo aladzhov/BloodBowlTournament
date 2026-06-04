@@ -384,17 +384,16 @@
   cursor: default;
 }
 
-/* Probability readout shown while selecting block results */
-.block-chance {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1d4ed8;
-  align-self: center;
-}
 
 /* ── Player details side panel ── */
-.player-details {
+.board-side {
   flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-details {
   border: 1px solid var(--border-light);
   border-radius: 0.6rem;
   padding: 1rem;
@@ -413,6 +412,13 @@
   font-size: 0.85rem;
   text-align: center;
   margin: 0;
+}
+
+.objective-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--bg-green);
 }
 
 .details-name {
@@ -491,9 +497,6 @@
   background: rgba(255, 255, 255, 0.85);
 }
 
-.veil-icon {
-  font-size: 2.5rem;
-}
 
 .veil-text {
   margin: 0;
@@ -596,21 +599,6 @@
 .solved-hint.incorrect {
   color: var(--bg-red);
   font-weight: 700;
-}
-
-/* Live warning shown while playing when probability already exceeds the target */
-.incorrect-warning {
-  margin: 0 0 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--bg-red);
-}
-
-.keyboard-hint {
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
 }
 
 .empty-state {

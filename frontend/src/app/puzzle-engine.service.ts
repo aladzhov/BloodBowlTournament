@@ -188,12 +188,14 @@ export class PuzzleEngineService {
     const carriesBall = board.ball.x === selected.x && board.ball.y === selected.y;
     const adjacent = this.isAdjacent(selected.x, selected.y, target.x, target.y);
 
-    if (carriesBall && !board.passUsed) {
+    if (carriesBall && !board.passUsed
+        && selected.characteristics.passing > 0
+        && target.characteristics.passing > 0) {
       options.push({ id: 'pass', label: 'Pass', kind: 'primary' });
     }
 
     // Hand off is available to an adjacent team-mate, once per puzzle.
-    if (carriesBall && adjacent && !board.handoffUsed) {
+    if (carriesBall && adjacent && !board.handoffUsed && target.characteristics.passing > 0) {
       options.push({ id: 'handoff', label: 'Hand off', kind: 'primary' });
     }
 

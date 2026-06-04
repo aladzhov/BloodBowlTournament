@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, switchMap, map } from 'rxjs/operators';
 import type { Puzzle } from './puzzles.data';
+import { getVisiblePuzzles } from './puzzles.data';
 
 /**
  * Loads puzzles at runtime from /puzzles/index.json (list of dates) and the
@@ -29,11 +30,12 @@ export class PuzzleLoaderService {
               )
             )
       ),
-      map((list) =>
-        (list.filter(Boolean) as Puzzle[]).sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        )
-      ),
+      map((list) => {
+        // Temporarily populate the static array so getVisiblePuzzles can filter
+        // by today's date, then return only the visible (non-future) puzzles.
+        const loaded = list.filter(Boolean) as Puzzle[];
+        return getVisiblePuzzles(new Date(), loaded);
+      }),
       catchError(() => of([] as Puzzle[]))
     ).subscribe((puzzles) => this.puzzles.set(puzzles));
   }

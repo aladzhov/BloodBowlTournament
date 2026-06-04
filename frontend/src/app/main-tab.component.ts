@@ -11,7 +11,6 @@ interface FeatureCard {
   details?: string[];
   imageSrc?: string;
   imageAlt?: string;
-  href?: string;
 }
 
 interface RankedEntry extends RankingEntry {

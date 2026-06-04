@@ -180,6 +180,15 @@ export class PuzzlesTabComponent implements OnDestroy {
     })
   );
 
+  readonly objectiveLabel = computed(() => {
+    switch (this.current().type ?? 'score') {
+      case 'surf':  return 'Surf a player';
+      case 'sack':  return 'Sack the ball';
+      case 'score':
+      default:      return 'Score a touchdown';
+    }
+  });
+
   readonly gridTemplateColumns = computed(() => `repeat(${this.working().cols}, 1fr)`);
 
   /** Current cumulative success chance as a rounded percentage. */

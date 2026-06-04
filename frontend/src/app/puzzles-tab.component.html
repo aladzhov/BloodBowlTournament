@@ -1,0 +1,248 @@
+<section class="puzzles-tab">
+  <div class="container">
+    <div class="section-heading">
+      <h2>Puzzles</h2>
+    </div>
+
+    @if (puzzles().length === 0) {
+      <p class="empty-state">Loading puzzles…</p>
+    } @else {
+      <div class="puzzle-nav">
+        <button
+          class="nav-arrow"
+          [disabled]="!hasPrevious()"
+          (click)="previous()"
+          aria-label="Previous puzzle">
+          &#8592;
+        </button>
+
+        <span class="nav-counter">{{ currentIndex() + 1 }} / {{ puzzles().length }}</span>
+
+        <button
+          class="nav-arrow"
+          [disabled]="!hasNext()"
+          (click)="next()"
+          aria-label="Next puzzle">
+          &#8594;
+        </button>
+      </div>
+
+      <article class="puzzle-card">
+        <header class="puzzle-header">
+          <div class="puzzle-meta">
+            <time class="puzzle-date">{{ formattedDate() }}</time>
+            <span class="puzzle-author">by {{ current().author }}</span>
+          </div>
+          <h3 class="puzzle-title">{{ current().title }}</h3>
+          @if (revealed()) {
+            <button
+              class="btn-restart"
+              type="button"
+              (click)="restart()"
+              aria-label="Restart puzzle"
+              title="Restart puzzle">
+              ↺
+            </button>
+          }
+        </header>
+
+        <div class="puzzle-body-wrapper" [class.blurred]="!revealed()">
+          <div class="puzzle-body">
+            <div class="board-layout">
+              <div class="board-area">
+                <div
+                  class="field-grid"
+                  [style.grid-template-columns]="gridTemplateColumns()"
+                  [style.--cols]="working().cols"
+                  [style.--rows]="working().rows">
+                  @for (cell of cells(); track cell.x + '-' + cell.y) {
+                    <div
+                      class="field-cell"
+                      [class.dark]="(cell.x + cell.y) % 2 === 1"
+                      [class.move-target]="cell.isMoveTarget && !pushing()"
+                      [class.push-target]="isPushTarget(cell)"
+                      [class.selectable]="!pushing() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
+                      [class.targetable]="!pushing() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
+                      (click)="onCellClick(cell)"
+                      (mouseenter)="onPlayerHover(cell.player)"
+                      (mouseleave)="onPlayerHover(null)">
+                      @if (cell.player) {
+                        <div
+                          class="player-chip"
+                          [class.home]="cell.player.team === 'home'"
+                          [class.away]="cell.player.team === 'away'"
+                          [class.activated]="cell.player.activated"
+                          [class.selected]="cell.isSelected"
+                          [class.prone]="cell.player.prone">
+                          <span class="player-name"
+                            [class.player-name--long]="cell.player.name.length > 7"
+                            [class.player-name--xlong]="cell.player.name.length > 9">{{ cell.player.name }}</span>
+                          @if (cell.isSelected) {
+                            <span class="move-left" aria-label="movement left">
+                              {{ cell.player.movementLeft > 0 ? cell.player.movementLeft : ('R' + cell.player.rushLeft) }}
+                            </span>
+                          }
+                          @if (cell.hasBall) {
+                            <span class="ball-marker" aria-label="ball">🏈</span>
+                          }
+                        </div>
+                      } @else if (cell.hasBall) {
+                        <span class="ball-marker loose" aria-label="loose ball">🏈</span>
+                      } @else if (cell.isMoveTarget && !pushing()) {
+                        <span class="move-indicator" [class.dodge]="cell.requiresDodge" [class.rush]="cell.requiresRush">
+                          @if (cell.requiresDodge && cell.requiresRush) { dodge+rush }
+                          @else if (cell.requiresDodge) { dodge }
+                          @else if (cell.requiresRush) { rush }
+                        </span>
+                      }
+                    </div>
+                  }
+                  <div class="touchdown-overlay" aria-hidden="true">
+                    @for (letter of touchdownLetters; track $index) {
+                      <span>{{ letter }}</span>
+                    }
+                  </div>
+                </div>
+
+
+                <div class="action-slot">
+                  @if (pushing()) {
+                    <div class="action-menu" role="dialog" aria-label="Choose push square">
+                      @if (pushState()?.proneInPlaceOnly) {
+                        <span class="action-title">Both Down vs {{ pushPlayerName() }}</span>
+                      } @else {
+                        <span class="action-title">Push {{ pushPlayerName() }} →</span>
+                      }
+                      <div class="action-buttons">
+                        @if (pushState()?.allowProneInPlace) {
+                          <button type="button" class="action-button opponent" (click)="proneInPlace()">Prone in Place</button>
+                        }
+                        @if (!pushState()?.proneInPlaceOnly && pushOutOfBoundsAvailable()) {
+                          <button type="button" class="action-button opponent" (click)="pushOutOfBounds()">Out of Bounds</button>
+                        }
+                        <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else if (followingUp()) {
+                    <div class="action-menu" role="dialog" aria-label="Follow up?">
+                      <span class="action-title">Follow Up?</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-button" (click)="confirmFollowUp(true)">Follow Up</button>
+                        <button type="button" class="action-button" (click)="confirmFollowUp(false)">Stay</button>
+                      </div>
+                    </div>
+                  } @else if (blockStage()) {
+                    <div class="action-menu block-select" role="dialog" aria-label="Choose block results">
+                      <span class="action-title">{{ actionTitle() }}</span>
+                      <div class="action-buttons">
+                        @for (option of actionOptions(); track option.id) {
+                          <button
+                            type="button"
+                            class="action-button"
+                            [class.opponent]="option.kind === 'opponent'"
+                            [class.selected]="selectedBlockResults().includes(option.id)"
+                            (click)="runAction(option.id)">
+                            {{ option.label }}
+                          </button>
+                        }
+                      </div>
+                      <div class="action-buttons block-confirm-row">
+                        <button
+                          type="button"
+                          class="action-confirm"
+                          [disabled]="selectedBlockResults().length === 0"
+                          (click)="confirmBlock()">
+                          Confirm
+                        </button>
+                        <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else if (actionTarget()) {
+                    <div class="action-menu" role="dialog" aria-label="Choose action">
+                      <span class="action-title">{{ actionTitle() }}</span>
+                      <div class="action-buttons">
+                        @for (option of actionOptions(); track option.id) {
+                          <button
+                            type="button"
+                            class="action-button"
+                            [class.opponent]="option.kind === 'opponent'"
+                            (click)="runAction(option.id)">
+                            {{ option.label }}
+                          </button>
+                        }
+                        <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <aside class="player-details" [class.empty]="!hoveredPlayer()">
+                @if (hoveredPlayer(); as player) {
+                  <h4
+                    class="details-name"
+                    [class.home]="player.team === 'home'"
+                    [class.away]="player.team === 'away'">
+                    {{ player.name }}
+                  </h4>
+                  <div class="skills">
+                    <h5>Characteristics</h5>
+                    <ul class="characteristics">
+                      <li><span>MA</span><strong>{{ player.characteristics.movement }}</strong></li>
+                      <li><span>ST</span><strong>{{ player.characteristics.strength }}</strong></li>
+                      <li><span>AG</span><strong>{{ player.characteristics.agility }}+</strong></li>
+                      <li><span>PA</span><strong>{{ player.characteristics.passing }}+</strong></li>
+                      <li><span>AV</span><strong>{{ player.characteristics.armor }}+</strong></li>
+                    </ul>
+                  </div>
+                  <div class="skills">
+                    <h5>Skills</h5>
+                    <div class="skill-tags">
+                      @for (skill of player.skills; track skill) {
+                        <span class="skill-tag">{{ skill }}</span>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <p class="details-hint">Hover a player to see their stats and skills</p>
+                }
+              </aside>
+            </div>
+          </div>
+
+          @if (!revealed()) {
+            <div class="puzzle-veil" aria-hidden="true">
+              <p class="veil-text">Start solving to reveal the puzzle</p>
+            </div>
+          }
+        </div>
+
+        <footer class="puzzle-footer">
+          @if (!revealed()) {
+            <button class="btn-start" (click)="startSolving()">
+              ▶ Start Solving
+            </button>
+          } @else {
+            @if (solved()) {
+              <div class="solved-badge" role="status">
+                @if (!isIncorrectSolution()) {
+                  <p class="solved-title">🏆 Touchdown! Solved in {{ timerDisplay() }} - {{ chancePercent() }}% chance for success.</p>
+                }
+                @if (isIncorrectSolution()) {
+                  <p class="solved-hint incorrect">This is not a correct solution!</p>
+                } @else if (canDoBetter()) {
+                  <p class="solved-hint">Great job — but you can do better!</p>
+                }
+              </div>
+            } @else {
+              <div class="timer" aria-live="polite" aria-label="Elapsed time">
+                <span class="timer-icon">⏱</span>
+                <span class="timer-display">{{ timerDisplay() }}</span>
+              </div>
+            }
+          }
+        </footer>
+      </article>
+    }
+  </div>
+</section>

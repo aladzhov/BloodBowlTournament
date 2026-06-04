@@ -1,0 +1,29 @@
+{
+  "date": "2026-06-05",
+  "title": "Move, get out of the way",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "field": { "rows": 4, "cols": 7 },
+    "ball": { "position": { "x": 2, "y": 2 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Human Lineman",
+        "position": { "x": 2, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": [],
+        "activated": false
+      }
+    ],
+    "targetScore": 83
+  }
+}

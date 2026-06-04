@@ -1,0 +1,29 @@
+{
+  "date": "2026-06-04",
+  "title": "Hello World!",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "field": { "rows": 8, "cols": 7 },
+    "ball": { "position": { "x": 7, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Orc Lineman",
+        "position": { "x": 7, "y": 3 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
+        "skills": [],
+        "activated": false
+      },
+      {
+        "team": "home",
+        "name": "Orc Lineman",
+        "position": { "x": 4, "y": 4 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
+        "skills": [],
+        "activated": false
+      }
+    ],
+    "targetScore": 69
+  }
+}

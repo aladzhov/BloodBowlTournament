@@ -44,6 +44,9 @@
     @case ('previous-seasons') {
       <app-previous-seasons-tab></app-previous-seasons-tab>
     }
+    @case ('puzzles') {
+      <app-puzzles-tab (puzzleDateChange)="onPuzzleDateChange($event)"></app-puzzles-tab>
+    }
   }
 </main>
 

@@ -1,0 +1,53 @@
+{
+  "date": "2026-06-06",
+  "title": "I like to surf it, surf it",
+  "author": "Atanas Ladzhov",
+  "type": "surf",
+  "data": {
+    "field": { "rows": 4, "cols": 7 },
+    "ball": { "position": { "x": 2, "y": 0 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Tomb Kings Blitzer",
+        "position": { "x": 2, "y": 0 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Regeneration", "Thick Skull"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Ghoul Runner",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
+        "skills": ["Frenzy"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Bloodborn Marauder",
+        "position": { "x": 0, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Frenzy"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Bloodborn Marauder",
+        "position": { "x": 1, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Frenzy"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Bloodspawn",
+        "position": { "x": 3, "y": 3 },
+        "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Claws", "Frenzy", "Loner 4+", "Mighty Blow", "Unchannelled Fury"],
+        "activated": false
+      }
+    ],
+    "targetScore": 25
+  }
+}

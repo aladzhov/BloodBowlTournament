@@ -3,8 +3,9 @@ import { Component, HostListener, Inject, OnInit } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
 import { findCoachBySlug, getCoachCardPath, rankedBulgarianCoachEntries } from './coach-card.data';
+import { PuzzleSessionService } from './puzzle-session.service';
 
-type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl' | 'coach-card';
+type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl' | 'coach-card' | 'puzzles';
 
 interface TabDefinition {
   id: TabId;
@@ -30,6 +31,7 @@ export class App implements OnInit {
     { id: 'main', label: 'Cup' },
     { id: 'previous-seasons', label: 'Previous Seasons', disabled: true },
     { id: 'coach-card', label: 'Coach Cards' },
+    { id: 'puzzles', label: 'Puzzles' },
     // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
   ];
 
@@ -39,7 +41,8 @@ export class App implements OnInit {
   constructor(
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    @Inject(DOCUMENT) private readonly document: Document
+    @Inject(DOCUMENT) private readonly document: Document,
+    private readonly puzzleSessionService: PuzzleSessionService
   ) {}
 
   ngOnInit(): void {
@@ -64,6 +67,11 @@ export class App implements OnInit {
         this.navigateToCoach(coach);
       }
 
+      return;
+    }
+
+    if (tabId === 'puzzles') {
+      this.navigateToPuzzles();
       return;
     }
 
@@ -127,6 +135,11 @@ export class App implements OnInit {
         return {
           title: `${this.seoSiteName} | Previous Seasons and Results`,
           description: 'Blood Bowl Bulgaria archive: browse previous Bulgarian Blood Bowl Cup seasons and results.'
+        };
+      case 'puzzles':
+        return {
+          title: `${this.seoSiteName} | Puzzles`,
+          description: 'Blood Bowl Bulgaria puzzles: test your Blood Bowl knowledge.'
         };
       case 'main':
       default:
@@ -208,6 +221,17 @@ export class App implements OnInit {
       }
     }
 
+    const puzzleDate = this.extractPuzzleDate(pathname);
+    if (puzzleDate !== null || pathname === '/puzzles' || pathname === '/puzzles/') {
+      if (puzzleDate) {
+        this.puzzleSessionService.setLastViewedKey(puzzleDate);
+      }
+      this.selectedCoachForInterview = null;
+      this.activeTab = 'puzzles';
+      this.updateSeo();
+      return;
+    }
+
     this.selectedCoachForInterview = null;
     this.activeTab = 'main';
 
@@ -221,6 +245,23 @@ export class App implements OnInit {
   private extractCoachSlug(pathname: string): string | null {
     const match = pathname.match(/^\/coach\/([^/]+)\/?$/);
     return match?.[1] ?? null;
+  }
+
+  private extractPuzzleDate(pathname: string): string | null {
+    const match = pathname.match(/^\/puzzles\/(\d{4}-\d{2}-\d{2})\/?$/);
+    return match?.[1] ?? null;
+  }
+
+  private navigateToPuzzles(date?: string): void {
+    this.selectedCoachForInterview = null;
+    this.activeTab = 'puzzles';
+    const path = date ? `/puzzles/${date}` : '/puzzles';
+    this.updateUrl(path, false);
+    this.updateSeo();
+  }
+
+  onPuzzleDateChange(date: string): void {
+    this.updateUrl(`/puzzles/${date}`, false);
   }
 
   private currentPath(): string {

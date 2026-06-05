@@ -1,0 +1,45 @@
+{
+  "date": "2026-06-08",
+  "title": "Rat attack",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "field": { "rows": 5, "cols": 7 },
+    "ball": { "position": { "x": 1, "y": 5 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Skaven Blitzer",
+        "position": { "x": 3, "y": 1 },
+        "characteristics": { "movement": 8, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Block", "Strip Ball"],
+        "activated": false
+      },
+      {
+        "team": "home",
+        "name": "Rat Ogre",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 5, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Animal Savagery", "Frenzy", "Loner 4+", "Mighty Blow", "Prehensile Tail"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Elf Thrower",
+        "position": { "x": 1, "y": 5 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
+        "skills": ["Hail Mary Pass", "Pass"],
+        "activated": false
+      },
+      {
+        "team": "away",
+        "name": "Elf Blitzer",
+        "position": { "x": 2, "y": 4 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Block", "Sidestep"],
+        "activated": false
+      }
+    ],
+    "targetScore": 83
+  }
+}

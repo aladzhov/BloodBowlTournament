@@ -25,6 +25,24 @@ export interface WorkingPlayer {
   sureFeetUsed: boolean;
   /** Whether the player is currently knocked down (prone) and exerts no tackle zone. */
   prone: boolean;
+  /** True once this player has performed a Block (prevents a second block/pass/handoff). */
+  hasBlocked: boolean;
+  /** Whether the player has already used their Frenzy second block this activation. */
+  frenzyUsed: boolean;
+}
+
+/**
+ * One probability-reducing event in a puzzle solution. Recorded whenever an
+ * action multiplies the running success chance by a factor below 1, so the UI
+ * can show a per-step breakdown of where chance was lost and why.
+ */
+export interface ChanceLogEntry {
+  /** Human-readable cause, e.g. "Dodge — Skaven Blitzer". */
+  reason: string;
+  /** The multiplicative probability applied for this step (0..1, < 1). */
+  factor: number;
+  /** Cumulative success chance (0..1) AFTER this factor was applied. */
+  chanceAfter: number;
 }
 
 export interface WorkingBoard {
@@ -42,8 +60,18 @@ export interface WorkingBoard {
   passUsed: boolean;
   /** Whether the single allowed hand-off has already been used this puzzle. */
   handoffUsed: boolean;
+  /**
+   * The id of the home player performing the team's single Blitz this turn,
+   * or null while the Blitz is still available. A Blitz is the once-per-turn
+   * Move + Block action; the owning player may keep moving after the block,
+   * while any other moved player is barred from blocking. This single value is
+   * the sole source of truth for "is the Blitz used, and by whom".
+   */
+  blitzPlayerId: string | null;
   /** Running probability (0..1) that the solution executes successfully. */
   successChance: number;
+  /** Ordered log of every action that reduced the success chance, with reasons. */
+  chanceLog: ChanceLogEntry[];
 }
 
 /**
@@ -249,6 +277,12 @@ export class PuzzleSessionService implements OnDestroy {
     // A touchdown is scored when the ball carrier reaches the endzone (row 0, i.e. x === 0).
     const solved = board.puzzleType === 'score' && possessesBall && x === 0;
 
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `Dodge — ${selected.name}`, factor: dodgeChance },
+      { reason: `Rush — ${selected.name}`, factor: rushChance },
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: boneHeadChance }
+    ]);
+
     boardSignal.set({
       ...board,
       players,
@@ -256,7 +290,8 @@ export class PuzzleSessionService implements OnDestroy {
       lastMovedPlayerId: selected.id,
       selectedPlayerId: solved ? null : selected.id,
       solved,
-      successChance: board.successChance * dodgeChance * rushChance * boneHeadChance
+      successChance,
+      chanceLog
     });
 
     if (solved) {
@@ -301,6 +336,13 @@ export class PuzzleSessionService implements OnDestroy {
 
     const solved = board.puzzleType === 'score' && target.x === 0;
 
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `Pass — ${passerOrig?.name ?? 'passer'} → ${target.name}`, factor: passChance },
+      ...(passerOrig
+        ? [{ reason: `${this.negatraitName(passerOrig)} — ${passerOrig.name}`, factor: passerBoneHead }]
+        : [])
+    ]);
+
     boardSignal.set({
       ...board,
       players,
@@ -308,7 +350,8 @@ export class PuzzleSessionService implements OnDestroy {
       passUsed: true,
       selectedPlayerId: null,
       solved,
-      successChance: board.successChance * passChance * passerBoneHead
+      successChance,
+      chanceLog
     });
 
     if (solved) {
@@ -347,6 +390,13 @@ export class PuzzleSessionService implements OnDestroy {
     const carrierBoneHead = carrierOrig ? this.boneHeadChance(carrierOrig) : 1;
     const solved = board.puzzleType === 'score' && target.x === 0;
 
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `Hand-off — ${carrierOrig?.name ?? 'carrier'} → ${target.name}`, factor: catchChance },
+      ...(carrierOrig
+        ? [{ reason: `${this.negatraitName(carrierOrig)} — ${carrierOrig.name}`, factor: carrierBoneHead }]
+        : [])
+    ]);
+
     boardSignal.set({
       ...board,
       players,
@@ -354,7 +404,8 @@ export class PuzzleSessionService implements OnDestroy {
       handoffUsed: true,
       selectedPlayerId: null,
       solved,
-      successChance: board.successChance * catchChance * carrierBoneHead
+      successChance,
+      chanceLog
     });
 
     if (solved) {
@@ -394,9 +445,25 @@ export class PuzzleSessionService implements OnDestroy {
     if (moves.length === 0 && !attackerId && !removePlayerId) return;
 
     const players = board.players.map((p) => ({ ...p }));
+    let blitzPlayerId = board.blitzPlayerId;
+
+    // Captured from the attacker (if any) for the chance-log entries below.
+    let attackerName: string | null = null;
+    let attackerNegatraitName = 'Bone Head';
+    let attackerBoneHead = 1;
 
     // Track the ball carrier's position before any changes.
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
+    const attacker = attackerId ? players.find((p) => p.id === attackerId) : null;
+    const defender = defenderId ? players.find((p) => p.id === defenderId) : null;
+
+    // Strip Ball: Check if the attacker has Strip Ball and the defender is the ball carrier
+    // Strip Ball forces a ball drop when a player is pushed (not knocked down)
+    // Exception: Sure Hands negates Strip Ball
+    const shouldStripBall = !knocksDown && attacker && defender && carrier
+      && carrier.id === defender.id
+      && this.hasSkill(attacker, 'Strip Ball')
+      && !this.hasSkill(defender, 'Sure Hands');
 
     for (const move of moves) {
       const player = players.find((p) => p.id === move.playerId);
@@ -409,10 +476,24 @@ export class PuzzleSessionService implements OnDestroy {
     if (attackerId) {
       const attacker = players.find((p) => p.id === attackerId);
       if (attacker) {
-        // Bone Head: fold in the 2+ roll chance if this is the attacker's first action.
-        blockChance *= this.boneHeadChance(attacker);
+        // Negatrait (Bone Head / Animal Savagery): captured before hasMoved flips,
+        // logged separately from the block result below.
+        attackerName = attacker.name;
+        attackerNegatraitName = this.negatraitName(attacker);
+        attackerBoneHead = this.boneHeadChance(attacker);
+        // Moving before the (first) block is a Blitz: this player claims the team's
+        // Blitz. Guard on !hasBlocked so a Frenzy second block — where hasMoved is
+        // already true from the first block — does not re-derive blitz ownership.
+        if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
         attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
         attacker.hasMoved = true;
+
+        // If this is a Frenzy second block, mark it as used
+        if (this.hasSkill(attacker, 'Frenzy') && attacker.hasBlocked) {
+          attacker.frenzyUsed = true;
+        }
+
+        attacker.hasBlocked = true;
       }
     }
 
@@ -426,13 +507,32 @@ export class PuzzleSessionService implements OnDestroy {
 
     // Determine ball position before possibly removing the carrier.
     let ball = carrier ? { x: carrier.x, y: carrier.y } : board.ball;
-
-    // Surf win condition: away player pushed off the pitch.
     let solved = false;
+
+    // Strip Ball: If the defender with the ball was pushed (not knocked down),
+    // and the attacker has Strip Ball (and defender doesn't have Sure Hands),
+    // the ball is dropped at the defender's new position and scatters.
+    if (shouldStripBall && carrier) {
+      const scattered = this.scatterBall(players, board, carrier.x, carrier.y);
+      if (scattered) ball = scattered;
+      if (board.puzzleType === 'sack') solved = true;
+    }
+
+    // If the away-team carrier was knocked prone (and stays on pitch), scatter the ball.
+    // For 'sack' puzzles this also solves the puzzle.
+    if (carrier && carrier.team === 'away' && carrier.prone && !removePlayerId && !shouldStripBall) {
+      const scattered = this.scatterBall(players, board, carrier.x, carrier.y);
+      if (scattered) ball = scattered;
+      if (board.puzzleType === 'sack') solved = true;
+    }
+
+    // Surf / sack win conditions when a player is pushed off the pitch.
     if (removePlayerId) {
       const playerToRemove = players.find((p) => p.id === removePlayerId);
-      if (playerToRemove && playerToRemove.team === 'away' && board.puzzleType === 'surf') {
-        solved = true;
+      if (playerToRemove && playerToRemove.team === 'away') {
+        if (board.puzzleType === 'surf') solved = true;
+        // Sack: away ball carrier pushed off the pitch.
+        if (board.puzzleType === 'sack' && carrier && removePlayerId === carrier.id) solved = true;
       }
       // If the removed player was carrying the ball, the ball leaves the pitch too.
       if (carrier && removePlayerId === carrier.id) {
@@ -443,7 +543,14 @@ export class PuzzleSessionService implements OnDestroy {
       if (idx >= 0) players.splice(idx, 1);
     }
 
-    boardSignal.set({ ...board, players, ball, solved, successChance: board.successChance * blockChance });
+    const factors: { reason: string; factor: number }[] = [];
+    if (attackerName !== null) {
+      factors.push({ reason: `Block — ${attackerName}`, factor: blockChance });
+      factors.push({ reason: `${attackerNegatraitName} — ${attackerName}`, factor: attackerBoneHead });
+    }
+    const { successChance, chanceLog } = this.applyChanceFactors(board, factors);
+
+    boardSignal.set({ ...board, players, ball, solved, blitzPlayerId, successChance, chanceLog });
     if (solved) this.markSolved(key);
   }
 
@@ -464,9 +571,21 @@ export class PuzzleSessionService implements OnDestroy {
     const players = board.players.map((p) => ({ ...p }));
 
     const attacker = players.find((p) => p.id === attackerId);
+    const attackerName = attacker?.name ?? null;
+    let blitzPlayerId = board.blitzPlayerId;
     if (attacker) {
+      // Moving before the (first) block is a Blitz: this player claims the team's
+      // Blitz. Guard on !hasBlocked so a Frenzy second block does not re-derive it.
+      if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
       attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
       attacker.hasMoved = true;
+
+      // If this is a Frenzy second block, mark it as used
+      if (this.hasSkill(attacker, 'Frenzy') && attacker.hasBlocked) {
+        attacker.frenzyUsed = true;
+      }
+
+      attacker.hasBlocked = true;
     }
 
     const defender = players.find((p) => p.id === defenderId);
@@ -474,7 +593,49 @@ export class PuzzleSessionService implements OnDestroy {
       defender.prone = true;
     }
 
-    boardSignal.set({ ...board, players, successChance: board.successChance * blockChance });
+    // Scatter the ball if the defender (away team) was carrying it and is now prone.
+    // For 'sack' puzzles this also solves the puzzle.
+    const carrierBD = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
+    let ball = board.ball;
+    let solved = false;
+    if (carrierBD && carrierBD.id === defenderId && carrierBD.team === 'away') {
+      const scattered = this.scatterBall(players, board, carrierBD.x, carrierBD.y);
+      if (scattered) ball = scattered;
+      if (board.puzzleType === 'sack') solved = true;
+    }
+
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `Both Down — ${attackerName ?? 'blocker'}`, factor: blockChance }
+    ]);
+
+    boardSignal.set({ ...board, players, ball, blitzPlayerId, solved, successChance, chanceLog });
+    if (solved) this.markSolved(key);
+  }
+
+  /**
+   * Mark the blocking player as activated (done for this turn) and clear the
+   * selection. Called when the player chooses NOT to continue moving after a block.
+   */
+  finalizeBlockerActivation(key: string, data: PuzzleData, attackerId: string): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+    const players = board.players.map((p) => ({ ...p }));
+    const attacker = players.find((p) => p.id === attackerId);
+    if (attacker) {
+      attacker.activated = true;
+    }
+    boardSignal.set({ ...board, players, selectedPlayerId: null, lastMovedPlayerId: null });
+  }
+
+  /**
+   * Record that the given player is performing the team's Blitz this turn
+   * (one per team per turn). Called when a player who has already blocked
+   * chooses to continue moving. The attacker remains selected.
+   */
+  applyBlitz(key: string, data: PuzzleData, attackerId: string): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+    boardSignal.set({ ...board, blitzPlayerId: attackerId });
   }
 
   private hasSkill(player: WorkingPlayer, skill: string): boolean {
@@ -483,11 +644,72 @@ export class PuzzleSessionService implements OnDestroy {
   }
 
   /**
-   * Returns 5/6 if the player has Bone Head and hasn't acted yet this puzzle
-   * (i.e. the Bone Head 2+ roll is still pending), otherwise 1.
+   * Finds the closest empty square(s) to (fromX, fromY) using Chebyshev distance
+   * and picks one at random. Returns null if the board is completely full.
+   */
+  private scatterBall(
+    players: WorkingPlayer[],
+    board: WorkingBoard,
+    fromX: number,
+    fromY: number
+  ): { x: number; y: number } | null {
+    const occupied = new Set(players.map((p) => `${p.x},${p.y}`));
+    const candidates: { x: number; y: number; dist: number }[] = [];
+
+    for (let x = 0; x < board.rows; x++) {
+      for (let y = 0; y < board.cols; y++) {
+        if (!occupied.has(`${x},${y}`)) {
+          const dist = Math.max(Math.abs(x - fromX), Math.abs(y - fromY));
+          candidates.push({ x, y, dist });
+        }
+      }
+    }
+
+    if (candidates.length === 0) return null;
+
+    const minDist = Math.min(...candidates.map((c) => c.dist));
+    const closest = candidates.filter((c) => c.dist === minDist);
+    return closest[Math.floor(Math.random() * closest.length)];
+  }
+
+  /**
+   * Returns 5/6 if the player must pass a "negatrait" 2+ roll before their first
+   * action this puzzle (the roll is still pending while !hasMoved), otherwise 1.
+   *
+   * Bone Head and Animal Savagery are modelled identically for now: a single 2+
+   * D6 check gating the player's first action (5/6 chance to succeed).
    */
   private boneHeadChance(player: WorkingPlayer): number {
-    return (!player.hasMoved && this.hasSkill(player, 'Bone Head')) ? 5 / 6 : 1;
+    const gatedBySkill =
+      this.hasSkill(player, 'Bone Head') || this.hasSkill(player, 'Animal Savagery');
+    return (!player.hasMoved && gatedBySkill) ? 5 / 6 : 1;
+  }
+
+  /** The name of the player's negatrait skill (for chance-log reasons). */
+  private negatraitName(player: WorkingPlayer): string {
+    if (this.hasSkill(player, 'Bone Head')) return 'Bone Head';
+    if (this.hasSkill(player, 'Animal Savagery')) return 'Animal Savagery';
+    return 'Negatrait';
+  }
+
+  /**
+   * Apply a list of probability factors to the board's running success chance,
+   * appending a chance-log entry for each factor that actually reduces it.
+   * Factors that are effectively 1 (no penalty) are skipped so the log only
+   * lists meaningful decreases. Returns the new chance and the extended log.
+   */
+  private applyChanceFactors(
+    board: WorkingBoard,
+    factors: { reason: string; factor: number }[]
+  ): { successChance: number; chanceLog: ChanceLogEntry[] } {
+    let successChance = board.successChance;
+    const chanceLog = [...board.chanceLog];
+    for (const { reason, factor } of factors) {
+      if (factor >= 0.999999) continue; // no meaningful decrease
+      successChance *= factor;
+      chanceLog.push({ reason, factor, chanceAfter: successChance });
+    }
+    return { successChance, chanceLog };
   }
 
   private boardSignal(key: string, data: PuzzleData, puzzleType: PuzzleType = 'score'): WritableSignal<WorkingBoard> {
@@ -523,7 +745,9 @@ export class PuzzleSessionService implements OnDestroy {
           rushLeft: hasSprint ? 3 : 2,
           hasMoved: false,
           sureFeetUsed: false,
-          prone: false
+          prone: false,
+          hasBlocked: false,
+          frenzyUsed: false
         };
       }),
       selectedPlayerId: null,
@@ -531,7 +755,9 @@ export class PuzzleSessionService implements OnDestroy {
       solved: false,
       passUsed: false,
       handoffUsed: false,
-      successChance: 1
+      blitzPlayerId: null,
+      successChance: 1,
+      chanceLog: []
     };
   }
 

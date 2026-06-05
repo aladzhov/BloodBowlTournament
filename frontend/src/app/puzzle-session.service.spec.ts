@@ -130,13 +130,13 @@ describe('PuzzleSessionService board mechanics', () => {
     service.start('solve');
     service.setDisplayed('solve');
 
-    // home-0 starts on the ball at (1,1); move up into the endzone row (y=0).
+    // home-0 starts on the ball at (1,1); move up into the endzone row (x=0).
     service.selectPlayer('solve', data, 'home-0');
-    service.moveSelectedTo('solve', data, 1, 0);
+    service.moveSelectedTo('solve', data, 0, 1);
 
     const board = service.board('solve', data)();
     expect(board.solved).toBe(true);
-    expect(board.ball).toEqual({ x: 1, y: 0 });
+    expect(board.ball).toEqual({ x: 0, y: 1 });
     expect(board.selectedPlayerId).toBeNull();
     expect(service.sessionState('solve')().solved).toBe(true);
 
@@ -148,9 +148,9 @@ describe('PuzzleSessionService board mechanics', () => {
   it('does not solve when reaching the endzone without the ball', () => {
     const data = makeData();
     service.selectPlayer('nosolve', data, 'home-1'); // home-1 at (3,3), no ball
-    service.moveSelectedTo('nosolve', data, 3, 2);
-    service.moveSelectedTo('nosolve', data, 3, 1);
-    service.moveSelectedTo('nosolve', data, 3, 0);
+    service.moveSelectedTo('nosolve', data, 2, 3);
+    service.moveSelectedTo('nosolve', data, 1, 3);
+    service.moveSelectedTo('nosolve', data, 0, 3);
 
     expect(service.board('nosolve', data)().solved).toBe(false);
   });
@@ -160,7 +160,7 @@ describe('PuzzleSessionService board mechanics', () => {
     service.start('resolve');
     service.setDisplayed('resolve');
     service.selectPlayer('resolve', data, 'home-0');
-    service.moveSelectedTo('resolve', data, 1, 0);
+    service.moveSelectedTo('resolve', data, 0, 1);
     expect(service.board('resolve', data)().solved).toBe(true);
 
     service.resetBoard('resolve', data);
@@ -202,15 +202,15 @@ describe('PuzzleSessionService board mechanics', () => {
 
     // Move home-1 up to the endzone row first (no ball, so no score yet).
     service.selectPlayer('passtd', data, 'home-1');
-    service.moveSelectedTo('passtd', data, 3, 2);
-    service.moveSelectedTo('passtd', data, 3, 1);
-    service.moveSelectedTo('passtd', data, 3, 0);
+    service.moveSelectedTo('passtd', data, 2, 3);
+    service.moveSelectedTo('passtd', data, 1, 3);
+    service.moveSelectedTo('passtd', data, 0, 3);
     expect(service.board('passtd', data)().solved).toBe(false);
 
     // Pass to home-1 in the endzone → touchdown.
     service.passBallTo('passtd', data, 'home-1');
     const board = service.board('passtd', data)();
-    expect(board.ball).toEqual({ x: 3, y: 0 });
+    expect(board.ball).toEqual({ x: 0, y: 3 });
     expect(board.solved).toBe(true);
     expect(service.sessionState('passtd')().solved).toBe(true);
   });

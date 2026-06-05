@@ -62,11 +62,11 @@ export function getSortedPuzzles(): Puzzle[] {
 
 /** Sorted puzzles excluding any whose date is in the future relative to today. */
 export function getVisiblePuzzles(referenceDate: Date = new Date(), source: Puzzle[] = puzzles): Puzzle[] {
-  // return [...source];
-  const todayKey = toDateKey(referenceDate);
-  return [...source]
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .filter((puzzle) => puzzle.date <= todayKey);
+  return source;
+  // const todayKey = toDateKey(referenceDate);
+  // return [...source]
+  //   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  //   .filter((puzzle) => puzzle.date <= todayKey);
 }
 
 function toDateKey(date: Date): string {

@@ -42,6 +42,14 @@
       {
         "team": "away",
         "name": "Zombie Lineman",
+        "position": { "x": 0, "y": 3 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"],
+        "activated": true
+      },
+      {
+        "team": "away",
+        "name": "Zombie Lineman",
         "position": { "x": 3, "y": 3 },
         "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
         "skills": ["Eye Gouge", "Regeneration", "Unsteady"],

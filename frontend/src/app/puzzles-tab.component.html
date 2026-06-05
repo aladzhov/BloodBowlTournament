@@ -123,6 +123,14 @@
                         <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
                       </div>
                     </div>
+                  } @else if (offeringBlitz()) {
+                    <div class="action-menu" role="dialog" aria-label="Continue moving?">
+                      <span class="action-title">Blitz — continue moving?</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-button" (click)="continueMoving()">Continue Moving</button>
+                        <button type="button" class="action-cancel" (click)="endBlockTurn()">End Activation</button>
+                      </div>
+                    </div>
                   } @else if (followingUp()) {
                     <div class="action-menu" role="dialog" aria-label="Follow up?">
                       <span class="action-title">Follow Up?</span>
@@ -209,6 +217,26 @@
                   <p class="details-hint">Hover a player to see their stats and skills</p>
                 }
                 </aside>
+
+                <aside class="chance-breakdown" [class.empty]="chanceBreakdown().length === 0">
+                  <h5 class="breakdown-heading">
+                    Success breakdown
+                    <span class="breakdown-total">{{ chancePercent() }}%</span>
+                  </h5>
+                  @if (chanceBreakdown().length === 0) {
+                    <p class="details-hint">No penalties yet — every action so far is certain.</p>
+                  } @else {
+                    <ul class="breakdown-list">
+                      @for (row of chanceBreakdown(); track $index) {
+                        <li class="breakdown-row">
+                          <span class="breakdown-drop">−{{ row.dropPoints }}%</span>
+                          <span class="breakdown-reason">{{ row.reason }}</span>
+                          <span class="breakdown-after">{{ row.chanceAfterPercent }}%</span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </aside>
               </div>
             </div>
           </div>
@@ -229,7 +257,7 @@
             @if (solved()) {
               <div class="solved-badge" role="status">
                 @if (!isIncorrectSolution()) {
-                  <p class="solved-title">🏆 Touchdown! Solved in {{ timerDisplay() }} - {{ chancePercent() }}% chance for success.</p>
+                  <p class="solved-title">{{ solvedTitle() }} {{ timerDisplay() }} - {{ chancePercent() }}% chance for success.</p>
                 }
                 @if (isIncorrectSolution()) {
                   <p class="solved-hint incorrect">This is not a correct solution!</p>

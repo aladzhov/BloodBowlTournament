@@ -151,7 +151,14 @@ export class PuzzleEngineService {
     if (target.team === 'away') {
       const options: ActionOption[] = [];
       // A prone player is already down — they cannot be blocked again.
-      if (!target.prone) {
+      // A player who has already blocked this turn cannot block again (unless Frenzy).
+      // A player who has already moved can only block if the team's Blitz is still
+      // free OR already owned by this player (e.g. a Frenzy/Blitz continuation).
+      const canFrenzyBlock = this.hasSkill(selected, 'Frenzy')
+        && !selected.frenzyUsed
+        && selected.hasBlocked;
+      const blitzAvailable = board.blitzPlayerId === null || board.blitzPlayerId === selected.id;
+      if (!target.prone && (!selected.hasBlocked || canFrenzyBlock) && (!selected.hasMoved || blitzAvailable)) {
         options.push({ id: 'block', label: 'Block', kind: 'opponent' });
       }
       // Jumping over a standing player requires the Leap skill.
@@ -188,14 +195,16 @@ export class PuzzleEngineService {
     const carriesBall = board.ball.x === selected.x && board.ball.y === selected.y;
     const adjacent = this.isAdjacent(selected.x, selected.y, target.x, target.y);
 
-    if (carriesBall && !board.passUsed
+    if (carriesBall && !board.passUsed && !target.activated
+        && !selected.hasBlocked
         && selected.characteristics.passing > 0
         && target.characteristics.passing > 0) {
       options.push({ id: 'pass', label: 'Pass', kind: 'primary' });
     }
 
     // Hand off is available to an adjacent team-mate, once per puzzle.
-    if (carriesBall && adjacent && !board.handoffUsed && target.characteristics.passing > 0) {
+    if (carriesBall && adjacent && !board.handoffUsed && !target.activated
+        && !selected.hasBlocked && target.characteristics.passing > 0) {
       options.push({ id: 'handoff', label: 'Hand off', kind: 'primary' });
     }
 
@@ -267,11 +276,15 @@ export class PuzzleEngineService {
     const awayTeam = defender.team;
     const all = board.players;
 
-    // Offensive assists
+    // Offensive assists: an attacker's team-mate adds +1 ST if it is adjacent to
+    // the DEFENDER (the block target) and is not itself marked by a standing
+    // opponent — ignoring the defender being blocked, who never prevents assists.
     for (const p of all) {
-      if (p.id === attacker.id || p.team !== homeTeam) continue;
+      if (p.id === attacker.id || p.team !== homeTeam || p.prone) continue;
       if (!this.isAdjacent(p.x, p.y, defender.x, defender.y)) continue;
-      const markers = all.filter(e => e.team === awayTeam && this.isAdjacent(e.x, e.y, p.x, p.y));
+      const markers = all.filter(
+        e => e.team === awayTeam && e.id !== defender.id && !e.prone && this.isAdjacent(e.x, e.y, p.x, p.y)
+      );
       if (markers.length === 0) {
         aSt += 1;
       } else if (this.hasSkill(p, 'Guard')) {
@@ -280,11 +293,15 @@ export class PuzzleEngineService {
       }
     }
 
-    // Defensive assists
+    // Defensive assists: a defender's team-mate adds +1 ST if it is adjacent to
+    // the ATTACKER (the player making the block) and is not itself marked by a
+    // standing opponent — ignoring the attacker, who never prevents assists.
     for (const p of all) {
-      if (p.id === defender.id || p.team !== awayTeam) continue;
-      if (!this.isAdjacent(p.x, p.y, defender.x, defender.y)) continue;
-      const markers = all.filter(f => f.team === homeTeam && this.isAdjacent(f.x, f.y, p.x, p.y));
+      if (p.id === defender.id || p.team !== awayTeam || p.prone) continue;
+      if (!this.isAdjacent(p.x, p.y, attacker.x, attacker.y)) continue;
+      const markers = all.filter(
+        f => f.team === homeTeam && f.id !== attacker.id && !f.prone && this.isAdjacent(f.x, f.y, p.x, p.y)
+      );
       if (markers.length === 0) {
         dSt += 1;
       } else if (this.hasSkill(p, 'Guard')) {
@@ -363,7 +380,7 @@ export class PuzzleEngineService {
    * Die faces:
    *   Attacker Down  : always a turnover
    *   Both Down      : level -1 (normal) / 1 (Wrestle) / 3 (Block)
-   *   Def. Stumbles  : level 2 normally; 1 if defender has Dodge
+   *   Def. Stumbles  : level 2 normally; 1 if defender has Dodge and attacker no Tackle
    *   Pow            : level 3
    *   Pushback × 2   : level 1
    */
@@ -377,7 +394,8 @@ export class PuzzleEngineService {
     const hasBlock      = this.hasSkill(attacker, 'Block');
     const hasWrestle    = this.hasSkill(attacker, 'Wrestle');
     const hasJuggernaut = this.hasSkill(attacker, 'Juggernaut') && attacker.hasMoved;
-    const defDodge      = this.hasSkill(defender, 'Dodge');
+    // Dodge only lowers the Stumble face to a push when the attacker has no Tackle.
+    const defDodge      = this.hasSkill(defender, 'Dodge') && !this.hasSkill(attacker, 'Tackle');
 
     const levelBD = hasBlock ? 3 : hasWrestle ? 1 : hasJuggernaut ? 1 : -1;
     const levelDS = defDodge ? 1 : 2;
@@ -407,8 +425,9 @@ export class PuzzleEngineService {
    *
    *  - Push Back (always): any result that moves the defender without knockdown.
    *  - Both Down (when safe): attacker has Block / Wrestle / Juggernaut on Blitz.
-   *  - Stumble (when relevant): only offered when defender has no Dodge, or attacker
-   *    has Tackle (otherwise Dodge converts Stumble into a Push).
+   *  - Stumble (always): the Defender Stumbles face. It knocks the defender down,
+   *    unless the defender has Dodge and the attacker has no Tackle — in which case
+   *    Dodge converts it into a plain push (handled by the probability/resolution).
    *  - Pow (always): the strongest single knockdown face.
    *
    * Options are multi-selectable; use blockProbabilityMulti for the combined chance.
@@ -428,9 +447,9 @@ export class PuzzleEngineService {
       options.push({ id: 'bothdown', label: 'Both Down', kind: 'opponent' });
     }
 
-    if (!this.hasSkill(defender, 'Dodge') || this.hasSkill(attacker, 'Tackle')) {
-      options.push({ id: 'stumble', label: 'Stumble', kind: 'opponent' });
-    }
+    // Stumble is always offered. When Dodge negates it (and the attacker has no
+    // Tackle) it resolves as a push rather than a knockdown.
+    options.push({ id: 'stumble', label: 'Stumble', kind: 'opponent' });
 
     options.push({ id: 'pow', label: 'Pow', kind: 'opponent' });
     return options;
@@ -547,12 +566,14 @@ export class PuzzleEngineService {
     // Pushback × 2 faces
     if (selected.has('pushback')) p += 2 / 6;
 
-    // Stumble face: becomes knockdown if !Dodge || Tackle; otherwise Dodge converts to push
+    // Stumble face: a knockdown when !Dodge || Tackle; otherwise Dodge converts it
+    // to a push, in which case it counts (once) if EITHER Push Back or Stumble is
+    // selected — both represent the same converted-push outcome for that face.
     const stumbleIsKnockdown = !defDodge || attTackle;
     if (stumbleIsKnockdown) {
       if (selected.has('stumble')) p += 1 / 6;
     } else {
-      if (selected.has('pushback')) p += 1 / 6; // Dodge converts Stumble → push
+      if (selected.has('pushback') || selected.has('stumble')) p += 1 / 6;
     }
 
     // Pow face (always knockdown)
@@ -580,14 +601,29 @@ export class PuzzleEngineService {
   }
 
   /**
-   * Returns true when at least one of the three push squares for (x, y) in
-   * direction `dir` lies outside the board — meaning the pushed player can be
-   * sent off the pitch.
+   * Returns true when the pushed player at (x, y) in direction `dir` can be
+   * sent off the pitch — i.e. at least one push square is outside the board AND
+   * there are no empty in-bounds squares available.
+   *
+   * Out-of-bounds is only a legal choice when every in-bounds push square is
+   * already occupied (all vacant squares happen to be off the pitch).  Whenever
+   * at least one in-bounds square is free the attacker must push there instead.
    */
   hasPushOutOfBounds(board: WorkingBoard, x: number, y: number, dir: PushDirection): boolean {
-    return this.pushSquares(dir, x, y).some(
+    const all = this.pushSquares(dir, x, y);
+
+    const hasOOB = all.some(
       (s) => s.x < 0 || s.y < 0 || s.x >= board.rows || s.y >= board.cols
     );
+    if (!hasOOB) return false;
+
+    // OOB is only offered when there are no empty in-bounds squares to push into.
+    const emptyInBounds = all.filter(
+      (s) =>
+        s.x >= 0 && s.y >= 0 && s.x < board.rows && s.y < board.cols &&
+        !board.players.some((p) => p.x === s.x && p.y === s.y)
+    );
+    return emptyInBounds.length === 0;
   }
 
   /**

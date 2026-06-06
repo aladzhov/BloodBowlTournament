@@ -1,0 +1,73 @@
+{
+  "date": "2026-06-09",
+  "title": "No Way Out",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "field": { "rows": 5, "cols": 7 },
+    "ball": { "position": { "x": 3, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Woodland Fox",
+        "position": { "x": 3, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 2, "agility": 2, "passing": 0, "armor": 6 },
+        "skills": ["Dodge", "My Ball", "Sidestep", "Stunty"]
+      },
+      {
+        "team": "home",
+        "name": "Gnome Lineman",
+        "position": { "x": 1, "y": 5 },
+        "characteristics": { "movement": 5, "strength": 2, "agility": 3, "passing": 4, "armor": 7 },
+        "skills": ["Jump Up", "Right Stuff", "Stunty", "Wrestle"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Blitzer",
+        "position": { "x": 3, "y": 5 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Diving Tackle", "Tackle", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Human Lineman",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": [],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Human Lineman",
+        "position": { "x": 1, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": []
+      },
+      {
+        "team": "home",
+        "name": "Altern Forest Treeman",
+        "position": { "x": 2, "y": 3 },
+        "characteristics": { "movement": 2, "strength": 6, "agility": 5, "passing": 5, "armor": 11 },
+        "skills": ["Mighty Blow", "Stand Firm", "Strong Arm", "Take Root", "Thick Skull", "Throw Team-mate", "Timmm-Ber!"],
+        "activated": true,
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Troll Slayer",
+        "position": { "x": 2, "y": 4 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Dauntless", "Frenzy", "Hatred (Troll)", "Thick Skull"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Human Blitzer",
+        "position": { "x": 3, "y": 1 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Block", "Tackle"]
+      }
+    ],
+    "targetScore": 83
+  }
+}

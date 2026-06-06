@@ -308,6 +308,46 @@ describe('PuzzleSessionService board mechanics', () => {
     expect(Math.abs(chance - 4 / 6) < 1e-9).toBe(true);
   });
 
+  it('jumps over a prone player: moves the jumper, spends 2 movement, and folds in the AG landing test', () => {
+    const data: PuzzleData = {
+      field: { rows: 4, cols: 7 },
+      ball: { position: { x: 9, y: 9 } },
+      players: [
+        {
+          team: 'home',
+          name: 'Leaper',
+          position: { x: 1, y: 1 },
+          characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+          skills: [],
+          activated: false
+        },
+        {
+          team: 'away',
+          name: 'Prone Lineman',
+          position: { x: 2, y: 1 },
+          characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+          skills: [],
+          activated: true,
+          prone: true
+        }
+      ],
+      targetScore: 50
+    };
+
+    service.selectPlayer('jump', data, 'home-0');
+    // Jump over the prone (2,1), landing at (3,1) — flat AG 3+ → 4/6.
+    // Player ids are `${team}-${arrayIndex}`, so the prone away player is 'away-1'.
+    service.jumpOver('jump', data, 'away-1', 3, 1);
+
+    const board = service.board('jump', data)();
+    const jumper = board.players.find((p) => p.id === 'home-0')!;
+    expect(jumper.x).toBe(3);
+    expect(jumper.y).toBe(1);
+    expect(jumper.movementLeft).toBe(4); // 6 − 2 for the jump
+    expect(jumper.hasMoved).toBe(true);
+    expect(Math.abs(board.successChance - 4 / 6) < 1e-9).toBe(true);
+  });
+
   it('restarts the board to its initial state without resetting the timer', () => {
     const data = makeData();
 

@@ -36,6 +36,30 @@ interface FollowUpState {
   isFrenzy: boolean;
 }
 
+/** Active while the user is choosing a landing square for a Jump Over. */
+interface JumpState {
+  jumperId: string;
+  proneId: string;
+}
+
+/**
+ * Active when a home-team player with Stand Firm is about to be chain-pushed.
+ * The user chooses whether that player stays put or accepts the push.
+ */
+interface StandFirmChoiceState {
+  /** The full push state captured at the moment Stand Firm was triggered. */
+  prevState: PushState;
+  /** The player with Stand Firm being offered the choice. */
+  standFirmPlayerId: string;
+  /**
+   * Accumulated move frames INCLUDING the current player → Stand Firm's square.
+   * Used when the Stand Firm player accepts the push (chain continues from there).
+   */
+  framesIfAccepted: { playerId: string; x: number; y: number }[];
+  /** Push direction for the Stand Firm player if they accept. */
+  newDir: PushDirection;
+}
+
 @Component({
   selector: 'app-puzzles-tab',
   standalone: false,
@@ -70,6 +94,17 @@ export class PuzzlesTabComponent implements OnDestroy {
   /** Active while the user is choosing where a blocked player is pushed. */
   readonly pushState = signal<PushState | null>(null);
   readonly pushing = computed(() => this.pushState() !== null);
+
+  /** Active while the user is choosing a landing square for a Jump Over. */
+  readonly jumpState = signal<JumpState | null>(null);
+  readonly jumping = computed(() => this.jumpState() !== null);
+
+  /**
+   * Active when a home-team Stand Firm player is about to be chain-pushed.
+   * The user chooses whether that player stays put or accepts the push.
+   */
+  readonly standFirmChoiceState = signal<StandFirmChoiceState | null>(null);
+  readonly choosingStandFirm = computed(() => this.standFirmChoiceState() !== null);
 
   /** Active after a push resolves, waiting for Follow Up / Stay choice. */
   readonly followUpState = signal<FollowUpState | null>(null);
@@ -132,6 +167,35 @@ export class PuzzlesTabComponent implements OnDestroy {
     const current = board.players.find((p) => p.id === state.currentId);
     if (!current) return false;
     return this.engine.hasPushOutOfBounds(board, current.x, current.y, state.dir);
+  });
+
+  /** The landing squares offered for the current Jump Over. */
+  readonly jumpTargets = computed(() => {
+    const state = this.jumpState();
+    if (!state) return [];
+    const board = this.working();
+    const jumper = board.players.find((p) => p.id === state.jumperId);
+    const prone = board.players.find((p) => p.id === state.proneId);
+    if (!jumper || !prone) return [];
+    return this.engine.jumpLandingSquares(board, jumper, prone);
+  });
+
+  private readonly jumpTargetKeys = computed(
+    () => new Set(this.jumpTargets().map((s) => `${s.x},${s.y}`))
+  );
+
+  /** Name of the prone player being jumped over (for the prompt). */
+  readonly jumpProneName = computed(() => {
+    const state = this.jumpState();
+    if (!state) return '';
+    return this.working().players.find((p) => p.id === state.proneId)?.name ?? '';
+  });
+
+  /** Name of the Stand Firm player being prompted in a chain push. */
+  readonly standFirmPlayerName = computed(() => {
+    const choice = this.standFirmChoiceState();
+    if (!choice) return '';
+    return this.working().players.find((p) => p.id === choice.standFirmPlayerId)?.name ?? '';
   });
 
   readonly actionTitle = computed(() => {
@@ -291,6 +355,17 @@ export class PuzzlesTabComponent implements OnDestroy {
       return;
     }
 
+    // While choosing a Jump Over landing, clicks pick a landing square.
+    if (this.jumping()) {
+      this.onJumpSquareChosen(cell);
+      return;
+    }
+
+    // While waiting for a Stand Firm choice, board clicks are suppressed.
+    if (this.choosingStandFirm()) {
+      return;
+    }
+
     const key = this.current().date;
     const data = this.current().data;
     const outcome = this.engine.resolveCellClick(this.working(), cell, this.selectedPlayer());
@@ -343,9 +418,34 @@ export class PuzzlesTabComponent implements OnDestroy {
       this.sessionService.passBallTo(this.current().date, this.current().data, target.id);
     } else if (id === 'handoff' && target) {
       this.sessionService.handOffTo(this.current().date, this.current().data, target.id);
+    } else if (id === 'jump' && target) {
+      // Enter landing-selection mode; the jumper stays selected.
+      const jumper = this.selectedPlayer();
+      if (jumper) {
+        this.actionTarget.set(null);
+        this.blockStage.set(false);
+        this.jumpState.set({ jumperId: jumper.id, proneId: target.id });
+      }
+      return;
     }
-    // TODO: resolve jump / throw mechanics once defined.
+    // TODO: resolve throw mechanics once defined.
     this.closeMenu();
+  }
+
+  isJumpTarget(cell: BoardCell): boolean {
+    return this.jumping() && this.jumpTargetKeys().has(`${cell.x},${cell.y}`);
+  }
+
+  /** Resolve a Jump Over once the user clicks a landing square. */
+  private onJumpSquareChosen(cell: BoardCell): void {
+    const state = this.jumpState();
+    if (!state || !this.isJumpTarget(cell)) {
+      return;
+    }
+    this.jumpState.set(null);
+    this.sessionService.jumpOver(
+      this.current().date, this.current().data, state.proneId, cell.x, cell.y
+    );
   }
 
   /** Maps a block-result option id to its icon in /puzzles, or null if none. */
@@ -415,6 +515,20 @@ export class PuzzlesTabComponent implements OnDestroy {
     // "Prone in Place" is offered whenever Both Down is among the selections.
     const allowProneInPlace = sel.has('bothdown');
 
+    // Stand Firm: the direct block target refuses to be pushed — skip the push phase.
+    // Both Down is excluded: the defender goes prone via the normal BD "Prone in Place" path.
+    if (this.hasSkill(defender, 'Stand Firm') && !sel.has('bothdown')) {
+      // Determine whether any chosen result produces a knockdown.
+      const knocksDown = !hasPushback; // pow or stumble-without-dodge was selected
+      this.sessionService.applyPushMoves(
+        this.current().date, this.current().data,
+        [], blockChance, attacker.id, defender.id, knocksDown
+      );
+      this.closeMenu();
+      this.checkBlitzAfterBlock(attacker.id);
+      return;
+    }
+
     if (hasPushback) {
       this.startPush('push', blockChance, allowProneInPlace);
     } else if (sel.has('pow')) {
@@ -446,7 +560,16 @@ export class PuzzlesTabComponent implements OnDestroy {
     const canPushOob = this.engine.hasPushOutOfBounds(this.working(), defender.x, defender.y, dir);
 
     if (options.length === 0 && !canPushOob) {
+      // All push squares may be blocked by away-team Stand Firm players. Apply the
+      // block with the defender staying in place rather than aborting the block.
+      const blockChance2 = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
+      const knocksDown = result === 'stumble' || result === 'pow';
+      this.sessionService.applyPushMoves(
+        this.current().date, this.current().data,
+        [], blockChance2, blocker.id, defender.id, knocksDown
+      );
       this.closeMenu();
+      this.checkBlitzAfterBlock(blocker.id);
       return;
     }
 
@@ -517,6 +640,70 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.checkBlitzAfterBlock(attackerId);
   }
 
+  /**
+   * Stand Firm choice: the home-team player refuses the chain push and stays put.
+   * All chain-push moves accumulated BEFORE this player are applied; the player
+   * being pushed into their square also stops (no further displacement).
+   */
+  standFirmStay(): void {
+    const choice = this.standFirmChoiceState();
+    if (!choice) return;
+    this.standFirmChoiceState.set(null);
+
+    const state = choice.prevState;
+    // Apply all moves accumulated before the current player tried to enter this square.
+    const moves = [...state.frames].reverse();
+
+    this.pushState.set(null);
+    this.actionTarget.set(null);
+    this.blockStage.set(false);
+
+    const board = this.working();
+    const attacker = board.players.find((p) => p.id === state.attackerId);
+    const shouldFrenzy = !!attacker && this.hasSkill(attacker, 'Frenzy') && !attacker.frenzyUsed;
+
+    if (shouldFrenzy) {
+      this.executeFrenzyFollowUp(state, moves);
+    } else {
+      this.followUpState.set({
+        attackerId: state.attackerId,
+        followUpX: state.defenderX,
+        followUpY: state.defenderY,
+        pendingMoves: moves,
+        blockChance: state.blockChance,
+        firstDefenderId: state.firstDefenderId,
+        knocksDown: state.knocksDown,
+        removePlayerId: null,
+        isFrenzy: false
+      });
+    }
+  }
+
+  /**
+   * Stand Firm choice: the home-team player consents to be pushed.
+   * The chain push continues with the Stand Firm player as the new target.
+   */
+  standFirmAccept(): void {
+    const choice = this.standFirmChoiceState();
+    if (!choice) return;
+    this.standFirmChoiceState.set(null);
+
+    const state = choice.prevState;
+    this.pushState.set({
+      dir: choice.newDir,
+      frames: choice.framesIfAccepted,
+      currentId: choice.standFirmPlayerId,
+      blockChance: state.blockChance,
+      attackerId: state.attackerId,
+      defenderX: state.defenderX,
+      defenderY: state.defenderY,
+      firstDefenderId: state.firstDefenderId,
+      knocksDown: state.knocksDown,
+      allowProneInPlace: false,
+      proneInPlaceOnly: false
+    });
+  }
+
   private onPushSquareChosen(cell: BoardCell): void {
     const state = this.pushState();
     if (!state || !this.isPushTarget(cell)) {
@@ -535,6 +722,17 @@ export class PuzzlesTabComponent implements OnDestroy {
       const newDir = current
         ? { dx: Math.sign(cell.x - current.x), dy: Math.sign(cell.y - current.y) }
         : state.dir;
+
+      // Home-team Stand Firm player: offer the user a choice — stay or be pushed.
+      if (this.hasSkill(occupant, 'Stand Firm') && occupant.team === 'home') {
+        this.standFirmChoiceState.set({
+          prevState: state,
+          standFirmPlayerId: occupant.id,
+          framesIfAccepted: frames,
+          newDir
+        });
+        return;
+      }
 
       this.pushState.set({
         dir: newDir, frames, currentId: occupant.id, blockChance: state.blockChance,
@@ -662,8 +860,10 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.blockStage.set(false);
     this.selectedBlockResults.set([]);
     this.pushState.set(null);
+    this.jumpState.set(null);
     this.followUpState.set(null);
     this.blitzChoiceAttackerId.set(null);
+    this.standFirmChoiceState.set(null);
   }
 
   /**

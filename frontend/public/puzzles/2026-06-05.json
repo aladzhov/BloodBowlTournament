@@ -12,16 +12,14 @@
         "name": "Dwarf Lineman",
         "position": { "x": 2, "y": 2 },
         "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
-        "skills": ["Block", "Defensive", "Thick Skull"],
-        "activated": false
+        "skills": ["Block", "Defensive", "Thick Skull"]
       },
       {
         "team": "away",
         "name": "Human Lineman",
         "position": { "x": 2, "y": 3 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
-        "skills": [],
-        "activated": false
+        "skills": []
       }
     ],
     "targetScore": 83

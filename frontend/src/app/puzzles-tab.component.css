@@ -454,8 +454,39 @@
 }
 
 .details-name {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.4rem;
   font-size: 1.05rem;
+}
+
+.details-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+
+.status-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-prone {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.status-activated {
+  background: #9ca3af;
+  color: #fff;
+}
+
+.status-eye-gouged {
+  background: #d97706;
+  color: #fff;
 }
 
 .details-name.home {
@@ -706,5 +737,26 @@
 
 .puzzles-tab {
   padding: 2rem 0;
+}
+
+/* ── Mobile: shrink in-square text and block dice ── */
+@media (max-width: 680px) {
+  .player-chip {
+    font-size: 0.5rem;
+    line-height: 1;
+  }
+
+  .player-name--long {
+    font-size: 0.5rem;
+  }
+
+  .player-name--xlong {
+    font-size: 0.40rem;
+  }
+
+  .block-result-img {
+    width: 36px;
+    height: 36px;
+  }
 }
 

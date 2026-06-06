@@ -1,0 +1,70 @@
+{
+  "date": "2026-06-17",
+  "title": "Principles",
+  "author": "Atanas Ladzhov",
+  "type": "surf",
+  "data": {
+    "field": { "rows": 9, "cols": 7 },
+    "ball": { "position": { "x": 2, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Werewolf",
+        "position": { "x": 1 , "y": 1 },
+        "characteristics": { "movement": 8, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
+        "skills": ["Claws", "Frenzy", "Regeneration"]
+      },
+      {
+        "team": "home",
+        "name": "Zombie Lineman",
+        "position": { "x": 5, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
+      },
+      {
+        "team": "home",
+        "name": "Zombie Lineman",
+        "position": { "x": 5, "y": 4 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
+      },
+      {
+        "team": "home",
+        "name": "Flesh Golem",
+        "position": { "x": 3, "y": 5 },
+        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 6, "armor": 10 },
+        "skills": ["Regeneration", "Stand Firm", "Thick Skull", "Unsteady"]
+      },
+      {
+        "team": "away",
+        "name": "Wood Elf Catcher",
+        "position": { "x": 3, "y": 4 },
+        "characteristics": { "movement": 8, "strength": 2, "agility": 2, "passing": 3, "armor": 8 },
+        "skills": ["Catch", "Dodge", "Sprint"]
+      },
+      {
+        "team": "away",
+        "name": "Wood Elf Lineman",
+        "position": { "x": 4, "y": 4 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
+        "skills": [],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Wood Elf Lineman",
+        "position": { "x": 6, "y": 4 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Wood Elf Lineman",
+        "position": { "x": 5, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
+        "skills": []
+      }
+    ],
+    "targetScore": 24
+  }
+}

@@ -12,16 +12,14 @@
         "name": "Orc Lineman",
         "position": { "x": 7, "y": 3 },
         "characteristics": { "movement": 5, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
-        "skills": [],
-        "activated": false
+        "skills": []
       },
       {
         "team": "home",
         "name": "Orc Lineman",
         "position": { "x": 4, "y": 4 },
         "characteristics": { "movement": 5, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
-        "skills": [],
-        "activated": false
+        "skills": []
       }
     ],
     "targetScore": 69

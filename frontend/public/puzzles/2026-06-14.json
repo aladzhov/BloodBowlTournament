@@ -12,48 +12,42 @@
         "name": "Goblin Bruiser",
         "position": { "x": 2, "y": 4 },
         "characteristics": { "movement": 6, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Dodge", "Right Stuff", "Stunty", "Thick Skull"],
-        "activated": false
+        "skills": ["Dodge", "Right Stuff", "Stunty", "Thick Skull"]
       },
       {
         "team": "home",
         "name": "Goblin Bruiser",
         "position": { "x": 5, "y": 5 },
         "characteristics": { "movement": 6, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Dodge", "Right Stuff", "Stunty", "Thick Skull"],
-        "activated": false
+        "skills": ["Dodge", "Right Stuff", "Stunty", "Thick Skull"]
       },
       {
         "team": "home",
         "name": "Black Orc",
         "position": { "x": 1, "y": 1 },
         "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
-        "skills": ["Brawler", "Grab"],
-        "activated": false
+        "skills": ["Brawler", "Grab"]
       },
       {
         "team": "away",
         "name": "Wight Blitzer",
         "position": { "x": 3, "y": 4 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
-        "skills": ["Block", "Tackle", "Regeneration", "Thick Skull"],
-        "activated": true
+        "skills": ["Block", "Tackle", "Regeneration", "Thick Skull"]
       },
       {
         "team": "away",
         "name": "Zombie Lineman",
         "position": { "x": 0, "y": 3 },
         "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
-        "skills": ["Eye Gouge", "Regeneration", "Unsteady"],
-        "activated": true
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
       },
       {
         "team": "away",
         "name": "Zombie Lineman",
         "position": { "x": 3, "y": 3 },
         "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
-        "skills": ["Eye Gouge", "Regeneration", "Unsteady"],
-        "activated": true
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
       }
     ],
     "targetScore": 84

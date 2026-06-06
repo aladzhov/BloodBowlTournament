@@ -18,6 +18,7 @@ function player(overrides: Partial<WorkingPlayer> = {}): WorkingPlayer {
     prone: false,
     hasBlocked: false,
     frenzyUsed: false,
+    eyeGouged: false,
     ...overrides
   };
 }
@@ -145,6 +146,17 @@ describe('PuzzleEngineService', () => {
       adjacentMate
     );
     expect(options.map((o) => o.id)).toEqual(['activate', 'pass', 'handoff']);
+  });
+
+  it('hides Pass and Hand off when the carrier has "My Ball"', () => {
+    const selected = player({ id: 'home-0', x: 1, y: 1, skills: ['My Ball'] });
+    const adjacentMate = player({ id: 'home-1', x: 2, y: 1, activated: false });
+    const options = engine.actionOptions(
+      board([selected, adjacentMate], { x: 1, y: 1 }),
+      selected,
+      adjacentMate
+    );
+    expect(options.map((o) => o.id)).toEqual(['activate']);
   });
 
   it('keeps Hand off available even after a pass has been used', () => {
@@ -420,6 +432,31 @@ describe('PuzzleEngineService', () => {
       expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 4 / 6)).toBe(true);
     });
 
+    it('Stunty ignores tackle-zone modifiers even when an enemy has Prehensile Tail', () => {
+      // Two enemies cover the destination (2,2): the Prehensile-Tail holder at (2,1)
+      // and another at (1,3) → 2 tackle zones. Stunty ignores the per-TZ modifiers,
+      // but the Prehensile Tail -1 still applies → AG 3+ with -1 → 4+ → 3/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Stunty'], characteristics: ag(3) });
+      const tailer = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Prehensile Tail'] });
+      const extra  = player({ id: 'away-1', team: 'away', x: 1, y: 3 });
+      expect(near(engine.dodgeProbability(board([mover, tailer, extra]), mover, 2, 2), 3 / 6)).toBe(true);
+    });
+
+    it('Stunty still suffers a Diving Tackle penalty', () => {
+      // Stunty ignores tackle zones, but the Diving Tackle -2 still applies →
+      // AG 3+ with -2 → 5+ → 2/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Stunty'], characteristics: ag(3) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Diving Tackle'] });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 2 / 6)).toBe(true);
+    });
+
+    it('still performs the Agility test for a Stunty dodge (not auto-success)', () => {
+      // Stunty removes tackle-zone penalties but the roll still happens: AG 4+ → 3/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Stunty'], characteristics: ag(4) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1 });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 3 / 6)).toBe(true);
+    });
+
     it('honours the natural-6 golden rule on hard dodges', () => {
       // AG 6+, no modifiers → only a natural 6 → 1/6.
       const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(6) });
@@ -458,6 +495,105 @@ describe('PuzzleEngineService', () => {
     });
   });
 
+  describe('Jump Over', () => {
+    const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+    const ag = (agility: number) => ({ movement: 6, strength: 3, agility, passing: 4, armor: 8 });
+
+    it('lists the three empty landing squares directly beyond the prone player', () => {
+      // Jumper (1,1), prone (2,1) → direction (1,0); landings at (3,0),(3,1),(3,2).
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const squares = engine
+        .jumpLandingSquares(board([jumper, prone]), jumper, prone)
+        .map((s) => `${s.x},${s.y}`)
+        .sort();
+      expect(squares).toEqual(['3,0', '3,1', '3,2'].sort());
+    });
+
+    it('excludes occupied and off-board landing squares', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const blocker = player({ id: 'home-1', x: 3, y: 1 }); // occupies one landing square
+      const squares = engine
+        .jumpLandingSquares(board([jumper, prone, blocker]), jumper, prone)
+        .map((s) => `${s.x},${s.y}`)
+        .sort();
+      expect(squares).toEqual(['3,0', '3,2'].sort());
+    });
+
+    it('is a flat Agility test (no tackle zones) — AG 3+ → 4/6', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      expect(near(engine.jumpProbability(board([jumper, prone]), jumper, 3, 1), 4 / 6)).toBe(true);
+    });
+
+    it('applies -1 for a single tackle zone on the landing square', () => {
+      // Standing enemy at (3,2) covers landing (3,1) → AG 3+ with -1 → need 4+ → 3/6.
+      const jumper = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const marker = player({ id: 'away-1', team: 'away', x: 3, y: 2 });
+      expect(near(engine.jumpProbability(board([jumper, prone, marker]), jumper, 3, 1), 3 / 6)).toBe(true);
+    });
+
+    it('uses the HIGHER of the from/landing tackle zones — penalties do not stack', () => {
+      // From (1,1) marked by two standing enemies (0,0),(0,2) → tzFrom = 2.
+      // Landing (3,1) marked by one standing enemy (3,2) → tzLand = 1.
+      // Modifier = -max(2,1) = -2 → AG 3+ need 5+ → 2/6  (not -3 → 1/6).
+      const jumper = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const f1 = player({ id: 'away-1', team: 'away', x: 0, y: 0 });
+      const f2 = player({ id: 'away-2', team: 'away', x: 0, y: 2 });
+      const land = player({ id: 'away-3', team: 'away', x: 3, y: 2 });
+      expect(near(engine.jumpProbability(board([jumper, prone, f1, f2, land]), jumper, 3, 1), 2 / 6)).toBe(true);
+    });
+
+    it('ignores prone enemies when counting tackle zones', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const proneMarker = player({ id: 'away-1', team: 'away', x: 3, y: 2, prone: true });
+      // Prone marker exerts no tackle zone → flat AG 3+ → 4/6.
+      expect(near(engine.jumpProbability(board([jumper, prone, proneMarker]), jumper, 3, 1), 4 / 6)).toBe(true);
+    });
+
+    it('canJumpOver is false when no empty landing square exists', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const b1 = player({ id: 'home-1', x: 3, y: 0 });
+      const b2 = player({ id: 'home-2', x: 3, y: 1 });
+      const b3 = player({ id: 'home-3', x: 3, y: 2 });
+      expect(engine.canJumpOver(board([jumper, prone, b1, b2, b3]), jumper, prone)).toBe(false);
+    });
+
+    it('canJumpOver is false when the 2-square cost cannot be paid', () => {
+      // No movement and only 1 Rush left → cannot afford the 2-square jump.
+      const jumper = player({ id: 'home-0', x: 1, y: 1, movementLeft: 0, rushLeft: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      expect(engine.canJumpOver(board([jumper, prone]), jumper, prone)).toBe(false);
+    });
+
+    it('only offers Jump (not Block) against a prone target when a landing exists', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
+      const options = engine.actionOptions(board([jumper, prone]), jumper, prone);
+      expect(options.map((o) => o.id)).toEqual(['jump']);
+    });
+
+    it('offers Jump over a prone team-mate', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      // Activated so "Activate player" is not offered → only the jump option remains.
+      const mate = player({ id: 'home-1', team: 'home', x: 2, y: 1, prone: true, activated: true });
+      const options = engine.actionOptions(board([jumper, mate]), jumper, mate);
+      expect(options.map((o) => o.id)).toEqual(['jump']);
+    });
+
+    it('does not offer Jump over a standing team-mate', () => {
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const mate = player({ id: 'home-1', team: 'home', x: 2, y: 1, activated: true });
+      const options = engine.actionOptions(board([jumper, mate]), jumper, mate);
+      expect(options.map((o) => o.id)).not.toContain('jump');
+    });
+  });
+
   describe('blockProbabilityMulti — Dodge converts Stumble to push', () => {
     const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
 
@@ -477,6 +613,26 @@ describe('PuzzleEngineService', () => {
       const state = board([attacker, defender]);
 
       expect(near(engine.blockProbabilityMulti(state, attacker, defender, ['pushback', 'stumble']), 3 / 6)).toBe(true);
+    });
+
+    it('does NOT count the Stumble face when only Push Back is selected (Stumble is a real choice)', () => {
+      // The user chose Push Back but NOT Stumble: they miss the 1/6 Dodge-converted
+      // Stumble face. Push Back alone = 2 faces → 2/6.
+      const attacker = player({ id: 'home-0', skills: [] });
+      const defender = player({ id: 'away-0', team: 'away', skills: ['Dodge'] });
+      const state = board([attacker, defender]);
+
+      expect(near(engine.blockProbabilityMulti(state, attacker, defender, ['pushback']), 2 / 6)).toBe(true);
+    });
+
+    it('Push + Pow (no Stumble) vs Dodge gives 3/6, not 4/6', () => {
+      // Selecting Push Back (2 faces) + Pow (1 face), deliberately skipping Stumble
+      // → the Stumble face is forfeit → 3/6 total.
+      const attacker = player({ id: 'home-0', skills: [] });
+      const defender = player({ id: 'away-0', team: 'away', skills: ['Dodge'] });
+      const state = board([attacker, defender]);
+
+      expect(near(engine.blockProbabilityMulti(state, attacker, defender, ['pushback', 'pow']), 3 / 6)).toBe(true);
     });
 
     it('treats Stumble as a knockdown (2/6 with Push Back) when the attacker has Tackle', () => {

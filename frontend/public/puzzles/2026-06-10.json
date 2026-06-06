@@ -1,0 +1,56 @@
+{
+  "date": "2026-06-10",
+  "title": "Skinky Business",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "field": { "rows": 5, "cols": 7 },
+    "ball": { "position": { "x": 1, "y": 1 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Valkyrie",
+        "position": { "x": 3, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
+        "skills": ["Catch", "Dauntless", "Pass", "Strip Ball"]
+      },
+      {
+        "team": "home",
+        "name": "Norse Raider",
+        "position": { "x": 1, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Block", "Drunkard", "Thick Skull", "Unsteady"]
+      },
+      {
+        "team": "away",
+        "name": "Skink Lineman",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 8, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Dodge", "Stunty"]
+      },
+      {
+        "team": "away",
+        "name": "Saurus Blocker",
+        "position": { "x": 2, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 4, "agility": 5, "passing": 6, "armor": 10 },
+        "skills": ["Juggernaut", "Unsteady"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Kroxigor",
+        "position": { "x": 4, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 5, "agility": 5, "passing": 6, "armor": 10 },
+        "skills": ["Bone Head", "Loner 4+", "Mighty Blow", "Prehensile Tail", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Chameleon Skink",
+        "position": { "x": 3, "y": 4 },
+        "characteristics": { "movement": 7, "strength": 2, "agility": 2, "passing": 3, "armor": 8 },
+        "skills": ["Dodge", "On the Ball", "Shadowing", "Stunty"]
+      }
+    ],
+    "targetScore": 79
+  }
+}

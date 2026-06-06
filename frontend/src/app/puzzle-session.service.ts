@@ -29,6 +29,11 @@ export interface WorkingPlayer {
   hasBlocked: boolean;
   /** Whether the player has already used their Frenzy second block this activation. */
   frenzyUsed: boolean;
+  /**
+   * True when this player has been hit by an attacker with the Eye Gouge skill.
+   * An eye-gouged player cannot provide assists (offensive or defensive) for any block.
+   */
+  eyeGouged: boolean;
 }
 
 /**
@@ -240,6 +245,12 @@ export class PuzzleSessionService implements OnDestroy {
     // A move out of an enemy tackle zone is a Dodge; fold its success chance in.
     const dodgeChance = this.engine.dodgeProbability(board, selected, x, y);
 
+    // Picking up the ball requires an Agility test (modified by enemy TZs on the square).
+    const pickingUpBall = ballOnTarget && !alreadyCarrying;
+    const pickupChance = pickingUpBall
+      ? this.engine.pickupProbability(board, selected, x, y)
+      : 1;
+
     // A Rush move requires a 2+ roll (3+ in Blizzard); Sure Feet grants one reroll.
     const rushChance = isRush
       ? this.engine.rushProbability(board, selected)
@@ -280,6 +291,125 @@ export class PuzzleSessionService implements OnDestroy {
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
       { reason: `Dodge — ${selected.name}`, factor: dodgeChance },
       { reason: `Rush — ${selected.name}`, factor: rushChance },
+      { reason: `Pick up — ${selected.name}`, factor: pickupChance },
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: boneHeadChance }
+    ]);
+
+    boardSignal.set({
+      ...board,
+      players,
+      ball: possessesBall ? { x, y } : board.ball,
+      lastMovedPlayerId: selected.id,
+      selectedPlayerId: solved ? null : selected.id,
+      solved,
+      successChance,
+      chanceLog
+    });
+
+    if (solved) {
+      this.markSolved(key);
+    }
+  }
+
+  /**
+   * Jump Over a prone player and land at (x, y) — one of the three squares
+   * directly beyond the prone player. Costs 2 squares of movement (Rushing for
+   * any shortfall) and requires an Agility landing test (see jumpProbability).
+   * The jumper stays selected afterwards so movement can continue.
+   */
+  jumpOver(key: string, data: PuzzleData, proneId: string, x: number, y: number): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+    const selectedId = board.selectedPlayerId;
+
+    if (board.solved || selectedId === null) {
+      return;
+    }
+
+    const selected = board.players.find((p) => p.id === selectedId);
+    if (!selected || selected.activated) {
+      return;
+    }
+
+    // Only prone players can be jumped over.
+    const prone = board.players.find((p) => p.id === proneId);
+    if (!prone || !prone.prone) {
+      return;
+    }
+
+    // The landing square must be on-board and empty.
+    if (x < 0 || y < 0 || x >= board.rows || y >= board.cols) {
+      return;
+    }
+    if (board.players.some((p) => p.x === x && p.y === y)) {
+      return;
+    }
+
+    // Cost is 2 squares: spend base movement first, then Rush for any shortfall.
+    const movementUsed = Math.min(selected.movementLeft, 2);
+    const rushUsed = 2 - movementUsed;
+    if (rushUsed > selected.rushLeft) {
+      return; // cannot afford the jump even with Rush
+    }
+
+    // A player with PA=0 cannot pick up the ball on landing.
+    const ballOnTarget = board.ball.x === x && board.ball.y === y;
+    const alreadyCarrying = board.ball.x === selected.x && board.ball.y === selected.y;
+    if (ballOnTarget && !alreadyCarrying && selected.characteristics.passing === 0) {
+      return;
+    }
+
+    const players = board.players.map((p) => ({ ...p }));
+
+    // Each Rush square needs a 2+ (5/6). Sure Feet rerolls the first failure only.
+    let rushChance = 1;
+    let sureFeetUsed = selected.sureFeetUsed;
+    for (let i = 0; i < rushUsed; i++) {
+      let pr = 5 / 6;
+      if (this.hasSkill(selected, 'Sure Feet') && !sureFeetUsed) {
+        pr = 1 - (1 - pr) * (1 - pr);
+        sureFeetUsed = true;
+      }
+      rushChance *= pr;
+    }
+
+    const landingChance = this.engine.jumpProbability(board, selected, x, y);
+    const boneHeadChance = this.boneHeadChance(selected);
+
+    // Picking up the ball on landing also requires an Agility test.
+    // (ballOnTarget / alreadyCarrying were already computed for the PA=0 guard above.)
+    const pickupChance = (ballOnTarget && !alreadyCarrying)
+      ? this.engine.pickupProbability(board, selected, x, y)
+      : 1;
+
+    // Jumping a different player finalizes (activates) the previously moved one.
+    if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
+      const previous = players.find((p) => p.id === board.lastMovedPlayerId);
+      if (previous) {
+        previous.activated = true;
+      }
+    }
+
+    const moving = players.find((p) => p.id === selected.id)!;
+    const carrying = board.ball.x === moving.x && board.ball.y === moving.y;
+    const pickingUp = ballOnTarget;
+
+    moving.x = x;
+    moving.y = y;
+    moving.movementLeft -= movementUsed;
+    moving.rushLeft -= rushUsed;
+    if (rushUsed > 0) {
+      moving.sureFeetUsed = sureFeetUsed;
+    }
+    moving.hasMoved = true;
+
+    const possessesBall = carrying || pickingUp;
+    const solved = board.puzzleType === 'score' && possessesBall && x === 0;
+
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `Rush — ${selected.name}`, factor: rushChance },
+      { reason: `Jump over ${prone.name} — ${selected.name}`, factor: landingChance },
+      { reason: `Pick up — ${selected.name}`, factor: pickupChance },
       { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: boneHeadChance }
     ]);
 
@@ -316,6 +446,11 @@ export class PuzzleSessionService implements OnDestroy {
     // A player with PA=0 cannot throw or catch the ball.
     const passerCheck = board.players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
     if ((passerCheck && passerCheck.characteristics.passing === 0) || target.characteristics.passing === 0) {
+      return;
+    }
+
+    // "My Ball": a selfish carrier refuses to pass the ball.
+    if (passerCheck && this.hasSkill(passerCheck, 'My Ball')) {
       return;
     }
 
@@ -379,6 +514,12 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const carrierOrig = board.players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
+
+    // "My Ball": a selfish carrier refuses to hand the ball off.
+    if (carrierOrig && this.hasSkill(carrierOrig, 'My Ball')) {
+      return;
+    }
+
     const players = board.players.map((p) => ({ ...p }));
 
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
@@ -451,6 +592,8 @@ export class PuzzleSessionService implements OnDestroy {
     let attackerName: string | null = null;
     let attackerNegatraitName = 'Bone Head';
     let attackerBoneHead = 1;
+    let defenderName: string | null = null;
+    let foulAppearanceChance = 1;
 
     // Track the ball carrier's position before any changes.
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
@@ -481,6 +624,12 @@ export class PuzzleSessionService implements OnDestroy {
         attackerName = attacker.name;
         attackerNegatraitName = this.negatraitName(attacker);
         attackerBoneHead = this.boneHeadChance(attacker);
+
+        // Foul Appearance: the defender forces the attacker to roll 2+ before the block.
+        if (defender && this.hasSkill(defender, 'Foul Appearance')) {
+          defenderName = defender.name;
+          foulAppearanceChance = 5 / 6;
+        }
         // Moving before the (first) block is a Blitz: this player claims the team's
         // Blitz. Guard on !hasBlocked so a Frenzy second block — where hasMoved is
         // already true from the first block — does not re-derive blitz ownership.
@@ -505,6 +654,12 @@ export class PuzzleSessionService implements OnDestroy {
       }
     }
 
+    // Eye Gouge: if the attacker has the Eye Gouge skill, the defender can no longer
+    // provide assists (offensive or defensive) for the rest of the turn.
+    if (attacker && defender && this.hasSkill(attacker, 'Eye Gouge')) {
+      defender.eyeGouged = true;
+    }
+
     // Determine ball position before possibly removing the carrier.
     let ball = carrier ? { x: carrier.x, y: carrier.y } : board.ball;
     let solved = false;
@@ -524,6 +679,11 @@ export class PuzzleSessionService implements OnDestroy {
       const scattered = this.scatterBall(players, board, carrier.x, carrier.y);
       if (scattered) ball = scattered;
       if (board.puzzleType === 'sack') solved = true;
+    }
+
+    // Score: home ball carrier chain-pushed onto the touchdown line (row 0).
+    if (!solved && carrier && carrier.team === 'home' && board.puzzleType === 'score' && carrier.x === 0) {
+      solved = true;
     }
 
     // Surf / sack win conditions when a player is pushed off the pitch.
@@ -547,6 +707,9 @@ export class PuzzleSessionService implements OnDestroy {
     if (attackerName !== null) {
       factors.push({ reason: `Block — ${attackerName}`, factor: blockChance });
       factors.push({ reason: `${attackerNegatraitName} — ${attackerName}`, factor: attackerBoneHead });
+    }
+    if (defenderName !== null) {
+      factors.push({ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearanceChance });
     }
     const { successChance, chanceLog } = this.applyChanceFactors(board, factors);
 
@@ -593,6 +756,11 @@ export class PuzzleSessionService implements OnDestroy {
       defender.prone = true;
     }
 
+    // Eye Gouge: mark the defender as unable to provide assists.
+    if (attacker && defender && this.hasSkill(attacker, 'Eye Gouge')) {
+      defender.eyeGouged = true;
+    }
+
     // Scatter the ball if the defender (away team) was carrying it and is now prone.
     // For 'sack' puzzles this also solves the puzzle.
     const carrierBD = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
@@ -604,8 +772,12 @@ export class PuzzleSessionService implements OnDestroy {
       if (board.puzzleType === 'sack') solved = true;
     }
 
+    const foulAppearanceBD = (defender && this.hasSkill(defender, 'Foul Appearance')) ? 5 / 6 : 1;
+    const defenderNameBD = defender?.name ?? null;
+
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
-      { reason: `Both Down — ${attackerName ?? 'blocker'}`, factor: blockChance }
+      { reason: `Both Down — ${attackerName ?? 'blocker'}`, factor: blockChance },
+      ...(foulAppearanceBD < 1 ? [{ reason: `Foul Appearance — ${defenderNameBD}`, factor: foulAppearanceBD }] : [])
     ]);
 
     boardSignal.set({ ...board, players, ball, blitzPlayerId, solved, successChance, chanceLog });
@@ -740,14 +912,15 @@ export class PuzzleSessionService implements OnDestroy {
           y: player.position.y,
           characteristics: player.characteristics,
           skills: player.skills,
-          activated: player.activated,
+          activated: player.activated ?? false,
           movementLeft: player.characteristics.movement,
           rushLeft: hasSprint ? 3 : 2,
           hasMoved: false,
           sureFeetUsed: false,
-          prone: false,
+          prone: player.prone ?? false,
           hasBlocked: false,
-          frenzyUsed: false
+          frenzyUsed: false,
+          eyeGouged: false
         };
       }),
       selectedPlayerId: null,

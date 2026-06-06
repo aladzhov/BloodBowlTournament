@@ -59,10 +59,10 @@
                     <div
                       class="field-cell"
                       [class.dark]="(cell.x + cell.y) % 2 === 1"
-                      [class.move-target]="cell.isMoveTarget && !pushing()"
-                      [class.push-target]="isPushTarget(cell)"
-                      [class.selectable]="!pushing() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
-                      [class.targetable]="!pushing() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
+                      [class.move-target]="cell.isMoveTarget && !pushing() && !jumping()"
+                      [class.push-target]="isPushTarget(cell) || isJumpTarget(cell)"
+                      [class.selectable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
+                      [class.targetable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
                       (click)="onCellClick(cell)"
                       (mouseenter)="onPlayerHover(cell.player)"
                       (mouseleave)="onPlayerHover(null)">
@@ -88,7 +88,7 @@
                         </div>
                       } @else if (cell.hasBall) {
                         <span class="ball-marker loose" aria-label="loose ball">🏈</span>
-                      } @else if (cell.isMoveTarget && !pushing()) {
+                      } @else if (cell.isMoveTarget && !pushing() && !jumping()) {
                         <span class="move-indicator" [class.dodge]="cell.requiresDodge" [class.rush]="cell.requiresRush">
                           @if (cell.requiresDodge && cell.requiresRush) { dodge+rush }
                           @else if (cell.requiresDodge) { dodge }
@@ -98,8 +98,10 @@
                     </div>
                   }
                   <div class="touchdown-overlay" aria-hidden="true">
-                    @for (letter of touchdownLetters; track $index) {
-                      <span>{{ letter }}</span>
+                    @if (current().type === 'score') {
+                      @for (letter of touchdownLetters; track $index) {
+                        <span>{{ letter }}</span>
+                      }
                     }
                   </div>
                 </div>
@@ -121,6 +123,21 @@
                           <button type="button" class="action-button opponent" (click)="pushOutOfBounds()">Out of Bounds</button>
                         }
                         <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else if (jumping()) {
+                    <div class="action-menu" role="dialog" aria-label="Choose landing square">
+                      <span class="action-title">Jump over {{ jumpProneName() }} →</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else if (choosingStandFirm()) {
+                    <div class="action-menu" role="dialog" aria-label="Stand Firm choice">
+                      <span class="action-title">{{ standFirmPlayerName() }} — Stand Firm</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-button" (click)="standFirmStay()">Stay Put</button>
+                        <button type="button" class="action-button opponent" (click)="standFirmAccept()">Accept Push</button>
                       </div>
                     </div>
                   } @else if (offeringBlitz()) {
@@ -208,6 +225,19 @@
                     [class.away]="player.team === 'away'">
                     {{ player.name }}
                   </h4>
+                  @if (player.prone || player.activated || player.eyeGouged) {
+                    <div class="details-status">
+                      @if (player.prone) {
+                        <span class="status-tag status-prone">Prone</span>
+                      }
+                      @if (player.activated) {
+                        <span class="status-tag status-activated">Activated</span>
+                      }
+                      @if (player.eyeGouged) {
+                        <span class="status-tag status-eye-gouged">Eye Gouged</span>
+                      }
+                    </div>
+                  }
                   <div class="skills">
                     <h5>Characteristics</h5>
                     <ul class="characteristics">

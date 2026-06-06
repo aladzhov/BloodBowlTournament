@@ -41,8 +41,32 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.bgbb.eu/puzzles/2026-06-15</loc>
-    <lastmod>2026-06-15</lastmod>
+    <loc>https://www.bgbb.eu/puzzles/2026-06-09</loc>
+    <lastmod>2026-06-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.bgbb.eu/puzzles/2026-06-10</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.bgbb.eu/puzzles/2026-06-14</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.bgbb.eu/puzzles/2026-06-17</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.bgbb.eu/puzzles/2026-06-21</loc>
+    <lastmod>2026-06-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

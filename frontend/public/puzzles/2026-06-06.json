@@ -12,40 +12,35 @@
         "name": "Tomb Kings Blitzer",
         "position": { "x": 2, "y": 0 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
-        "skills": ["Block", "Regeneration", "Thick Skull"],
-        "activated": false
+        "skills": ["Block", "Regeneration", "Thick Skull"]
       },
       {
         "team": "away",
         "name": "Bloodborn Marauder",
         "position": { "x": 1, "y": 1 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Frenzy"],
-        "activated": false
+        "skills": ["Frenzy"]
       },
       {
         "team": "away",
         "name": "Bloodborn Marauder",
         "position": { "x": 0, "y": 2 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Frenzy"],
-        "activated": false
+        "skills": ["Frenzy"]
       },
       {
         "team": "away",
         "name": "Bloodborn Marauder",
         "position": { "x": 1, "y": 2 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Frenzy"],
-        "activated": false
+        "skills": ["Frenzy"]
       },
       {
         "team": "away",
         "name": "Bloodspawn",
         "position": { "x": 3, "y": 3 },
         "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 6, "armor": 9 },
-        "skills": ["Claws", "Frenzy", "Loner 4+", "Mighty Blow", "Unchannelled Fury"],
-        "activated": false
+        "skills": ["Claws", "Frenzy", "Loner 4+", "Mighty Blow", "Unchannelled Fury"]
       }
     ],
     "targetScore": 50

@@ -161,8 +161,9 @@ export class PuzzleEngineService {
       if (!target.prone && (!selected.hasBlocked || canFrenzyBlock) && (!selected.hasMoved || blitzAvailable)) {
         options.push({ id: 'block', label: 'Block', kind: 'opponent' });
       }
-      // Jumping over a standing player requires the Leap skill.
-      if (target.prone || this.hasSkill(selected, 'Leap')) {
+      // Jump Over: only over a Prone (or Stunned) player — or any player with the
+      // Leap skill — and only when a valid landing exists and the cost is affordable.
+      if ((target.prone || this.hasSkill(selected, 'Leap')) && this.canJumpOver(board, selected, target)) {
         options.push({ id: 'jump', label: 'Jump over', kind: 'opponent' });
       }
       return options;
@@ -195,8 +196,12 @@ export class PuzzleEngineService {
     const carriesBall = board.ball.x === selected.x && board.ball.y === selected.y;
     const adjacent = this.isAdjacent(selected.x, selected.y, target.x, target.y);
 
+    // "My Ball": the carrier refuses to give the ball away — no Pass or Hand Off.
+    const selfishCarrier = this.hasSkill(selected, 'My Ball');
+
     if (carriesBall && !board.passUsed && !target.activated
         && !selected.hasBlocked
+        && !selfishCarrier
         && selected.characteristics.passing > 0
         && target.characteristics.passing > 0) {
       options.push({ id: 'pass', label: 'Pass', kind: 'primary' });
@@ -204,7 +209,7 @@ export class PuzzleEngineService {
 
     // Hand off is available to an adjacent team-mate, once per puzzle.
     if (carriesBall && adjacent && !board.handoffUsed && !target.activated
-        && !selected.hasBlocked && target.characteristics.passing > 0) {
+        && !selected.hasBlocked && !selfishCarrier && target.characteristics.passing > 0) {
       options.push({ id: 'handoff', label: 'Hand off', kind: 'primary' });
     }
 
@@ -214,6 +219,12 @@ export class PuzzleEngineService {
       this.hasSkill(target, 'Right Stuff')
     ) {
       options.push({ id: 'throw', label: 'Throw team-mate', kind: 'primary' });
+    }
+
+    // Jump Over: a prone team-mate can be jumped over, same rules as an opponent
+    // (a valid landing must exist and the 2-square cost must be affordable).
+    if (target.prone && this.canJumpOver(board, selected, target)) {
+      options.push({ id: 'jump', label: 'Jump over', kind: 'primary' });
     }
 
     return options;
@@ -280,7 +291,7 @@ export class PuzzleEngineService {
     // the DEFENDER (the block target) and is not itself marked by a standing
     // opponent — ignoring the defender being blocked, who never prevents assists.
     for (const p of all) {
-      if (p.id === attacker.id || p.team !== homeTeam || p.prone) continue;
+      if (p.id === attacker.id || p.team !== homeTeam || p.prone || p.eyeGouged) continue;
       if (!this.isAdjacent(p.x, p.y, defender.x, defender.y)) continue;
       const markers = all.filter(
         e => e.team === awayTeam && e.id !== defender.id && !e.prone && this.isAdjacent(e.x, e.y, p.x, p.y)
@@ -297,7 +308,7 @@ export class PuzzleEngineService {
     // the ATTACKER (the player making the block) and is not itself marked by a
     // standing opponent — ignoring the attacker, who never prevents assists.
     for (const p of all) {
-      if (p.id === defender.id || p.team !== awayTeam || p.prone) continue;
+      if (p.id === defender.id || p.team !== awayTeam || p.prone || p.eyeGouged) continue;
       if (!this.isAdjacent(p.x, p.y, attacker.x, attacker.y)) continue;
       const markers = all.filter(
         f => f.team === homeTeam && f.id !== attacker.id && !f.prone && this.isAdjacent(f.x, f.y, p.x, p.y)
@@ -325,9 +336,9 @@ export class PuzzleEngineService {
     if (aSt === dSt) {
       diceCount = 1; attackerChooses = true;
     } else if (aSt > dSt) {
-      diceCount = aSt >= dSt * 2 ? 3 : 2; attackerChooses = true;
+      diceCount = aSt > dSt * 2 ? 3 : 2; attackerChooses = true;
     } else {
-      diceCount = dSt >= aSt * 2 ? 3 : 2; attackerChooses = false;
+      diceCount = dSt > aSt * 2 ? 3 : 2; attackerChooses = false;
     }
 
     // Both Down: attacker wants specifically the Both Down face (P = 1/6 per die).
@@ -499,9 +510,9 @@ export class PuzzleEngineService {
     if (aSt === dSt) {
       diceCount = 1; attackerChooses = true;
     } else if (aSt > dSt) {
-      diceCount = aSt >= dSt * 2 ? 3 : 2; attackerChooses = true;
+      diceCount = aSt > dSt * 2 ? 3 : 2; attackerChooses = true;
     } else {
-      diceCount = dSt >= aSt * 2 ? 3 : 2; attackerChooses = false;
+      diceCount = dSt > aSt * 2 ? 3 : 2; attackerChooses = false;
     }
 
     const selected = new Set(results);
@@ -567,13 +578,10 @@ export class PuzzleEngineService {
     if (selected.has('pushback')) p += 2 / 6;
 
     // Stumble face: a knockdown when !Dodge || Tackle; otherwise Dodge converts it
-    // to a push, in which case it counts (once) if EITHER Push Back or Stumble is
-    // selected — both represent the same converted-push outcome for that face.
-    const stumbleIsKnockdown = !defDodge || attTackle;
-    if (stumbleIsKnockdown) {
-      if (selected.has('stumble')) p += 1 / 6;
-    } else {
-      if (selected.has('pushback') || selected.has('stumble')) p += 1 / 6;
+    // to a push. Either way it counts only when the user explicitly selected
+    // Stumble — not selecting it is a deliberate choice that costs the 1/6 face.
+    if (selected.has('stumble')) {
+      p += 1 / 6;
     }
 
     // Pow face (always knockdown)
@@ -631,6 +639,10 @@ export class PuzzleEngineService {
    * direction. Off-board squares are dropped. If at least one square is empty,
    * only the empty ones are offered; when all are occupied they are all returned
    * so the caller can resolve a chain push.
+   *
+   * Squares occupied by an away-team player with Stand Firm are excluded —
+   * they refuse to be pushed, so neither they nor the incoming player can go there.
+   * (Home-team Stand Firm players remain in the list; the component prompts the user.)
    */
   pushOptions(board: WorkingBoard, x: number, y: number, dir: PushDirection): PushSquare[] {
     const squares: PushSquare[] = this.pushSquares(dir, x, y)
@@ -639,10 +651,86 @@ export class PuzzleEngineService {
         x: s.x,
         y: s.y,
         occupantId: board.players.find((p) => p.x === s.x && p.y === s.y)?.id ?? null
-      }));
+      }))
+      // Away-team Stand Firm players refuse to be pushed — treat their square as a wall.
+      .filter((s) => {
+        if (s.occupantId === null) return true;
+        const occ = board.players.find((p) => p.id === s.occupantId);
+        return !(occ?.team === 'away' && this.hasSkill(occ, 'Stand Firm'));
+      });
 
     const empties = squares.filter((s) => s.occupantId === null);
     return empties.length > 0 ? empties : squares;
+  }
+
+  /**
+   * Landing squares for a Jump Over: the three squares directly beyond the prone
+   * player, on the opposite side from the jumper (same geometry as a push). Only
+   * empty, on-board squares are valid landing spots.
+   */
+  jumpLandingSquares(board: WorkingBoard, jumper: WorkingPlayer, prone: WorkingPlayer): PushSquare[] {
+    const dir = this.pushDirection(jumper, prone);
+    return this.pushSquares(dir, prone.x, prone.y)
+      .filter((s) => s.x >= 0 && s.y >= 0 && s.x < board.rows && s.y < board.cols)
+      .filter((s) => !board.players.some((p) => p.x === s.x && p.y === s.y))
+      .map((s) => ({ x: s.x, y: s.y, occupantId: null }));
+  }
+
+  /**
+   * Whether `jumper` can Jump Over `prone`: at least one empty landing square
+   * exists beyond the prone player, and the jumper can pay the 2-square cost
+   * from remaining movement and/or Rush.
+   */
+  canJumpOver(board: WorkingBoard, jumper: WorkingPlayer, prone: WorkingPlayer): boolean {
+    if (jumper.movementLeft + jumper.rushLeft < 2) return false;
+    return this.jumpLandingSquares(board, jumper, prone).length > 0;
+  }
+
+  /**
+   * Probability (0..1) that a Jump Over landing at (lx, ly) succeeds.
+   *
+   * The jump requires an Agility test with a negative modifier equal to the
+   * HIGHER number of enemy Tackle Zones on the square jumped FROM or the square
+   * landed IN — the two penalties do not stack. Prone players exert no tackle
+   * zone (including the player being jumped over).
+   */
+  jumpProbability(board: WorkingBoard, jumper: WorkingPlayer, lx: number, ly: number): number {
+    const tzFrom = board.players.filter(
+      (p) => p.team !== jumper.team && !p.prone && this.isAdjacent(p.x, p.y, jumper.x, jumper.y)
+    ).length;
+    const tzLand = board.players.filter(
+      (p) => p.team !== jumper.team && !p.prone && this.isAdjacent(p.x, p.y, lx, ly)
+    ).length;
+
+    const modifier = -Math.max(tzFrom, tzLand);
+    return this.rollSuccess(jumper.characteristics.agility - modifier);
+  }
+
+  /**
+   * Probability (0..1) that `mover` successfully picks up the ball from (tx, ty).
+   *
+   * Rules:
+   *  - Base roll: 2+ on D6 (Agility test, natural 1 always fails, 6 always succeeds).
+   *  - −1 per enemy Tackle Zone on the ball square (standing enemies adjacent to it).
+   *  - Extra Arms: +1 modifier.
+   *  - Sure Hands: free reroll on a failed attempt.
+   *  - Diving Catch does NOT apply to pickups (catch-only skill).
+   */
+  pickupProbability(board: WorkingBoard, mover: WorkingPlayer, tx: number, ty: number): number {
+    const tzOnSquare = board.players.filter(
+      (p) => p.team !== mover.team && !p.prone && this.isAdjacent(p.x, p.y, tx, ty)
+    ).length;
+
+    let modifier = -tzOnSquare;
+    if (this.hasSkill(mover, 'Extra Arms')) modifier += 1;
+
+    let probability = this.rollSuccess(mover.characteristics.agility - modifier);
+
+    if (this.hasSkill(mover, 'Sure Hands')) {
+      probability = 1 - (1 - probability) * (1 - probability);
+    }
+
+    return probability;
   }
 
   /**
@@ -668,8 +756,11 @@ export class PuzzleEngineService {
     const twoHeads = this.hasSkill(mover, 'Two Heads');
     const prehensileTail = leavingEnemies.some((e) => this.hasSkill(e, 'Prehensile Tail'));
 
-    // Stunty / Titchy ignore tackle-zone modifiers, unless negated by Prehensile Tail.
-    const ignoreTackleZones = (stunty || titchy) && !prehensileTail;
+    // Stunty (and Titchy) ignore the -1 per enemy tackle zone when dodging between
+    // squares. Stunty ignores them unconditionally; Titchy's are negated only when
+    // an adjacent enemy has Prehensile Tail. Other enemy Dodge-affecting skills
+    // (Prehensile Tail, Diving Tackle) STILL apply on top — even for Stunty.
+    const ignoreTackleZones = stunty || (titchy && !prehensileTail);
 
     let modifier = ignoreTackleZones ? 0 : -targetTackleZones;
     if (prehensileTail) modifier -= 1;

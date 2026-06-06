@@ -12,32 +12,28 @@
         "name": "Human Blitzer",
         "position": { "x": 3, "y": 3 },
         "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
-        "skills": ["Block", "Tackle"],
-        "activated": false
+        "skills": ["Block", "Tackle"]
       },
       {
         "team": "home",
         "name": "Ogre",
         "position": { "x": 0, "y": 3 },
         "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 5, "armor": 10 },
-        "skills": ["Bone Head", "Loner 3+", "Mighty Blow", "Thick Skull", "Throw Team-mate"],
-        "activated": false
+        "skills": ["Bone Head", "Loner 3+", "Mighty Blow", "Thick Skull", "Throw Team-mate"]
       },
       {
         "team": "away",
         "name": "Ghoul Runner",
         "position": { "x": 2, "y": 0 },
         "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
-        "skills": ["Dodge", "Regeneration"],
-        "activated": false
+        "skills": ["Dodge", "Regeneration"]
       },
       {
         "team": "away",
         "name": "Wraith",
         "position": { "x": 2, "y": 1 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 0, "armor": 9 },
-        "skills": ["Block", "Foul Appearance", "No Ball", "Regeneration", "Sidestep"],
-        "activated": false
+        "skills": ["Block", "Foul Appearance", "No Ball", "Regeneration", "Sidestep"]
       }
     ],
     "targetScore": 74

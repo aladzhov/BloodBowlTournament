@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 
 export interface PuzzlePosition {
   x: number;
@@ -22,7 +23,10 @@ export interface PuzzlePlayer {
   position: PuzzlePosition;
   characteristics: PuzzleCharacteristics;
   skills: string[];
-  activated: boolean;
+  /** When true, the player has already been activated this turn. Defaults to false. */
+  activated?: boolean;
+  /** When true, the player starts the puzzle knocked down (prone). Defaults to false. */
+  prone?: boolean;
 }
 
 export interface PuzzleField {
@@ -62,11 +66,15 @@ export function getSortedPuzzles(): Puzzle[] {
 
 /** Sorted puzzles excluding any whose date is in the future relative to today. */
 export function getVisiblePuzzles(referenceDate: Date = new Date(), source: Puzzle[] = puzzles): Puzzle[] {
-  // return source;
+  const sorted = [...source].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  // Dev builds may show future-dated puzzles; production always hides them.
+  if (environment.showFuturePuzzles) {
+    return sorted;
+  }
   const todayKey = toDateKey(referenceDate);
-  return [...source]
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .filter((puzzle) => puzzle.date <= todayKey);
+  return sorted.filter((puzzle) => puzzle.date <= todayKey);
 }
 
 function toDateKey(date: Date): string {

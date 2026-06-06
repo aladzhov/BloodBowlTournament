@@ -144,14 +144,27 @@
                       <span class="action-title">{{ actionTitle() }}</span>
                       <div class="action-buttons">
                         @for (option of actionOptions(); track option.id) {
-                          <button
-                            type="button"
-                            class="action-button"
-                            [class.opponent]="option.kind === 'opponent'"
-                            [class.selected]="selectedBlockResults().includes(option.id)"
-                            (click)="runAction(option.id)">
-                            {{ option.label }}
-                          </button>
+                          @if (blockResultImage(option.id); as img) {
+                            <button
+                              type="button"
+                              class="block-result-btn"
+                              [class.selected]="selectedBlockResults().includes(option.id)"
+                              [attr.aria-pressed]="selectedBlockResults().includes(option.id)"
+                              [attr.aria-label]="option.label"
+                              [title]="option.label"
+                              (click)="runAction(option.id)">
+                              <img class="block-result-img" [src]="img" [alt]="option.label" />
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="action-button"
+                              [class.opponent]="option.kind === 'opponent'"
+                              [class.selected]="selectedBlockResults().includes(option.id)"
+                              (click)="runAction(option.id)">
+                              {{ option.label }}
+                            </button>
+                          }
                         }
                       </div>
                       <div class="action-buttons block-confirm-row">

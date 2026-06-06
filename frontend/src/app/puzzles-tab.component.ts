@@ -348,6 +348,19 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.closeMenu();
   }
 
+  /** Maps a block-result option id to its icon in /puzzles, or null if none. */
+  private static readonly BLOCK_RESULT_IMAGES: Partial<Record<ActionId, string>> = {
+    pushback: 'puzzles/push.png',
+    stumble: 'puzzles/stumble.png',
+    pow: 'puzzles/pow.png',
+    bothdown: 'puzzles/bothdown.png'
+  };
+
+  /** Icon path for a block-result option, or null when it has no image. */
+  blockResultImage(id: ActionId): string | null {
+    return PuzzlesTabComponent.BLOCK_RESULT_IMAGES[id] ?? null;
+  }
+
   isPushTarget(cell: BoardCell): boolean {
     return this.pushing() && this.pushTargetKeys().has(`${cell.x},${cell.y}`);
   }

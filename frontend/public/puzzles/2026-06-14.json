@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-15",
+  "date": "2026-06-14",
   "title": "The Dodge or Die",
   "author": "Atanas Ladzhov",
   "type": "score",
@@ -50,6 +50,6 @@
         "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
       }
     ],
-    "targetScore": 84
+    "targetScore": 79
   }
 }

@@ -1,0 +1,73 @@
+{
+  "date": "2026-06-24",
+  "title": "Git Strike",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "field": { "rows": 6, "cols": 7 },
+    "ball": { "position": { "x": 2, "y": 2 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Trained Troll",
+        "position": { "x": 2 , "y": 3 },
+        "characteristics": { "movement": 4, "strength": 5, "agility": 5, "passing": 5, "armor": 10 },
+        "skills": ["Always Hungry", "Mighty Blow", "Projectile Vomit", "Really Stupid", "Regeneration", "Throw Team-mate"]
+      },
+      {
+        "team": "home",
+        "name": "Black Orc",
+        "position": { "x": 5, "y": 5 },
+        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Brawler", "Break Tackle", "Grab"],
+        "extraSkills": ["Break Tackle"]
+      },
+      {
+        "team": "home",
+        "name": "Black Orc",
+        "position": { "x": 5, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Brawler", "Break Tackle", "Grab"],
+        "extraSkills": ["Break Tackle"]
+      },
+      {
+        "team": "away",
+        "name": "Gutter Runner",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 9, "strength": 2, "agility": 2, "passing": 4, "armor": 8 },
+        "skills": ["Block", "Dodge", "Stab"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "away",
+        "name": "Skaven Clanrat",
+        "position": { "x": 1, "y": 2 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Skaven Clanrat",
+        "position": { "x": 0, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Skaven Clanrat",
+        "position": { "x": 3, "y": 0 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Rat Ogre",
+        "position": { "x": 3, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 5, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Animal Savagery", "Frenzy", "Guard", "Loner 4+", "Mighty Blow", "Prehensile Tail"],
+        "extraSkills": ["Guard"]
+      }
+    ],
+    "targetScore": 23
+  }
+}

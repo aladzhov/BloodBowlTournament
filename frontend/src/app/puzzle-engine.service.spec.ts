@@ -10,6 +10,7 @@ function player(overrides: Partial<WorkingPlayer> = {}): WorkingPlayer {
     y: 1,
     characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
     skills: [],
+    extraSkills: [],
     activated: false,
     movementLeft: 6,
     rushLeft: 2,
@@ -96,7 +97,7 @@ describe('PuzzleEngineService', () => {
     expect(withBall.map((o) => o.id)).toEqual(['activate', 'pass']);
   });
 
-  it('offers no actions towards an already-activated team-mate', () => {
+  it('does not offer Activate for an already-activated team-mate (but Pass still works)', () => {
     const selected = player({ id: 'home-0', x: 1, y: 1 });
     const used = player({ id: 'home-1', x: 3, y: 2, activated: true });
 
@@ -105,7 +106,9 @@ describe('PuzzleEngineService', () => {
       selected,
       used
     );
-    expect(options).toEqual([]);
+    // Carrier holds the ball: Pass is offered to the activated (non-adjacent) team-mate,
+    // but it can no longer be activated/taken over.
+    expect(options.map((o) => o.id)).toEqual(['pass']);
   });
 
   it('offers Throw team-mate to a deactivated team-mate when adjacent with the right skills', () => {
@@ -385,6 +388,41 @@ describe('PuzzleEngineService', () => {
     });
   });
 
+  describe('grabSquares', () => {
+    it('offers every unoccupied adjacent square of the target', () => {
+      // Target at (2,2) on a 4×7 board: all 8 neighbours are on-board and empty.
+      const blocker = player({ id: 'home-0', x: 0, y: 5 }); // not adjacent to (2,2)
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 2 });
+      const state = board([blocker, defender]);
+
+      const squares = engine.grabSquares(state, 2, 2).map((s) => `${s.x},${s.y}`).sort();
+      expect(squares).toEqual(
+        ['1,1', '1,2', '1,3', '2,1', '2,3', '3,1', '3,2', '3,3'].sort()
+      );
+    });
+
+    it('excludes occupied and off-board squares', () => {
+      // Target at (0,0) corner: only (0,1), (1,0), (1,1) are on-board; occupy (1,1).
+      const defender = player({ id: 'away-0', team: 'away', x: 0, y: 0 });
+      const blocker = player({ id: 'home-0', x: 1, y: 1 });
+      const state = board([blocker, defender]);
+
+      const squares = engine.grabSquares(state, 0, 0).map((s) => `${s.x},${s.y}`).sort();
+      expect(squares).toEqual(['0,1', '1,0'].sort());
+    });
+
+    it('returns empty when the target is fully boxed in', () => {
+      // Target at (0,0); occupy its only 3 on-board neighbours.
+      const defender = player({ id: 'away-0', team: 'away', x: 0, y: 0 });
+      const m1 = player({ id: 'home-1', x: 0, y: 1 });
+      const m2 = player({ id: 'home-2', x: 1, y: 0 });
+      const m3 = player({ id: 'home-3', x: 1, y: 1 });
+      const state = board([defender, m1, m2, m3]);
+
+      expect(engine.grabSquares(state, 0, 0)).toEqual([]);
+    });
+  });
+
   describe('dodgeProbability', () => {
     const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
     const ag = (agility: number) => ({ movement: 6, strength: 3, agility, passing: 4, armor: 8 });
@@ -571,6 +609,13 @@ describe('PuzzleEngineService', () => {
       expect(engine.canJumpOver(board([jumper, prone]), jumper, prone)).toBe(false);
     });
 
+    it('canJumpOver is false when the prone player is not adjacent', () => {
+      // Prone player two squares away (not adjacent) → Jump Over unavailable.
+      const jumper = player({ id: 'home-0', x: 1, y: 1 });
+      const prone  = player({ id: 'away-0', team: 'away', x: 3, y: 1, prone: true });
+      expect(engine.canJumpOver(board([jumper, prone]), jumper, prone)).toBe(false);
+    });
+
     it('only offers Jump (not Block) against a prone target when a landing exists', () => {
       const jumper = player({ id: 'home-0', x: 1, y: 1 });
       const prone  = player({ id: 'away-0', team: 'away', x: 2, y: 1, prone: true });
@@ -708,6 +753,40 @@ describe('PuzzleEngineService', () => {
 
       // Prone assister exerts no assist → equal ST → 1 die → 5/6.
       expect(near(engine.blockProbability(state, attacker, defender, 'push'), ONE_DIE_PUSH)).toBe(true);
+    });
+  });
+
+  describe('vomitProbability — Projectile Vomit (2D6 > AV)', () => {
+    const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+
+    it('AV 8: needs 9+ on 2D6 → 10/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 } });
+      expect(near(engine.vomitProbability(target), 10 / 36)).toBe(true);
+    });
+
+    it('AV 7: needs 8+ on 2D6 → 15/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 7 } });
+      expect(near(engine.vomitProbability(target), 15 / 36)).toBe(true);
+    });
+
+    it('AV 10: needs 11+ on 2D6 → 3/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 10 } });
+      expect(near(engine.vomitProbability(target), 3 / 36)).toBe(true);
+    });
+  });
+
+  describe('Pass / Hand Off to an already-activated team-mate', () => {
+    it('offers Pass and Hand Off when the receiver is already activated', () => {
+      // Carrier holds the ball at (1,1); an adjacent team-mate is already activated.
+      const carrier = player({ id: 'home-0', x: 1, y: 1 });
+      const receiver = player({ id: 'home-1', x: 1, y: 2, activated: true });
+      const state = board([carrier, receiver], { x: 1, y: 1 });
+
+      const ids = engine.actionOptions(state, carrier, receiver).map((o) => o.id);
+      expect(ids).toContain('pass');
+      expect(ids).toContain('handoff');
+      // An activated team-mate can no longer be activated/taken over.
+      expect(ids).not.toContain('activate');
     });
   });
 });

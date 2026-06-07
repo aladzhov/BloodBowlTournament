@@ -372,5 +372,64 @@ describe('PuzzleSessionService board mechanics', () => {
     // Timer/session state is untouched.
     expect(service.sessionState('k8')().started).toBe(true);
   });
+
+  describe('standing up a prone player', () => {
+    function proneData(movement = 6): PuzzleData {
+      const data = makeData();
+      data.players[0].prone = true;
+      data.players[0].characteristics.movement = movement;
+      // Move the ball off the prone player's square to isolate stand-up mechanics.
+      data.ball.position = { x: 6, y: 6 };
+      return data;
+    }
+
+    it('moving a prone player stands it up (costs 3) then spends 1 to move', () => {
+      const data = proneData(6);
+      service.selectPlayer('su1', data, 'home-0');
+      service.moveSelectedTo('su1', data, 0, 0); // diagonal from (1,1)
+
+      const home = service.board('su1', data)().players.find((p) => p.id === 'home-0')!;
+      expect(home.prone).toBe(false);
+      expect(home.x).toBe(0);
+      expect(home.y).toBe(0);
+      expect(home.movementLeft).toBe(2); // 6 − 3 (stand) − 1 (move)
+      expect(home.hasMoved).toBe(true);
+    });
+
+    it('stands up in place via standUpSelected, spending 3 movement', () => {
+      const data = proneData(6);
+      service.selectPlayer('su2', data, 'home-0');
+      service.standUpSelected('su2', data);
+
+      const home = service.board('su2', data)().players.find((p) => p.id === 'home-0')!;
+      expect(home.prone).toBe(false);
+      expect(home.x).toBe(1);
+      expect(home.y).toBe(1);
+      expect(home.movementLeft).toBe(3); // 6 − 3
+      expect(home.hasMoved).toBe(true);
+    });
+
+    it('cannot stand up in place with fewer than 3 movement', () => {
+      const data = proneData(2);
+      service.selectPlayer('su3', data, 'home-0');
+      service.standUpSelected('su3', data);
+
+      const home = service.board('su3', data)().players.find((p) => p.id === 'home-0')!;
+      expect(home.prone).toBe(true); // still down
+      expect(home.movementLeft).toBe(2);
+    });
+
+    it('cannot move a prone player that lacks the 3 movement to stand', () => {
+      const data = proneData(2);
+      service.selectPlayer('su4', data, 'home-0');
+      service.moveSelectedTo('su4', data, 0, 0);
+
+      const home = service.board('su4', data)().players.find((p) => p.id === 'home-0')!;
+      expect(home.prone).toBe(true);
+      expect(home.x).toBe(1);
+      expect(home.y).toBe(1);
+      expect(home.movementLeft).toBe(2);
+    });
+  });
 });
 

@@ -14,6 +14,7 @@ export interface BoardCell {
 
 export type ActionId =
   | 'block'
+  | 'vomit'
   | 'jump'
   | 'activate'
   | 'pass'
@@ -70,15 +71,22 @@ export class PuzzleEngineService {
 
     const cells: BoardCell[] = [];
 
+    // A prone player must spend 3 movement standing up before its first step, so
+    // its effective move budget is reduced accordingly (and it cannot move at all
+    // when it lacks the 3 points needed to stand).
+    const standUpCost = selected?.prone ? 3 : 0;
+    const canStand = !!selected && (!selected.prone || selected.movementLeft >= standUpCost);
+    const moveBudget = selected ? selected.movementLeft - standUpCost : 0;
+
     for (let x = 0; x < board.rows; x++) {
       for (let y = 0; y < board.cols; y++) {
         const player = board.players.find((p) => p.x === x && p.y === y) ?? null;
         const occupied = player !== null;
         const adjacent = !!selected && this.isAdjacent(x, y, selected.x, selected.y);
 
-        const canMove   = !!selected && !occupied && adjacent && selected.movementLeft > 0;
-        const canRush   = !!selected && !occupied && adjacent
-                          && selected.movementLeft === 0 && selected.rushLeft > 0;
+        const canMove   = !!selected && canStand && !occupied && adjacent && moveBudget > 0;
+        const canRush   = !!selected && canStand && !occupied && adjacent
+                          && moveBudget <= 0 && selected.rushLeft > 0;
         const isMoveTarget = canMove || canRush;
 
         cells.push({
@@ -154,16 +162,25 @@ export class PuzzleEngineService {
       // A player who has already blocked this turn cannot block again (unless Frenzy).
       // A player who has already moved can only block if the team's Blitz is still
       // free OR already owned by this player (e.g. a Frenzy/Blitz continuation).
+      // The acting player must be standing (a prone player must stand up first).
       const canFrenzyBlock = this.hasSkill(selected, 'Frenzy')
         && !selected.frenzyUsed
         && selected.hasBlocked;
       const blitzAvailable = board.blitzPlayerId === null || board.blitzPlayerId === selected.id;
-      if (!target.prone && (!selected.hasBlocked || canFrenzyBlock) && (!selected.hasMoved || blitzAvailable)) {
+      if (!selected.prone && !target.prone && (!selected.hasBlocked || canFrenzyBlock) && (!selected.hasMoved || blitzAvailable)) {
         options.push({ id: 'block', label: 'Block', kind: 'opponent' });
+      }
+      // Projectile Vomit: an alternative to a Block (also usable as a Blitz with movement).
+      // Same activation gating as a Block, but it is not a Block so Frenzy/Wrestle etc.
+      // do not interact with it; the player simply may not have already blocked/vomited.
+      if (!selected.prone && !target.prone && this.hasSkill(selected, 'Projectile Vomit')
+          && !selected.hasBlocked && (!selected.hasMoved || blitzAvailable)) {
+        options.push({ id: 'vomit', label: 'Vomit', kind: 'opponent' });
       }
       // Jump Over: only over a Prone (or Stunned) player — or any player with the
       // Leap skill — and only when a valid landing exists and the cost is affordable.
-      if ((target.prone || this.hasSkill(selected, 'Leap')) && this.canJumpOver(board, selected, target)) {
+      // A prone jumper must stand up first.
+      if (!selected.prone && (target.prone || this.hasSkill(selected, 'Leap')) && this.canJumpOver(board, selected, target)) {
         options.push({ id: 'jump', label: 'Jump over', kind: 'opponent' });
       }
       return options;
@@ -173,13 +190,12 @@ export class PuzzleEngineService {
   }
 
   /**
-   * Options for a friendly target. Actions only apply to a "deactivated"
-   * (not-yet-activated) team-mate:
-   *  - Activate player: take control of that team-mate.
-   *  - Pass: when the active player is holding the ball.
+   * Options for a friendly target:
+   *  - Activate player: take control of a not-yet-activated team-mate.
+   *  - Pass / Hand Off: when the active player holds the ball — the receiver may
+   *    already have been activated (it does not need its own activation to catch).
    *  - Throw team-mate: when adjacent and the Throw Team-Mate / Right Stuff
    *    skill pair is present.
-   * An already-activated team-mate offers no actions.
    */
   private friendlyOptions(
     board: WorkingBoard,
@@ -199,7 +215,12 @@ export class PuzzleEngineService {
     // "My Ball": the carrier refuses to give the ball away — no Pass or Hand Off.
     const selfishCarrier = this.hasSkill(selected, 'My Ball');
 
-    if (carriesBall && !board.passUsed && !target.activated
+    // A prone player must stand up before passing/handing off/throwing/jumping.
+    const standing = !selected.prone;
+
+    // A Pass / Hand Off may target an already-activated team-mate (the receiver
+    // does not need their own activation to catch the ball).
+    if (carriesBall && standing && !board.passUsed
         && !selected.hasBlocked
         && !selfishCarrier
         && selected.characteristics.passing > 0
@@ -208,12 +229,13 @@ export class PuzzleEngineService {
     }
 
     // Hand off is available to an adjacent team-mate, once per puzzle.
-    if (carriesBall && adjacent && !board.handoffUsed && !target.activated
+    if (carriesBall && standing && adjacent && !board.handoffUsed
         && !selected.hasBlocked && !selfishCarrier && target.characteristics.passing > 0) {
       options.push({ id: 'handoff', label: 'Hand off', kind: 'primary' });
     }
 
     if (
+      standing &&
       adjacent &&
       this.hasSkill(selected, 'Throw Team-Mate') &&
       this.hasSkill(target, 'Right Stuff')
@@ -223,7 +245,7 @@ export class PuzzleEngineService {
 
     // Jump Over: a prone team-mate can be jumped over, same rules as an opponent
     // (a valid landing must exist and the 2-square cost must be affordable).
-    if (target.prone && this.canJumpOver(board, selected, target)) {
+    if (standing && target.prone && this.canJumpOver(board, selected, target)) {
       options.push({ id: 'jump', label: 'Jump over', kind: 'primary' });
     }
 
@@ -357,7 +379,7 @@ export class PuzzleEngineService {
     const hasBlock   = this.hasSkill(attacker, 'Block');
     const hasWrestle = this.hasSkill(attacker, 'Wrestle');
     const levelBD    = hasBlock ? 3 : hasWrestle ? 1 : -1;
-    const brawlerActive = this.hasSkill(attacker, 'Brawler') && levelBD < minLevel;
+    const brawlerActive = this.hasSkill(attacker, 'Brawler') && !attacker.hasMoved && levelBD < minLevel;
 
     if (!brawlerActive) {
       if (diceCount === 1)  return p1;
@@ -522,8 +544,9 @@ export class PuzzleEngineService {
       (this.hasSkill(attacker, 'Juggernaut') && attacker.hasMoved);
 
     const pHit = this.pSingleDieHitsAny(attacker, defender, selected);
-    // Brawler: reroll BD face when BD is a turnover (no safe-BD skill).
-    const brawlerActive = this.hasSkill(attacker, 'Brawler') && !hasSafeBD;
+    // Brawler: reroll BD face when BD is a turnover (no safe-BD skill). Brawler may
+    // only be used on a stationary Block, never as part of a Blitz (player moved).
+    const brawlerActive = this.hasSkill(attacker, 'Brawler') && !attacker.hasMoved && !hasSafeBD;
 
     if (!brawlerActive) {
       if (diceCount === 1) return pHit;
@@ -664,6 +687,48 @@ export class PuzzleEngineService {
   }
 
   /**
+   * Grab: every unoccupied, on-board square adjacent (8 directions) to (x, y).
+   * A blocker with Grab may push the target into ANY of these — not just the
+   * three squares directly away. Returns an empty list when the target is
+   * fully boxed in (Grab then cannot be used).
+   */
+  grabSquares(board: WorkingBoard, x: number, y: number): PushSquare[] {
+    const result: PushSquare[] = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const sx = x + dx;
+        const sy = y + dy;
+        if (sx < 0 || sy < 0 || sx >= board.rows || sy >= board.cols) continue;
+        if (board.players.some((p) => p.x === sx && p.y === sy)) continue;
+        result.push({ x: sx, y: sy, occupantId: null });
+      }
+    }
+    return result;
+  }
+
+  /**
+   * The three on-board squares directly away from the blocker (with occupant info,
+   * NOT reduced to empties). Used so a Grab blocker can still choose a normal push
+   * — including an occupied square that triggers a chain push. Away-team Stand Firm
+   * squares are excluded (they refuse to be pushed).
+   */
+  pushChainSquares(board: WorkingBoard, x: number, y: number, dir: PushDirection): PushSquare[] {
+    return this.pushSquares(dir, x, y)
+      .filter((s) => s.x >= 0 && s.y >= 0 && s.x < board.rows && s.y < board.cols)
+      .map((s) => ({
+        x: s.x,
+        y: s.y,
+        occupantId: board.players.find((p) => p.x === s.x && p.y === s.y)?.id ?? null
+      }))
+      .filter((s) => {
+        if (s.occupantId === null) return true;
+        const occ = board.players.find((p) => p.id === s.occupantId);
+        return !(occ?.team === 'away' && this.hasSkill(occ, 'Stand Firm'));
+      });
+  }
+
+  /**
    * Landing squares for a Jump Over: the three squares directly beyond the prone
    * player, on the opposite side from the jumper (same geometry as a push). Only
    * empty, on-board squares are valid landing spots.
@@ -677,11 +742,12 @@ export class PuzzleEngineService {
   }
 
   /**
-   * Whether `jumper` can Jump Over `prone`: at least one empty landing square
-   * exists beyond the prone player, and the jumper can pay the 2-square cost
-   * from remaining movement and/or Rush.
+   * Whether `jumper` can Jump Over `prone`: the prone player must be adjacent,
+   * at least one empty landing square exists beyond it, and the jumper can pay
+   * the 2-square cost from remaining movement and/or Rush.
    */
   canJumpOver(board: WorkingBoard, jumper: WorkingPlayer, prone: WorkingPlayer): boolean {
+    if (!this.isAdjacent(jumper.x, jumper.y, prone.x, prone.y)) return false;
     if (jumper.movementLeft + jumper.rushLeft < 2) return false;
     return this.jumpLandingSquares(board, jumper, prone).length > 0;
   }
@@ -704,6 +770,28 @@ export class PuzzleEngineService {
 
     const modifier = -Math.max(tzFrom, tzLand);
     return this.rollSuccess(jumper.characteristics.agility - modifier);
+  }
+
+  /**
+   * Probability (0..1) that a Projectile Vomit attack breaks the target's armour.
+   *
+   * The attacker rolls 2D6 and must beat (strictly exceed) the target's Armour
+   * Value. On success the target is knocked Prone. Tackle zones and assists do
+   * not affect Vomit — it is a flat 2D6-vs-AV roll.
+   */
+  vomitProbability(target: WorkingPlayer): number {
+    return this.twoD6Above(target.characteristics.armor);
+  }
+
+  /** Probability that the sum of 2D6 is strictly greater than `value`. */
+  private twoD6Above(value: number): number {
+    let favourable = 0;
+    for (let a = 1; a <= 6; a++) {
+      for (let b = 1; b <= 6; b++) {
+        if (a + b > value) favourable++;
+      }
+    }
+    return favourable / 36;
   }
 
   /**
@@ -768,11 +856,14 @@ export class PuzzleEngineService {
     if (titchy) modifier += 1;
     if (twoHeads) modifier += 1;
 
-    // Break Tackle lets the player use the better of Agility / Strength as the target.
-    let target = mover.characteristics.agility;
+    // Break Tackle: once per turn, a Dodge gains a flat positive modifier scaled by
+    // the player's Strength — +1 at ST≤3, +2 at ST4, +3 at ST≥5.
     if (this.hasSkill(mover, 'Break Tackle')) {
-      target = Math.min(target, mover.characteristics.strength);
+      const st = mover.characteristics.strength;
+      modifier += st >= 5 ? 3 : st === 4 ? 2 : 1;
     }
+
+    const target = mover.characteristics.agility;
 
     let probability = this.rollSuccess(target - modifier);
 

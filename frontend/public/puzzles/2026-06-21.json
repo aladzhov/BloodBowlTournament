@@ -12,14 +12,16 @@
         "name": "Mummy",
         "position": { "x": 2 , "y": 3 },
         "characteristics": { "movement": 3, "strength": 5, "agility": 5, "passing": 6, "armor": 10 },
-        "skills": ["Guard", "Mighty Blow", "Regeneration"]
+        "skills": ["Guard", "Mighty Blow", "Regeneration"],
+        "extraSkills": ["Guard"]
       },
       {
         "team": "home",
         "name": "Wight",
         "position": { "x": 4, "y": 4 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
-        "skills": ["Block", "Regeneration", "Tackle", "Thick Skull"]
+        "skills": ["Block", "Guard", "Regeneration", "Tackle", "Thick Skull"],
+        "extraSkills": ["Guard"]
       },
       {
         "team": "home",

@@ -20,6 +20,12 @@ interface PushState {
   allowProneInPlace: boolean;
   /** When true only Prone in Place is available — no push squares (BD-only selection). */
   proneInPlaceOnly: boolean;
+  /**
+   * Grab: the blocker may push the target into ANY unoccupied square adjacent to
+   * it (the 8-neighbourhood), not just the three squares directly away. Only set
+   * for the initial target of a Grab block; never propagated to chain pushes.
+   */
+  grab: boolean;
 }
 
 interface FollowUpState {
@@ -132,6 +138,18 @@ export class PuzzlesTabComponent implements OnDestroy {
     return board.players.find((p) => p.id === board.selectedPlayerId) ?? null;
   });
 
+  /**
+   * True when the selected player is a prone, not-yet-activated home player that
+   * can afford the 3-movement stand-up cost — enabling the "Stand Up" affordance.
+   */
+  readonly canStandUp = computed(() => {
+    const p = this.selectedPlayer();
+    return !!p && p.prone && !p.activated && p.movementLeft >= 3
+      && this.revealed() && !this.solved()
+      && !this.pushing() && !this.jumping() && !this.followingUp()
+      && !this.offeringBlitz() && !this.choosingStandFirm();
+  });
+
   /** The pushback squares offered for the player currently being pushed. */
   readonly pushTargets = computed(() => {
     const state = this.pushState();
@@ -143,7 +161,20 @@ export class PuzzlesTabComponent implements OnDestroy {
     if (!current) {
       return [];
     }
-    return this.engine.pushOptions(board, current.x, current.y, state.dir);
+    if (!state.grab) {
+      return this.engine.pushOptions(board, current.x, current.y, state.dir);
+    }
+    // Grab: offer every unoccupied adjacent square, AND still allow a normal push
+    // into the three directly-away squares (an occupied one triggers a chain push).
+    const grabSquares = this.engine.grabSquares(board, current.x, current.y);
+    const chainSquares = this.engine.pushChainSquares(board, current.x, current.y, state.dir);
+    const byKey = new Map<string, { x: number; y: number; occupantId: string | null }>();
+    for (const s of [...grabSquares, ...chainSquares]) {
+      const key = `${s.x},${s.y}`;
+      // Prefer an entry carrying an occupant (so chain pushes remain selectable).
+      if (!byKey.has(key) || s.occupantId !== null) byKey.set(key, s);
+    }
+    return [...byKey.values()];
   });
 
   private readonly pushTargetKeys = computed(
@@ -418,6 +449,18 @@ export class PuzzlesTabComponent implements OnDestroy {
       this.sessionService.passBallTo(this.current().date, this.current().data, target.id);
     } else if (id === 'handoff' && target) {
       this.sessionService.handOffTo(this.current().date, this.current().data, target.id);
+    } else if (id === 'vomit' && target) {
+      // Projectile Vomit: resolve immediately (no push), then offer Blitz continuation.
+      const attacker = this.selectedPlayer();
+      if (attacker) {
+        const vomitChance = this.engine.vomitProbability(target);
+        this.sessionService.applyVomit(
+          this.current().date, this.current().data, attacker.id, target.id, vomitChance
+        );
+        this.closeMenu();
+        this.checkBlitzAfterBlock(attacker.id);
+      }
+      return;
     } else if (id === 'jump' && target) {
       // Enter landing-selection mode; the jumper stays selected.
       const jumper = this.selectedPlayer();
@@ -559,7 +602,14 @@ export class PuzzlesTabComponent implements OnDestroy {
     const options = this.engine.pushOptions(this.working(), defender.x, defender.y, dir);
     const canPushOob = this.engine.hasPushOutOfBounds(this.working(), defender.x, defender.y, dir);
 
-    if (options.length === 0 && !canPushOob) {
+    // Grab: the blocker may push the target into any unoccupied adjacent square,
+    // provided at least one exists. Grab only works on a stationary Block — never
+    // as part of a Blitz (the blocker must not have moved this activation).
+    const grab = this.hasSkill(blocker, 'Grab')
+      && !blocker.hasMoved
+      && this.engine.grabSquares(this.working(), defender.x, defender.y).length > 0;
+
+    if (options.length === 0 && !canPushOob && !grab) {
       // All push squares may be blocked by away-team Stand Firm players. Apply the
       // block with the defender staying in place rather than aborting the block.
       const blockChance2 = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
@@ -586,7 +636,8 @@ export class PuzzlesTabComponent implements OnDestroy {
       firstDefenderId: defender.id,
       knocksDown: result === 'stumble' || result === 'pow',
       allowProneInPlace,
-      proneInPlaceOnly: false
+      proneInPlaceOnly: false,
+      grab
     });
   }
 
@@ -621,7 +672,8 @@ export class PuzzlesTabComponent implements OnDestroy {
       firstDefenderId: defender.id,
       knocksDown: true,
       allowProneInPlace,
-      proneInPlaceOnly
+      proneInPlaceOnly,
+      grab: false
     });
   }
 
@@ -700,7 +752,8 @@ export class PuzzlesTabComponent implements OnDestroy {
       firstDefenderId: state.firstDefenderId,
       knocksDown: state.knocksDown,
       allowProneInPlace: false,
-      proneInPlaceOnly: false
+      proneInPlaceOnly: false,
+      grab: false
     });
   }
 
@@ -738,7 +791,7 @@ export class PuzzlesTabComponent implements OnDestroy {
         dir: newDir, frames, currentId: occupant.id, blockChance: state.blockChance,
         attackerId: state.attackerId, defenderX: state.defenderX, defenderY: state.defenderY,
         firstDefenderId: state.firstDefenderId, knocksDown: state.knocksDown,
-        allowProneInPlace: false, proneInPlaceOnly: false
+        allowProneInPlace: false, proneInPlaceOnly: false, grab: false
       });
       return;
     }
@@ -881,7 +934,9 @@ export class PuzzlesTabComponent implements OnDestroy {
     if (!attacker || board.solved) return;
 
     const blitzAvailable = board.blitzPlayerId === null || board.blitzPlayerId === attackerId;
-    if (attacker.movementLeft > 0 && blitzAvailable) {
+    // Continue moving when the player still has base movement OR unused Rush squares
+    // (they may attempt to Rush even after a block / vomit), and the Blitz is theirs.
+    if ((attacker.movementLeft > 0 || attacker.rushLeft > 0) && blitzAvailable) {
       this.blitzChoiceAttackerId.set(attackerId);
     } else {
       this.sessionService.finalizeBlockerActivation(
@@ -916,6 +971,12 @@ export class PuzzlesTabComponent implements OnDestroy {
       return;
     }
     this.sessionService.activatePlayer(this.current().date, this.current().data, target.id);
+  }
+
+  /** Stand the selected prone player up in place (costs 3 movement). */
+  standUp(): void {
+    this.closeMenu();
+    this.sessionService.standUpSelected(this.current().date, this.current().data);
   }
 
   onPlayerHover(player: WorkingPlayer | null): void {

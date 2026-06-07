@@ -1,0 +1,76 @@
+{
+  "date": "2026-06-28",
+  "title": "No time to rest",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "field": { "rows": 6, "cols": 7 },
+    "ball": { "position": { "x": 3, "y": 4 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Chaos Chosen",
+        "position": { "x": 3 , "y": 1 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Guard"],
+        "extraSkills": ["Guard"],
+        "prone": true
+      },
+      {
+        "team": "home",
+        "name": "Chaos Chosen",
+        "position": { "x": 1 , "y": 0 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Block"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "home",
+        "name": "Chaos Chosen",
+        "position": { "x": 2 , "y": 2 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar"],
+        "prone": true
+      },
+      {
+        "team": "home",
+        "name": "Chaos Chosen",
+        "position": { "x": 1 , "y": 4 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Block"],
+        "extraSkills": ["Block"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Saurus Blocker",
+        "position": { "x": 3 , "y": 4 },
+        "characteristics": { "movement": 6, "strength": 4, "agility": 5, "passing": 6, "armor": 10 },
+        "skills": ["Juggernaut", "Unsteady"]
+      },
+      {
+        "team": "away",
+        "name": "Chameleon Skink",
+        "position": { "x": 3 , "y": 3 },
+        "characteristics": { "movement": 7, "strength": 2, "agility": 3, "passing": 3, "armor": 8 },
+        "skills": ["Dodge", "Leader", "On the Ball", "Shadowing", "Stunty"],
+        "extraSkills": ["Leader"]
+      },
+      {
+        "team": "away",
+        "name": "Skink Lineman",
+        "position": { "x": 3 , "y": 5 },
+        "characteristics": { "movement": 8, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Dodge", "Stunty"]
+      },
+      {
+        "team": "away",
+        "name": "Skink Lineman",
+        "position": { "x": 0 , "y": 2 },
+        "characteristics": { "movement": 8, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Dodge", "Stunty"]
+      }
+    ],
+    "targetScore": 52
+  }
+}

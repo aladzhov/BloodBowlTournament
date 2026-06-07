@@ -211,6 +211,13 @@
                         <button type="button" class="action-cancel" (click)="cancelAction()">Cancel</button>
                       </div>
                     </div>
+                  } @else if (canStandUp()) {
+                    <div class="action-menu" role="dialog" aria-label="Stand up?">
+                      <span class="action-title">Prone — {{ selectedPlayer()?.name }}</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-button" (click)="standUp()">Stand Up (3 MA)</button>
+                      </div>
+                    </div>
                   }
                 </div>
               </div>
@@ -252,7 +259,11 @@
                     <h5>Skills</h5>
                     <div class="skill-tags">
                       @for (skill of player.skills; track skill) {
-                        <span class="skill-tag">{{ skill }}</span>
+                        @if (player.extraSkills.includes(skill)) {
+                          <span class="skill-tag-red">{{ skill }}</span>
+                        } @else {
+                          <span class="skill-tag">{{ skill }}</span>
+                        }
                       }
                     </div>
                   </div>

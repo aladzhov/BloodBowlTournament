@@ -549,6 +549,15 @@
   border-radius: 1rem;
 }
 
+.skill-tag-red {
+  background: var(--bg-red);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+}
+
 /* ── Success-chance breakdown ── */
 .chance-breakdown {
   border: 1px solid var(--border-light);
@@ -755,8 +764,8 @@
   }
 
   .block-result-img {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 }
 

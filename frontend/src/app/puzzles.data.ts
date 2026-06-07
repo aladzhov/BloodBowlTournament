@@ -23,9 +23,8 @@ export interface PuzzlePlayer {
   position: PuzzlePosition;
   characteristics: PuzzleCharacteristics;
   skills: string[];
-  /** When true, the player has already been activated this turn. Defaults to false. */
+  extraSkills?: string[];
   activated?: boolean;
-  /** When true, the player starts the puzzle knocked down (prone). Defaults to false. */
   prone?: boolean;
 }
 

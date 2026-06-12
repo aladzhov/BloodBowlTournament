@@ -430,6 +430,149 @@ describe('PuzzleSessionService board mechanics', () => {
       expect(home.y).toBe(1);
       expect(home.movementLeft).toBe(2);
     });
+
+    it('folds the negatrait check into standing up in place (rolled before the player stands)', () => {
+      const data = proneData(6);
+      data.players[0].skills = ['Bone Head'];
+      service.selectPlayer('su5', data, 'home-0');
+      service.standUpSelected('su5', data);
+
+      const board = service.board('su5', data)();
+      const home = board.players.find((p) => p.id === 'home-0')!;
+      expect(home.prone).toBe(false);
+      // Bone Head 2+ check (5/6) folded into the success chance.
+      expect(board.successChance).toBeCloseTo(5 / 6);
+      const bh = board.chanceLog.find((e) => e.reason.startsWith('Bone Head'));
+      expect(bh?.factor).toBeCloseTo(5 / 6);
+    });
+  });
+
+  describe('bothDown solution flag', () => {
+    function bothDownData(forbidden: boolean): PuzzleData {
+      return {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 6, y: 6 } },
+        players: [
+          {
+            team: 'home',
+            name: 'Blocker',
+            position: { x: 1, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+            skills: ['Block']
+          },
+          {
+            team: 'away',
+            name: 'Target',
+            position: { x: 2, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [],
+            bothDown: forbidden ? false : true
+          }
+        ],
+        targetScore: 10
+      };
+    }
+
+    it('flags an incorrect solution when Both Down hits a player marked bothDown:false', () => {
+      const data = bothDownData(true);
+      service.applyBothDown('bd1', data, 'home-0', 'away-1', 1);
+
+      const board = service.board('bd1', data)();
+      expect(board.incorrectSolution).toBe(true);
+      // The Both Down still resolves normally (defender knocked prone).
+      expect(board.players.find((p) => p.id === 'away-1')!.prone).toBe(true);
+    });
+
+    it('does not flag a solution when Both Down hits a player that allows it', () => {
+      const data = bothDownData(false);
+      service.applyBothDown('bd2', data, 'home-0', 'away-1', 1);
+
+      expect(service.board('bd2', data)().incorrectSolution).toBe(false);
+    });
+
+    it('clears the incorrect-solution flag on reset', () => {
+      const data = bothDownData(true);
+      service.applyBothDown('bd3', data, 'home-0', 'away-1', 1);
+      expect(service.board('bd3', data)().incorrectSolution).toBe(true);
+
+      service.resetBoard('bd3', data);
+      expect(service.board('bd3', data)().incorrectSolution).toBe(false);
+    });
+  });
+
+  describe('hints', () => {
+    function hintData(hints?: string[]): PuzzleData {
+      const data = makeData();
+      return { ...data, hints };
+    }
+
+    it('starts with no hints revealed', () => {
+      const data = hintData(['First', 'Second']);
+      const board = service.board('h1', data)();
+      expect(board.hints).toEqual(['First', 'Second']);
+      expect(board.hintsRevealed).toBe(0);
+    });
+
+    it('reveals hints one at a time, in order, up to the total', () => {
+      const data = hintData(['First', 'Second']);
+      service.revealNextHint('h2', data);
+      expect(service.board('h2', data)().hintsRevealed).toBe(1);
+
+      service.revealNextHint('h2', data);
+      expect(service.board('h2', data)().hintsRevealed).toBe(2);
+
+      // No more hints to reveal — stays capped at the total.
+      service.revealNextHint('h2', data);
+      expect(service.board('h2', data)().hintsRevealed).toBe(2);
+    });
+
+    it('defaults to an empty hint list when the puzzle has none', () => {
+      const data = hintData(undefined);
+      const board = service.board('h3', data)();
+      expect(board.hints).toEqual([]);
+      service.revealNextHint('h3', data);
+      expect(service.board('h3', data)().hintsRevealed).toBe(0);
+    });
+
+    it('resets revealed hints on reset', () => {
+      const data = hintData(['Only hint']);
+      service.revealNextHint('h4', data);
+      expect(service.board('h4', data)().hintsRevealed).toBe(1);
+
+      service.resetBoard('h4', data);
+      expect(service.board('h4', data)().hintsRevealed).toBe(0);
+    });
+  });
+
+  describe('negatrait checks use the pre-move position', () => {
+    it('checks Really Stupid at the start square even when the attacker follows up', () => {
+      const data: PuzzleData = {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 6, y: 6 } },
+        players: [
+          { team: 'home', name: 'Troll', position: { x: 2, y: 2 },
+            characteristics: { movement: 5, strength: 5, agility: 3, passing: 4, armor: 10 },
+            skills: ['Really Stupid'] },
+          // Supporter adjacent to the START square (2,2) but NOT the follow-up (1,2).
+          { team: 'home', name: 'Orc', position: { x: 3, y: 2 },
+            characteristics: { movement: 5, strength: 4, agility: 3, passing: 4, armor: 10 },
+            skills: [] },
+          { team: 'away', name: 'Victim', position: { x: 1, y: 2 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+
+      // Defender pushed to (0,2); attacker follows up onto (1,2).
+      service.applyPushMoves('rs1', data,
+        [{ playerId: 'away-2', x: 0, y: 2 }, { playerId: 'home-0', x: 1, y: 2 }],
+        1, 'home-0', 'away-2', true);
+
+      const rs = service.board('rs1', data)().chanceLog.find((e) => e.reason.startsWith('Really Stupid'));
+      // Assisted (5/6) because the supporter is adjacent to the pre-move square,
+      // not the unassisted 3/6 it would be at the follow-up square.
+      expect(rs?.factor).toBeCloseTo(5 / 6);
+    });
   });
 });
-

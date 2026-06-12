@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "score",
   "data": {
+    "hints": ["Get rid of the tackler", "Look for chain pushes"],
     "field": { "rows": 6, "cols": 7 },
     "ball": { "position": { "x": 2, "y": 4 } },
     "players": [

@@ -117,6 +117,30 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly followingUp = computed(() => this.followUpState() !== null);
 
   /**
+   * While the Follow Up choice is pending after a block, this is the square a
+   * Sidestep defender will be pushed into (chosen automatically from their
+   * `goTo` list). The board has not yet applied the push, so this lets the UI
+   * preview where the sidestepper ends up before the user decides to follow up.
+   * Null whenever the pushed defender has no Sidestep redirection to show.
+   */
+  readonly sidestepPreview = computed<{ x: number; y: number; name: string; prone: boolean } | null>(() => {
+    const state = this.followUpState();
+    if (!state) {
+      return null;
+    }
+    const board = this.working();
+    const defender = board.players.find((p) => p.id === state.firstDefenderId);
+    if (!defender || !this.hasSkill(defender, 'Sidestep')) {
+      return null;
+    }
+    const move = state.pendingMoves.find((m) => m.playerId === state.firstDefenderId);
+    if (!move || (move.x === defender.x && move.y === defender.y)) {
+      return null;
+    }
+    return { x: move.x, y: move.y, name: defender.name, prone: state.knocksDown };
+  });
+
+  /**
    * Set to the attacker's id after a block resolves and the player has movement
    * remaining, offering the choice to Blitz (continue moving) or end the turn.
    */
@@ -244,7 +268,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       return [];
     }
     if (this.blockStage()) {
-      return this.engine.blockOptions(this.selectedPlayer(), target);
+      return this.engine.blockOptions(this.working(), this.selectedPlayer(), target);
     }
     return this.engine.actionOptions(this.working(), this.selectedPlayer(), target);
   });
@@ -265,6 +289,12 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   readonly hasPrevious = computed(() => this.currentIndex() > 0);
   readonly hasNext = computed(() => this.currentIndex() < this.puzzles().length - 1);
+
+  /** Number of puzzles a fast-forward/back jump skips over. */
+  private static readonly SKIP_COUNT = 10;
+
+  /** Show the ±10 skip buttons only when there are more puzzles than a single jump. */
+  readonly showSkip = computed(() => this.puzzles().length > PuzzlesTabComponent.SKIP_COUNT);
 
   readonly formattedDate = computed(() =>
     new Date(this.current().date).toLocaleDateString('en-GB', {
@@ -297,29 +327,15 @@ export class PuzzlesTabComponent implements OnDestroy {
   /** Current cumulative success chance as a rounded percentage. */
   readonly chancePercent = computed(() => Math.round(this.working().successChance * 1000) / 10);
   readonly targetScore = computed(() => this.working().targetScore);
+
   /** True when the solved chance is below the target (the solver could do better). */
   readonly canDoBetter = computed(() => this.chancePercent() < this.targetScore());
-  /** True when the solved chance exceeds the target by 1 or more (wrong path taken). */
-  readonly isIncorrectSolution = computed(() => this.chancePercent() >= this.targetScore() + 1);
+  /** True when the solved chance exceeds the target by 1 or more (wrong path taken),
+   * or a forbidden action (e.g. a Both Down flagged `bothDown: false`) was used. */
+  readonly isIncorrectSolution = computed(() =>
+    this.working().incorrectSolution || this.chancePercent() >= this.targetScore() + 1
+  );
 
-  /**
-   * Per-action breakdown of where success chance was lost. Each row carries the
-   * reason, the percentage-point drop it caused, and the cumulative chance left
-   * afterwards — derived from the board's chanceLog.
-   */
-  readonly chanceBreakdown = computed(() => {
-    let before = 1;
-    return this.working().chanceLog.map((entry) => {
-      const dropPoints = Math.round((before - entry.chanceAfter) * 1000) / 10;
-      before = entry.chanceAfter;
-      return {
-        reason: entry.reason,
-        rollPercent: Math.round(entry.factor * 1000) / 10,
-        dropPoints,
-        chanceAfterPercent: Math.round(entry.chanceAfter * 1000) / 10
-      };
-    });
-  });
 
   readonly cells = computed<BoardCell[]>(() => this.engine.buildCells(this.working()));
 
@@ -365,6 +381,16 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.goTo(this.currentIndex() + 1);
   }
 
+  /** Jump back by SKIP_COUNT puzzles, clamped to the first puzzle. */
+  skipBackward(): void {
+    this.goTo(Math.max(0, this.currentIndex() - PuzzlesTabComponent.SKIP_COUNT));
+  }
+
+  /** Jump forward by SKIP_COUNT puzzles, clamped to the last puzzle. */
+  skipForward(): void {
+    this.goTo(Math.min(this.puzzles().length - 1, this.currentIndex() + PuzzlesTabComponent.SKIP_COUNT));
+  }
+
   startSolving(): void {
     this.sessionService.start(this.current().date);
   }
@@ -373,6 +399,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.hoveredPlayer.set(null);
     this.closeMenu();
     this.sessionService.resetBoard(this.current().date, this.current().data, this.current().type ?? 'score');
+  }
+
+  /** Reveal the next hint for the current puzzle. */
+  revealHint(): void {
+    this.sessionService.revealNextHint(this.current().date, this.current().data);
   }
 
   onCellClick(cell: BoardCell): void {
@@ -508,6 +539,12 @@ export class PuzzlesTabComponent implements OnDestroy {
     return this.pushing() && this.pushTargetKeys().has(`${cell.x},${cell.y}`);
   }
 
+  /** True when this cell is the previewed destination of a sidestepping defender. */
+  isSidestepPreview(cell: BoardCell): boolean {
+    const preview = this.sidestepPreview();
+    return !!preview && preview.x === cell.x && preview.y === cell.y;
+  }
+
   /** Push the current player off the pitch — removes them from the board. */
   pushOutOfBounds(): void {
     const state = this.pushState();
@@ -599,6 +636,33 @@ export class PuzzlesTabComponent implements OnDestroy {
     }
 
     const dir = this.engine.pushDirection(blocker, defender);
+
+    // Sidestep: the defender (not the attacker) chooses which empty adjacent square
+    // to be pushed into, predetermined by their `goTo` priority list. Resolve the
+    // push to that square automatically, bypassing the normal pushback selection.
+    if (this.hasSkill(defender, 'Sidestep')
+        && this.engine.sidestepSquare(this.working(), defender)) {
+      const blockChance = overrideChance
+        ?? this.engine.blockProbability(this.working(), blocker, defender, result);
+      this.blockStage.set(false);
+      this.pushState.set({
+        dir,
+        frames: [],
+        currentId: defender.id,
+        blockChance,
+        attackerId: blocker.id,
+        defenderX: defender.x,
+        defenderY: defender.y,
+        firstDefenderId: defender.id,
+        knocksDown: result === 'stumble' || result === 'pow',
+        allowProneInPlace,
+        proneInPlaceOnly: false,
+        grab: false
+      });
+      this.autoResolveSidestep();
+      return;
+    }
+
     const options = this.engine.pushOptions(this.working(), defender.x, defender.y, dir);
     const canPushOob = this.engine.hasPushOutOfBounds(this.working(), defender.x, defender.y, dir);
 
@@ -762,18 +826,31 @@ export class PuzzlesTabComponent implements OnDestroy {
     if (!state || !this.isPushTarget(cell)) {
       return;
     }
+    this.applyPushToSquare(cell.x, cell.y);
+  }
+
+  /**
+   * Resolve the player currently being pushed into square (x, y): set up a chain
+   * push when the square is occupied, otherwise finalise the push and offer the
+   * follow-up. Shared by user clicks and automatic Sidestep resolution.
+   */
+  private applyPushToSquare(x: number, y: number): void {
+    const state = this.pushState();
+    if (!state) {
+      return;
+    }
 
     const board = this.working();
     const occupant = board.players.find(
-      (p) => p.x === cell.x && p.y === cell.y && p.id !== state.currentId
+      (p) => p.x === x && p.y === y && p.id !== state.currentId
     );
-    const frames = [...state.frames, { playerId: state.currentId, x: cell.x, y: cell.y }];
+    const frames = [...state.frames, { playerId: state.currentId, x, y }];
 
     if (occupant) {
       // Recalculate push direction: from the current player's position → chosen square.
       const current = board.players.find((p) => p.id === state.currentId);
       const newDir = current
-        ? { dx: Math.sign(cell.x - current.x), dy: Math.sign(cell.y - current.y) }
+        ? { dx: Math.sign(x - current.x), dy: Math.sign(y - current.y) }
         : state.dir;
 
       // Home-team Stand Firm player: offer the user a choice — stay or be pushed.
@@ -793,6 +870,8 @@ export class PuzzlesTabComponent implements OnDestroy {
         firstDefenderId: state.firstDefenderId, knocksDown: state.knocksDown,
         allowProneInPlace: false, proneInPlaceOnly: false, grab: false
       });
+      // The chain-pushed player may itself have Sidestep — auto-redirect if so.
+      this.autoResolveSidestep();
       return;
     }
 
@@ -823,6 +902,30 @@ export class PuzzlesTabComponent implements OnDestroy {
         isFrenzy: false
       });
     }
+  }
+
+  /**
+   * Sidestep: when the player currently being pushed has the Sidestep skill and a
+   * valid `goTo` destination, the push is redirected there automatically (it is the
+   * defender's choice, not the attacker's). Resolves the push immediately so the
+   * user is never offered the pushback squares. A no-op for players without
+   * Sidestep or without an available `goTo` square (normal pushback applies).
+   */
+  private autoResolveSidestep(): void {
+    const state = this.pushState();
+    if (!state || state.proneInPlaceOnly) {
+      return;
+    }
+    const board = this.working();
+    const current = board.players.find((p) => p.id === state.currentId);
+    if (!current || !this.hasSkill(current, 'Sidestep')) {
+      return;
+    }
+    const square = this.engine.sidestepSquare(board, current);
+    if (!square) {
+      return;
+    }
+    this.applyPushToSquare(square.x, square.y);
   }
 
   /**
@@ -863,7 +966,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     // If frenzyUsed is already true, the second block has just been resolved —
     // applyPushMoves marked it used. Apply the same Blitz-continuation check as a
     // regular block: offer "Continue moving" when movement remains and the team's
-    // Blitz is unused or owned by this player.
+    // Blitz is unused or owned by this same player.
     if (attacker.frenzyUsed) {
       this.checkBlitzAfterBlock(attackerId);
       return;
@@ -932,6 +1035,15 @@ export class PuzzlesTabComponent implements OnDestroy {
     const board = this.working();
     const attacker = board.players.find((p) => p.id === attackerId);
     if (!attacker || board.solved) return;
+
+    // A Wrestle attacker placed Prone by their own Both Down cannot continue —
+    // their activation ends immediately.
+    if (attacker.prone) {
+      this.sessionService.finalizeBlockerActivation(
+        this.current().date, this.current().data, attackerId
+      );
+      return;
+    }
 
     const blitzAvailable = board.blitzPlayerId === null || board.blitzPlayerId === attackerId;
     // Continue moving when the player still has base movement OR unused Rush squares

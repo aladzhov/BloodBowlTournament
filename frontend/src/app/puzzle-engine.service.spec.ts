@@ -39,7 +39,10 @@ function board(players: WorkingPlayer[], ball = { x: 9, y: 9 }): WorkingBoard {
     handoffUsed: false,
     blitzPlayerId: null,
     successChance: 1,
-    chanceLog: []
+    chanceLog: [],
+    incorrectSolution: false,
+    hints: [],
+    hintsRevealed: 0
   };
 }
 
@@ -423,6 +426,53 @@ describe('PuzzleEngineService', () => {
     });
   });
 
+  describe('sidestepSquare', () => {
+    it('returns the first on-board, adjacent, empty goTo square by priority', () => {
+      // Defender at (2,2) with two goTo squares; the first is occupied so the
+      // second (empty, adjacent) is chosen.
+      const defender = player({
+        id: 'away-0', team: 'away', x: 2, y: 2,
+        skills: ['Sidestep'],
+        goTo: [{ x: 3, y: 2 }, { x: 1, y: 2 }]
+      });
+      const blocker = player({ id: 'home-0', x: 3, y: 2 }); // occupies first goTo
+      const state = board([blocker, defender]);
+
+      expect(engine.sidestepSquare(state, defender)).toEqual({ x: 1, y: 2, occupantId: null });
+    });
+
+    it('skips off-board and non-adjacent goTo squares', () => {
+      const defender = player({
+        id: 'away-0', team: 'away', x: 0, y: 0,
+        skills: ['Sidestep'],
+        // (-1,0) off-board, (2,2) not adjacent, (1,1) adjacent & empty.
+        goTo: [{ x: -1, y: 0 }, { x: 2, y: 2 }, { x: 1, y: 1 }]
+      });
+      const state = board([defender]);
+
+      expect(engine.sidestepSquare(state, defender)).toEqual({ x: 1, y: 1, occupantId: null });
+    });
+
+    it('returns null when no goTo square is available (all occupied/invalid)', () => {
+      const defender = player({
+        id: 'away-0', team: 'away', x: 1, y: 1,
+        skills: ['Sidestep'],
+        goTo: [{ x: 2, y: 1 }]
+      });
+      const blocker = player({ id: 'home-0', x: 2, y: 1 }); // occupies the only goTo
+      const state = board([blocker, defender]);
+
+      expect(engine.sidestepSquare(state, defender)).toBeNull();
+    });
+
+    it('returns null when the player has no goTo list', () => {
+      const defender = player({ id: 'away-0', team: 'away', x: 1, y: 1, skills: ['Sidestep'] });
+      const state = board([defender]);
+
+      expect(engine.sidestepSquare(state, defender)).toBeNull();
+    });
+  });
+
   describe('dodgeProbability', () => {
     const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
     const ag = (agility: number) => ({ movement: 6, strength: 3, agility, passing: 4, armor: 8 });
@@ -501,6 +551,81 @@ describe('PuzzleEngineService', () => {
       const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1 });
       expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 0, 1), 1 / 6)).toBe(true);
     });
+
+    it('Titchy adds +1 to its own dodge but still suffers enemy tackle zones', () => {
+      // AG 3+ dodging into a tackle zone: -1 for the marking enemy, +1 from Titchy
+      // → net 0 → flat 3+ → 4/6 (unlike Stunty it does NOT ignore the tackle zone).
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Titchy'], characteristics: ag(3) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1 });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 4 / 6)).toBe(true);
+    });
+
+    it('Titchy +1 helps when dodging into open space out of a tackle zone', () => {
+      // Leaving the enemy tackle zone into open ground: no destination tackle zone,
+      // +1 from Titchy → AG 3+ becomes effectively 2+ → 5/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Titchy'], characteristics: ag(3) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1 });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 0, 1), 5 / 6)).toBe(true);
+    });
+
+    it('a Titchy enemy exerts no tackle zone, so leaving only it needs no dodge', () => {
+      // The mover is adjacent only to a Titchy enemy → no Dodge required → 1.0.
+      const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const titchyEnemy = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Titchy'] });
+      expect(engine.dodgeProbability(board([mover, titchyEnemy]), mover, 2, 2)).toBe(1);
+    });
+
+    it('a Titchy marker on the destination adds no -1 when dodging away from a real enemy', () => {
+      // A normal enemy at (0,1) forces the Dodge; the destination (2,2) is marked
+      // only by a Titchy enemy at (2,3), which adds no -1 → flat AG 3+ → 4/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const leaving = player({ id: 'away-0', team: 'away', x: 0, y: 1 });
+      const titchyMark = player({ id: 'away-1', team: 'away', x: 2, y: 3, skills: ['Titchy'] });
+      expect(
+        near(engine.dodgeProbability(board([mover, leaving, titchyMark]), mover, 2, 2), 4 / 6)
+      ).toBe(true);
+    });
+
+    it('counts a normal destination marker but ignores a Titchy one', () => {
+      // Dodge forced by the enemy at (0,1). Destination (2,2) is marked by a normal
+      // enemy at (1,3) (-1) and a Titchy enemy at (2,3) (ignored) → AG 3+ -1 → 3/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const leaving = player({ id: 'away-0', team: 'away', x: 0, y: 1 });
+      const normalMark = player({ id: 'away-1', team: 'away', x: 1, y: 3 });
+      const titchyMark = player({ id: 'away-2', team: 'away', x: 2, y: 3, skills: ['Titchy'] });
+      expect(
+        near(engine.dodgeProbability(board([mover, leaving, normalMark, titchyMark]), mover, 2, 2), 3 / 6)
+      ).toBe(true);
+    });
+
+    it('Titchy does not deactivate an adjacent enemy\'s Diving Tackle', () => {
+      // The lone adjacent enemy is Titchy + Diving Tackle. Titchy removes its tackle
+      // zone (no -1 Marking) but Diving Tackle still applies its -2 and forces the
+      // Dodge → AG 3+ with -2 → 5+ → 2/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Titchy', 'Diving Tackle'] });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 2 / 6)).toBe(true);
+    });
+
+    it('Titchy does not deactivate an adjacent enemy\'s Prehensile Tail', () => {
+      // Lone enemy is Titchy + Prehensile Tail: no -1 Marking (Titchy) but the
+      // Prehensile Tail -1 still applies and forces the Dodge → AG 3+ -1 → 3/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, characteristics: ag(3) });
+      const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Titchy', 'Prehensile Tail'] });
+      expect(near(engine.dodgeProbability(board([mover, enemy]), mover, 2, 2), 3 / 6)).toBe(true);
+    });
+
+    it('Titchy does not deactivate an adjacent enemy\'s Tackle (still no Dodge reroll)', () => {
+      // A normal enemy at (0,1) forces the Dodge; a Titchy + Tackle enemy at (2,1)
+      // adds no -1 (Titchy) but still denies the Dodge reroll. Dodging into (2,2),
+      // which only the Titchy enemy marks (ignored) → flat AG 3+, no reroll → 4/6.
+      const mover = player({ id: 'home-0', x: 1, y: 1, skills: ['Dodge'], characteristics: ag(3) });
+      const leaving = player({ id: 'away-0', team: 'away', x: 0, y: 1 });
+      const titchyTackler = player({ id: 'away-1', team: 'away', x: 2, y: 1, skills: ['Titchy', 'Tackle'] });
+      expect(
+        near(engine.dodgeProbability(board([mover, leaving, titchyTackler]), mover, 2, 2), 4 / 6)
+      ).toBe(true);
+    });
   });
 
   describe('blockOptions', () => {
@@ -508,7 +633,7 @@ describe('PuzzleEngineService', () => {
       const attacker = player({ id: 'home-0', skills: [] });
       const defender = player({ id: 'away-0', team: 'away', skills: ['Dodge'] });
 
-      const options = engine.blockOptions(attacker, defender);
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
       expect(options.map((o) => o.id)).toEqual(['pushback', 'stumble', 'pow']);
     });
 
@@ -516,7 +641,7 @@ describe('PuzzleEngineService', () => {
       const attacker = player({ id: 'home-0', skills: [] });
       const defender = player({ id: 'away-0', team: 'away', skills: [] });
 
-      const options = engine.blockOptions(attacker, defender);
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
       expect(options.map((o) => o.id)).toEqual(['pushback', 'stumble', 'pow']);
     });
 
@@ -524,12 +649,55 @@ describe('PuzzleEngineService', () => {
       const attacker = player({ id: 'home-0', skills: ['Tackle'] });
       const defender = player({ id: 'away-0', team: 'away', skills: ['Dodge'] });
 
-      const options = engine.blockOptions(attacker, defender);
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
       expect(options.map((o) => o.id)).toEqual(['pushback', 'stumble', 'pow']);
     });
 
+    it('offers Both Down when a Wrestle attacker is not carrying the ball', () => {
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Wrestle'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: [] });
+
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
+      expect(options.map((o) => o.id)).toContain('bothdown');
+    });
+
+    it('withholds Both Down from a Wrestle attacker who carries the ball', () => {
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Wrestle'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: [] });
+      // Ball sits on the attacker's square → attacker is the carrier.
+      const state = board([attacker, defender], { x: 1, y: 1 });
+
+      const options = engine.blockOptions(state, attacker, defender);
+      expect(options.map((o) => o.id)).not.toContain('bothdown');
+    });
+
+    it('still offers Both Down to a Block ball carrier (Block keeps them standing)', () => {
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Block'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: [] });
+      const state = board([attacker, defender], { x: 1, y: 1 });
+
+      const options = engine.blockOptions(state, attacker, defender);
+      expect(options.map((o) => o.id)).toContain('bothdown');
+    });
+
+    it('withholds Both Down against a Wrestle defender unless the attacker also has Wrestle', () => {
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Block'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Wrestle'] });
+
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
+      expect(options.map((o) => o.id)).not.toContain('bothdown');
+    });
+
+    it('offers Both Down against a Wrestle defender when the attacker has Wrestle too', () => {
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Wrestle'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 2, y: 1, skills: ['Wrestle'] });
+
+      const options = engine.blockOptions(board([attacker, defender]), attacker, defender);
+      expect(options.map((o) => o.id)).toContain('bothdown');
+    });
+
     it('returns nothing without both attacker and defender', () => {
-      expect(engine.blockOptions(null, null)).toEqual([]);
+      expect(engine.blockOptions(board([]), null, null)).toEqual([]);
     });
   });
 

@@ -62,11 +62,12 @@ export class PuzzleEngineService {
 
     // A dodge is required for every move when the selected player currently
     // stands adjacent to an opposition player (i.e. inside a tackle zone).
-    // Prone players exert no tackle zone.
+    // Prone players — and Titchy players, for dodging purposes — exert no tackle zone.
     const selectedInTackleZone =
       !!selected &&
       board.players.some(
-        (p) => p.team === 'away' && !p.prone && this.isAdjacent(p.x, p.y, selected.x, selected.y)
+        (p) => p.team === 'away' && !p.prone && !this.hasSkill(p, 'Titchy')
+          && this.isAdjacent(p.x, p.y, selected.x, selected.y)
       );
 
     const cells: BoardCell[] = [];
@@ -458,6 +459,11 @@ export class PuzzleEngineService {
    *
    *  - Push Back (always): any result that moves the defender without knockdown.
    *  - Both Down (when safe): attacker has Block / Wrestle / Juggernaut on Blitz.
+   *    Extra Wrestle gating:
+   *      · A Wrestle attacker is Placed Prone alongside the defender on a Both Down,
+   *        so it is NOT offered while the attacker is the ball carrier.
+   *      · A Wrestle defender drags the attacker down on a Both Down, so it is only
+   *        offered against such a defender when the attacker also has Wrestle.
    *  - Stumble (always): the Defender Stumbles face. It knocks the defender down,
    *    unless the defender has Dodge and the attacker has no Tackle — in which case
    *    Dodge converts it into a plain push (handled by the probability/resolution).
@@ -465,17 +471,38 @@ export class PuzzleEngineService {
    *
    * Options are multi-selectable; use blockProbabilityMulti for the combined chance.
    */
-  blockOptions(attacker: WorkingPlayer | null, defender: WorkingPlayer | null): ActionOption[] {
+  blockOptions(
+    board: WorkingBoard,
+    attacker: WorkingPlayer | null,
+    defender: WorkingPlayer | null
+  ): ActionOption[] {
     if (!attacker || !defender) {
       return [];
     }
 
     const options: ActionOption[] = [{ id: 'pushback', label: 'Push Back', kind: 'opponent' }];
 
-    const hasSafeBD =
+    const attackerWrestle = this.hasSkill(attacker, 'Wrestle');
+    const defenderWrestle = this.hasSkill(defender, 'Wrestle');
+    const attackerCarriesBall = board.ball.x === attacker.x && board.ball.y === attacker.y;
+
+    let hasSafeBD =
       this.hasSkill(attacker, 'Block') ||
-      this.hasSkill(attacker, 'Wrestle') ||
+      attackerWrestle ||
       (this.hasSkill(attacker, 'Juggernaut') && attacker.hasMoved);
+
+    // A Wrestle attacker goes Prone too on a Both Down — never offer it while they
+    // are carrying the ball (they would be knocked down with the ball).
+    if (attackerWrestle && attackerCarriesBall) {
+      hasSafeBD = false;
+    }
+
+    // A Wrestle defender pulls the attacker down on a Both Down (negating Block);
+    // only offer Both Down against them when the attacker also has Wrestle.
+    if (defenderWrestle && !attackerWrestle) {
+      hasSafeBD = false;
+    }
+
     if (hasSafeBD) {
       options.push({ id: 'bothdown', label: 'Both Down', kind: 'opponent' });
     }
@@ -687,6 +714,28 @@ export class PuzzleEngineService {
   }
 
   /**
+   * The Sidestep destination a blocked player chooses, from their `goTo` priority
+   * list. A player with Sidestep picks (it is NOT the attacker's choice) any empty
+   * adjacent square to be pushed into. Because only the user performs blocks in the
+   * puzzles, the away player's preference is predetermined by `goTo`: the first
+   * listed square that is on-board, adjacent to the player and currently empty.
+   * Returns null when Sidestep cannot redirect the push (no valid `goTo` square),
+   * in which case the normal pushback rules apply.
+   */
+  sidestepSquare(board: WorkingBoard, player: WorkingPlayer): PushSquare | null {
+    const goTo = player.goTo;
+    if (!goTo || goTo.length === 0) return null;
+
+    for (const pos of goTo) {
+      if (pos.x < 0 || pos.y < 0 || pos.x >= board.rows || pos.y >= board.cols) continue;
+      if (!this.isAdjacent(pos.x, pos.y, player.x, player.y)) continue;
+      if (board.players.some((p) => p.x === pos.x && p.y === pos.y)) continue;
+      return { x: pos.x, y: pos.y, occupantId: null };
+    }
+    return null;
+  }
+
+  /**
    * Grab: every unoccupied, on-board square adjacent (8 directions) to (x, y).
    * A blocker with Grab may push the target into ANY of these — not just the
    * three squares directly away. Returns an empty list when the target is
@@ -827,32 +876,49 @@ export class PuzzleEngineService {
    * roll whose chance depends on Agility, tackle-zone modifiers and skills.
    */
   dodgeProbability(board: WorkingBoard, mover: WorkingPlayer, tx: number, ty: number): number {
-    // Prone players exert no tackle zone.
-    const leavingEnemies = board.players.filter(
+    // Every adjacent, non-prone enemy. Prone players exert no tackle zone.
+    const adjacentEnemies = board.players.filter(
       (p) => p.team === 'away' && !p.prone && this.isAdjacent(p.x, p.y, mover.x, mover.y)
     );
-    if (leavingEnemies.length === 0) {
+
+    // Titchy enemies exert no tackle zone for dodging: they neither force a Dodge
+    // nor add the -1 Marking modifier (their tackle zone still counts elsewhere —
+    // assists, passing, pickups). Titchy does NOT, however, switch off their other
+    // dodge-affecting skills (Diving Tackle, Prehensile Tail, Tackle), which are
+    // evaluated against every adjacent enemy below.
+    const tackleZoneEnemies = adjacentEnemies.filter((p) => !this.hasSkill(p, 'Titchy'));
+    const prehensileTail = adjacentEnemies.some((e) => this.hasSkill(e, 'Prehensile Tail'));
+    const divingTackle   = adjacentEnemies.some((e) => this.hasSkill(e, 'Diving Tackle'));
+    const tacklePrevents = adjacentEnemies.some((e) => this.hasSkill(e, 'Tackle'));
+
+    // A Dodge happens when leaving a real tackle zone, or when an adjacent enemy
+    // brings a skill that triggers on the Dodge (Diving Tackle / Prehensile Tail)
+    // even though Titchy may have removed their tackle zone.
+    if (tackleZoneEnemies.length === 0 && !prehensileTail && !divingTackle) {
       return 1;
     }
 
+    // Tackle zones marking the DESTINATION square impose a -1 each. A Titchy enemy
+    // exerts no tackle zone for dodging, so it is excluded from this count too.
     const targetTackleZones = board.players.filter(
-      (p) => p.team === 'away' && !p.prone && this.isAdjacent(p.x, p.y, tx, ty)
+      (p) => p.team === 'away' && !p.prone && !this.hasSkill(p, 'Titchy')
+        && this.isAdjacent(p.x, p.y, tx, ty)
     ).length;
 
     const stunty = this.hasSkill(mover, 'Stunty');
     const titchy = this.hasSkill(mover, 'Titchy');
     const twoHeads = this.hasSkill(mover, 'Two Heads');
-    const prehensileTail = leavingEnemies.some((e) => this.hasSkill(e, 'Prehensile Tail'));
 
-    // Stunty (and Titchy) ignore the -1 per enemy tackle zone when dodging between
-    // squares. Stunty ignores them unconditionally; Titchy's are negated only when
-    // an adjacent enemy has Prehensile Tail. Other enemy Dodge-affecting skills
-    // (Prehensile Tail, Diving Tackle) STILL apply on top — even for Stunty.
-    const ignoreTackleZones = stunty || (titchy && !prehensileTail);
+    // Only Stunty lets the dodging player ignore the -1 per enemy tackle zone.
+    // Titchy (on the mover) does NOT — it merely grants a flat +1 (applied below).
+    // Enemy Dodge-affecting skills (Prehensile Tail, Diving Tackle) STILL apply on
+    // top — even for Stunty.
+    const ignoreTackleZones = stunty;
 
     let modifier = ignoreTackleZones ? 0 : -targetTackleZones;
     if (prehensileTail) modifier -= 1;
-    if (leavingEnemies.some((e) => this.hasSkill(e, 'Diving Tackle'))) modifier -= 2;
+    if (divingTackle) modifier -= 2;
+    // Titchy: +1 to the player's own Agility test when attempting to Dodge.
     if (titchy) modifier += 1;
     if (twoHeads) modifier += 1;
 
@@ -868,7 +934,6 @@ export class PuzzleEngineService {
     let probability = this.rollSuccess(target - modifier);
 
     // Dodge skill grants a reroll, unless an adjacent enemy with Tackle prevents it.
-    const tacklePrevents = leavingEnemies.some((e) => this.hasSkill(e, 'Tackle'));
     if (this.hasSkill(mover, 'Dodge') && !tacklePrevents) {
       probability = 1 - (1 - probability) * (1 - probability);
     }

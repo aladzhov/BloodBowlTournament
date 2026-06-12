@@ -26,6 +26,14 @@ export interface PuzzlePlayer {
   extraSkills?: string[];
   activated?: boolean;
   prone?: boolean;
+  goTo?: PuzzlePosition[];
+  /**
+   * Whether a Both Down result against this player may be part of a correct
+   * solution. When explicitly `false`, choosing Both Down against this player is
+   * allowed to continue, but the puzzle is flagged as an incorrect solution
+   * (even if the resulting success chance matches the target). Defaults to allowed.
+   */
+  bothDown?: boolean;
 }
 
 export interface PuzzleField {
@@ -42,6 +50,8 @@ export interface PuzzleData {
   ball: PuzzleBall;
   players: PuzzlePlayer[];
   targetScore: number;
+  /** Optional ordered hints, revealed one at a time when the solver asks. */
+  hints?: string[];
 }
 
 export interface Puzzle {

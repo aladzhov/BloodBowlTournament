@@ -1,0 +1,78 @@
+{
+  "date": "2026-07-01",
+  "title": "Mind your business",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "hints": ["Look for chain pushes"],
+    "field": { "rows": 8, "cols": 6 },
+    "ball": { "position": { "x": 1, "y": 1 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Dwarf Blitzer",
+        "position": { "x": 4 , "y": 1 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Diving Tackle", "Tackle", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Runner",
+        "position": { "x": 7 , "y": 5 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Sprint", "Sure Hands", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 1 , "y": 4 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 5 , "y": 1 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"],
+        "prone": true
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 6 , "y": 3 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Human Catcher",
+        "position": { "x": 1 , "y": 1 },
+        "characteristics": { "movement": 8, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Catch", "Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Human Blitzer",
+        "position": { "x": 3 , "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Block", "Tackle"]
+      },
+      {
+        "team": "away",
+        "name": "Human Lineman",
+        "position": { "x": 5 , "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Human Lineman",
+        "position": { "x": 4 , "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": []
+      }
+    ],
+    "targetScore": 41
+  }
+}

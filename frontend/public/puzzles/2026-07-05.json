@@ -1,0 +1,74 @@
+{
+  "date": "2026-07-05",
+  "title": "In the Jungle",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "hints": ["Can the Jaguar Warrior score?", "Violence is not always the way!"],
+    "field": { "rows": 8, "cols": 6 },
+    "ball": { "position": { "x": 7, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Jaguar Warrior",
+        "position": { "x": 7 , "y": 3 },
+        "characteristics": { "movement": 6, "strength": 4, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Defensive", "Dodge"]
+      },
+      {
+        "team": "home",
+        "name": "Eagle Warrior",
+        "position": { "x": 3 , "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Block", "Catch", "Dodge"],
+        "extraSkills": ["Block", "Catch"]
+      },
+      {
+        "team": "home",
+        "name": "Eagle Warrior",
+        "position": { "x": 7 , "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Wight Blitzer",
+        "position": { "x": 1 , "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Regeneration", "Tackle", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Ghoul Runner",
+        "position": { "x": 1 , "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Dodge", "Regeneration", "Wrestle"],
+        "extraSkills": ["Wrestle"]
+      },
+      {
+        "team": "away",
+        "name": "Wight Blitzer",
+        "position": { "x": 5 , "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Regeneration", "Tackle", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Ghoul Runner",
+        "position": { "x": 7 , "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Dodge", "Regeneration"],
+        "extraSkills": ["Block"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Zombie Lineman",
+        "position": { "x": 3 , "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
+      }
+    ],
+    "targetScore": 65
+  }
+}

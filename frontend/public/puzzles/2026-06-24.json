@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "sack",
   "data": {
+    "hints": ["What skill would help you deal with Blodgers?"],
     "field": { "rows": 6, "cols": 7 },
     "ball": { "position": { "x": 2, "y": 2 } },
     "players": [
@@ -12,15 +13,16 @@
         "name": "Trained Troll",
         "position": { "x": 2 , "y": 3 },
         "characteristics": { "movement": 4, "strength": 5, "agility": 5, "passing": 5, "armor": 10 },
-        "skills": ["Always Hungry", "Mighty Blow", "Projectile Vomit", "Really Stupid", "Regeneration", "Throw Team-mate"]
+        "skills": ["Always Hungry", "Mighty Blow", "Projectile Vomit", "Really Stupid", "Regeneration", "Throw Team-mate"],
+        "prone": true
       },
       {
         "team": "home",
         "name": "Black Orc",
         "position": { "x": 5, "y": 5 },
         "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
-        "skills": ["Brawler", "Break Tackle", "Grab"],
-        "extraSkills": ["Break Tackle"]
+        "skills": ["Brawler", "Tackle", "Grab"],
+        "extraSkills": ["Tackle"]
       },
       {
         "team": "home",
@@ -48,7 +50,14 @@
       {
         "team": "away",
         "name": "Skaven Clanrat",
-        "position": { "x": 0, "y": 3 },
+        "position": { "x": 2, "y": 5 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Skaven Clanrat",
+        "position": { "x": 1, "y": 3 },
         "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
         "skills": []
       },

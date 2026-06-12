@@ -9,6 +9,9 @@ import { CoachCardComponent } from './coach-card.component';
 import { MainTabComponent } from './main-tab.component';
 import { PreviousSeasonsTabComponent } from './previous-seasons-tab.component';
 import { PuzzlesTabComponent } from './puzzles-tab.component';
+import { PlayerDetailsComponent } from './player-details.component';
+import { SuccessBreakdownComponent } from './success-breakdown.component';
+import { HintsComponent } from './hints.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +20,10 @@ import { PuzzlesTabComponent } from './puzzles-tab.component';
     CoachCardComponent,
     PreviousSeasonsTabComponent,
     BulgarianFumbblTabComponent,
-    PuzzlesTabComponent
+    PuzzlesTabComponent,
+    PlayerDetailsComponent,
+    SuccessBreakdownComponent,
+    HintsComponent
   ],
   imports: [
     BrowserModule,

@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
@@ -46,7 +46,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: 0.2s;
+}
+
+.nav-skip {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.1rem;
 }
 
 .nav-arrow:hover:not(:disabled) {
@@ -195,6 +201,33 @@
   z-index: 4;
 }
 
+/* Sidestep destination preview shown during the Follow Up choice. */
+.field-cell.sidestep-preview {
+  box-shadow: inset 0 0 0 3px #38bdf8;
+}
+
+.sidestep-ghost {
+  opacity: 0.7;
+  border: 2px dashed rgba(255, 255, 255, 0.85);
+  background: repeating-linear-gradient(
+    45deg,
+    #dc2626,
+    #dc2626 6px,
+    #b91c1c 6px,
+    #b91c1c 12px
+  );
+}
+
+.sidestep-tag {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #e0f2fe;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
 .move-indicator {
   display: flex;
   align-items: center;
@@ -219,7 +252,6 @@
   letter-spacing: 0.03em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-
 
 .player-chip {
   position: relative;
@@ -311,13 +343,10 @@
 }
 
 .action-menu {
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  padding: 0.6rem 0.75rem;
   border: 1px solid var(--border-light);
   border-radius: 0.6rem;
   background: #fafafa;
+  padding: 0.6rem 0.75rem;
 }
 
 .action-title {
@@ -340,7 +369,7 @@
   font-weight: 600;
   color: #fff;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: 0.2s;
 }
 
 .action-buttons button:hover {
@@ -369,7 +398,6 @@
 
 .action-confirm {
   background: #15803d;
-  color: #fff;
 }
 
 /* Extra top spacing between the toggle options and the confirm/cancel row */
@@ -394,7 +422,7 @@
   border: 2px solid var(--border-light);
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s;
+  transition: 0.15s;
 }
 
 .block-result-btn:hover {
@@ -415,35 +443,12 @@
   filter: brightness(1.05);
 }
 
-
-
-/* ── Player details side panel ── */
+/* ── Side panel ── */
 .board-side {
   flex: 0 0 220px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.player-details {
-  border: 1px solid var(--border-light);
-  border-radius: 0.6rem;
-  padding: 1rem;
-  min-height: 180px;
-  background: #fafafa;
-}
-
-.player-details.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.details-hint {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  text-align: center;
-  margin: 0;
 }
 
 .objective-label {
@@ -453,174 +458,10 @@
   color: var(--bg-green);
 }
 
-.details-name {
-  margin: 0 0 0.4rem;
-  font-size: 1.05rem;
-}
-
-.details-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-bottom: 0.6rem;
-}
-
-.status-tag {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 0.15rem 0.45rem;
-  border-radius: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.status-prone {
-  background: #7c3aed;
-  color: #fff;
-}
-
-.status-activated {
-  background: #9ca3af;
-  color: #fff;
-}
-
-.status-eye-gouged {
-  background: #d97706;
-  color: #fff;
-}
-
-.details-name.home {
-  color: #1d4ed8;
-}
-
-.details-name.away {
-  color: #dc2626;
-}
-
-.characteristics {
-  list-style: none;
-  margin: 0 0 1rem;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.25rem;
-}
-
-.characteristics li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 0.35rem;
-  padding: 0.3rem 0;
-}
-
-.characteristics span {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.characteristics strong {
-  font-size: 0.95rem;
-}
-
-.skills h5 {
-  margin: 0 0 0.4rem;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.skill-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.skill-tag {
-  background: var(--bg-green);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 1rem;
-}
-
-.skill-tag-red {
-  background: var(--bg-red);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 1rem;
-}
-
-/* ── Success-chance breakdown ── */
-.chance-breakdown {
-  border: 1px solid var(--border-light);
-  border-radius: 0.6rem;
-  padding: 0.75rem 0.9rem;
-  background: #fafafa;
-}
-
-.breakdown-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.breakdown-total {
-  font-size: 0.9rem;
+.solved-title,
+.timer {
   font-weight: 700;
   color: var(--bg-green);
-}
-
-.breakdown-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.breakdown-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.78rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px dashed var(--border-light);
-}
-
-.breakdown-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.breakdown-drop {
-  font-weight: 700;
-  color: #dc2626;
-  font-variant-numeric: tabular-nums;
-}
-
-.breakdown-reason {
-  color: var(--text-dark, #333);
-  overflow-wrap: anywhere;
-}
-
-.breakdown-after {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
 }
 
 .puzzle-veil {
@@ -667,7 +508,7 @@
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: 0.2s;
 }
 
 .btn-restart:hover {
@@ -680,11 +521,11 @@
   color: #fff;
   border: none;
   border-radius: 0.5rem;
-  padding: 0.65rem 1.75rem;
-  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: 0.2s;
+  padding: 0.65rem 1.75rem;
+  font-size: 1rem;
 }
 
 .btn-start:hover {
@@ -697,8 +538,6 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--bg-green);
 }
 
 .timer-icon {
@@ -722,8 +561,6 @@
 .solved-title {
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
-  color: var(--bg-green);
 }
 
 .solved-hint {
@@ -734,7 +571,6 @@
 }
 
 .solved-hint.incorrect {
-  color: var(--bg-red);
   font-weight: 700;
 }
 
@@ -768,4 +604,3 @@
     height: 32px;
   }
 }
-

@@ -1,0 +1,19 @@
+<aside class="chance-breakdown" [class.empty]="rows().length === 0">
+  <h5 class="breakdown-heading">
+    Success breakdown
+    <span class="breakdown-total">{{ percent() }}%</span>
+  </h5>
+  @if (rows().length === 0) {
+    <p class="details-hint">No penalties yet — every action so far is certain.</p>
+  } @else {
+    <ul class="breakdown-list">
+      @for (row of rows(); track $index) {
+        <li class="breakdown-row">
+          <span class="breakdown-roll">{{ row.rollFraction }}</span>
+          <span class="breakdown-reason">{{ row.reason }}</span>
+        </li>
+      }
+    </ul>
+  }
+</aside>
+

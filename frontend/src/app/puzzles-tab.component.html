@@ -8,6 +8,17 @@
       <p class="empty-state">Loading puzzles…</p>
     } @else {
       <div class="puzzle-nav">
+        @if (showSkip()) {
+          <button
+            class="nav-arrow nav-skip"
+            [disabled]="!hasPrevious()"
+            (click)="skipBackward()"
+            aria-label="Skip back 10 puzzles"
+            title="Back 10">
+            &#171;
+          </button>
+        }
+
         <button
           class="nav-arrow"
           [disabled]="!hasPrevious()"
@@ -25,6 +36,17 @@
           aria-label="Next puzzle">
           &#8594;
         </button>
+
+        @if (showSkip()) {
+          <button
+            class="nav-arrow nav-skip"
+            [disabled]="!hasNext()"
+            (click)="skipForward()"
+            aria-label="Skip forward 10 puzzles"
+            title="Forward 10">
+            &#187;
+          </button>
+        }
       </div>
 
       <article class="puzzle-card">
@@ -61,6 +83,7 @@
                       [class.dark]="(cell.x + cell.y) % 2 === 1"
                       [class.move-target]="cell.isMoveTarget && !pushing() && !jumping()"
                       [class.push-target]="isPushTarget(cell) || isJumpTarget(cell)"
+                      [class.sidestep-preview]="isSidestepPreview(cell)"
                       [class.selectable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
                       [class.targetable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
                       (click)="onCellClick(cell)"
@@ -85,6 +108,16 @@
                           @if (cell.hasBall) {
                             <span class="ball-marker" aria-label="ball">🏈</span>
                           }
+                        </div>
+                      } @else if (isSidestepPreview(cell)) {
+                        <div
+                          class="player-chip away sidestep-ghost"
+                          [class.prone]="sidestepPreview()?.prone"
+                          [attr.aria-label]="'Sidestep destination for ' + sidestepPreview()?.name">
+                          <span class="player-name"
+                            [class.player-name--long]="(sidestepPreview()?.name?.length ?? 0) > 7"
+                            [class.player-name--xlong]="(sidestepPreview()?.name?.length ?? 0) > 9">{{ sidestepPreview()?.name }}</span>
+                          <span class="sidestep-tag" aria-hidden="true">↳</span>
                         </div>
                       } @else if (cell.hasBall) {
                         <span class="ball-marker loose" aria-label="loose ball">🏈</span>
@@ -224,74 +257,21 @@
 
               <div class="board-side">
                 <p class="objective-label">🎯 {{ objectiveLabel() }}</p>
-                <aside class="player-details" [class.empty]="!hoveredPlayer()">
-                @if (hoveredPlayer(); as player) {
-                  <h4
-                    class="details-name"
-                    [class.home]="player.team === 'home'"
-                    [class.away]="player.team === 'away'">
-                    {{ player.name }}
-                  </h4>
-                  @if (player.prone || player.activated || player.eyeGouged) {
-                    <div class="details-status">
-                      @if (player.prone) {
-                        <span class="status-tag status-prone">Prone</span>
-                      }
-                      @if (player.activated) {
-                        <span class="status-tag status-activated">Activated</span>
-                      }
-                      @if (player.eyeGouged) {
-                        <span class="status-tag status-eye-gouged">Eye Gouged</span>
-                      }
-                    </div>
-                  }
-                  <div class="skills">
-                    <h5>Characteristics</h5>
-                    <ul class="characteristics">
-                      <li><span>MA</span><strong>{{ player.characteristics.movement }}</strong></li>
-                      <li><span>ST</span><strong>{{ player.characteristics.strength }}</strong></li>
-                      <li><span>AG</span><strong>{{ player.characteristics.agility }}+</strong></li>
-                      <li><span>PA</span><strong>{{ player.characteristics.passing }}+</strong></li>
-                      <li><span>AV</span><strong>{{ player.characteristics.armor }}+</strong></li>
-                    </ul>
-                  </div>
-                  <div class="skills">
-                    <h5>Skills</h5>
-                    <div class="skill-tags">
-                      @for (skill of player.skills; track skill) {
-                        @if (player.extraSkills.includes(skill)) {
-                          <span class="skill-tag-red">{{ skill }}</span>
-                        } @else {
-                          <span class="skill-tag">{{ skill }}</span>
-                        }
-                      }
-                    </div>
-                  </div>
-                } @else {
-                  <p class="details-hint">Hover a player to see their stats and skills</p>
-                }
-                </aside>
 
-                <aside class="chance-breakdown" [class.empty]="chanceBreakdown().length === 0">
-                  <h5 class="breakdown-heading">
-                    Success breakdown
-                    <span class="breakdown-total">{{ chancePercent() }}%</span>
-                  </h5>
-                  @if (chanceBreakdown().length === 0) {
-                    <p class="details-hint">No penalties yet — every action so far is certain.</p>
-                  } @else {
-                    <ul class="breakdown-list">
-                      @for (row of chanceBreakdown(); track $index) {
-                        <li class="breakdown-row">
-                          <span class="breakdown-drop">−{{ row.dropPoints }}%</span>
-                          <span class="breakdown-reason">{{ row.reason }}</span>
-                          <span class="breakdown-after">{{ row.chanceAfterPercent }}%</span>
-                        </li>
-                      }
-                    </ul>
-                  }
-                </aside>
+                <app-player-details [player]="hoveredPlayer()"></app-player-details>
+
+                <app-success-breakdown
+                  [log]="working().chanceLog"
+                  [percent]="chancePercent()">
+                </app-success-breakdown>
+
+                <app-hints
+                  [hints]="working().hints"
+                  [revealedCount]="working().hintsRevealed"
+                  (reveal)="revealHint()">
+                </app-hints>
               </div>
+
             </div>
           </div>
 

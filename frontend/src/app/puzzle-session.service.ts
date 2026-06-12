@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal, Signal, WritableSignal } from '@angular/core';
-import { PuzzleCharacteristics, PuzzleData, PuzzleTeam, PuzzleType } from './puzzles.data';
+import { PuzzleCharacteristics, PuzzleData, PuzzlePosition, PuzzleTeam, PuzzleType } from './puzzles.data';
 import { PuzzleEngineService } from './puzzle-engine.service';
 
 export interface PuzzleSessionState {
@@ -35,6 +35,18 @@ export interface WorkingPlayer {
    * An eye-gouged player cannot provide assists (offensive or defensive) for any block.
    */
   eyeGouged: boolean;
+  /**
+   * Sidestep destinations, ordered by priority. When this player (who must have
+   * the Sidestep skill) is blocked, they choose any empty adjacent square to be
+   * pushed into — these are the squares they want, highest priority first.
+   */
+  goTo?: PuzzlePosition[];
+  /**
+   * Whether a Both Down result against this player may participate in a correct
+   * solution. When `false`, choosing Both Down against this player flags the
+   * solution as incorrect (see WorkingBoard.incorrectSolution).
+   */
+  bothDown?: boolean;
 }
 
 /**
@@ -78,6 +90,17 @@ export interface WorkingBoard {
   successChance: number;
   /** Ordered log of every action that reduced the success chance, with reasons. */
   chanceLog: ChanceLogEntry[];
+  /**
+   * Sticky flag: set once the player performs an action that cannot be part of a
+   * correct solution (e.g. a Both Down against a player flagged `bothDown: false`).
+   * When true the puzzle is reported as an incorrect solution regardless of the
+   * final success chance.
+   */
+  incorrectSolution: boolean;
+  /** Ordered hints for this puzzle (may be empty). */
+  hints: string[];
+  /** How many hints have been revealed so far (in order). */
+  hintsRevealed: number;
 }
 
 /**
@@ -139,6 +162,16 @@ export class PuzzleSessionService implements OnDestroy {
   /** Read-only reactive working board for a puzzle, created lazily from its data. */
   board(key: string, data: PuzzleData, puzzleType: PuzzleType = 'score'): Signal<WorkingBoard> {
     return this.boardSignal(key, data, puzzleType).asReadonly();
+  }
+
+  /** Reveal the next hint (in order), up to the number available for this puzzle. */
+  revealNextHint(key: string, data: PuzzleData): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+    if (board.hintsRevealed >= board.hints.length) {
+      return;
+    }
+    boardSignal.set({ ...board, hintsRevealed: board.hintsRevealed + 1 });
   }
 
   /** Restore the working board to the puzzle's initial state (does not affect the timer). */
@@ -265,7 +298,7 @@ export class PuzzleSessionService implements OnDestroy {
       : 1;
 
     // Bone Head: 2+ on D6 required before the player's first action (5/6 chance).
-    const boneHeadChance = this.boneHeadChance(board, selected);
+    const negatraitChance = this.negatraitChance(board, selected);
 
     // Moving a different player finalizes (activates) the previously moved one.
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
@@ -305,7 +338,7 @@ export class PuzzleSessionService implements OnDestroy {
       { reason: `Dodge — ${selected.name}`, factor: dodgeChance },
       { reason: `Rush — ${selected.name}`, factor: rushChance },
       { reason: `Pick up — ${selected.name}`, factor: pickupChance },
-      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: boneHeadChance }
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
     ]);
 
     boardSignal.set({
@@ -345,6 +378,10 @@ export class PuzzleSessionService implements OnDestroy {
 
     const players = board.players.map((p) => ({ ...p }));
 
+    // The negatrait check (Bone Head / Animal Savagery / Really Stupid) is the
+    // first step of activation — it is rolled before the prone player stands up.
+    const negatraitChance = this.negatraitChance(board, selected);
+
     // Standing a different player finalizes the previously moved one.
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
       const previous = players.find((p) => p.id === board.lastMovedPlayerId);
@@ -358,11 +395,17 @@ export class PuzzleSessionService implements OnDestroy {
     standing.prone = false;
     standing.hasMoved = true;
 
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
+    ]);
+
     boardSignal.set({
       ...board,
       players,
       lastMovedPlayerId: selected.id,
-      selectedPlayerId: selected.id
+      selectedPlayerId: selected.id,
+      successChance,
+      chanceLog
     });
   }
 
@@ -429,7 +472,7 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const landingChance = this.engine.jumpProbability(board, selected, x, y);
-    const boneHeadChance = this.boneHeadChance(board, selected);
+    const negatraitChance = this.negatraitChance(board, selected);
 
     // Picking up the ball on landing also requires an Agility test.
     // (ballOnTarget / alreadyCarrying were already computed for the PA=0 guard above.)
@@ -465,7 +508,7 @@ export class PuzzleSessionService implements OnDestroy {
       { reason: `Rush — ${selected.name}`, factor: rushChance },
       { reason: `Jump over ${prone.name} — ${selected.name}`, factor: landingChance },
       { reason: `Pick up — ${selected.name}`, factor: pickupChance },
-      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: boneHeadChance }
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
     ]);
 
     boardSignal.set({
@@ -514,7 +557,7 @@ export class PuzzleSessionService implements OnDestroy {
     const passChance = passerOrig
       ? this.engine.passProbability(board, passerOrig, target)
       : 1;
-    const passerBoneHead = passerOrig ? this.boneHeadChance(board, passerOrig) : 1;
+    const passerBoneHead = passerOrig ? this.negatraitChance(board, passerOrig) : 1;
 
     const players = board.players.map((p) => ({ ...p }));
 
@@ -583,7 +626,7 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const catchChance = this.engine.handoffProbability(board, target);
-    const carrierBoneHead = carrierOrig ? this.boneHeadChance(board, carrierOrig) : 1;
+    const carrierBoneHead = carrierOrig ? this.negatraitChance(board, carrierOrig) : 1;
     const solved = board.puzzleType === 'score' && target.x === 0;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
@@ -646,7 +689,7 @@ export class PuzzleSessionService implements OnDestroy {
     // Captured from the attacker (if any) for the chance-log entries below.
     let attackerName: string | null = null;
     let attackerNegatraitName = 'Bone Head';
-    let attackerBoneHead = 1;
+    let attackerNegatraitChance = 1;
     let defenderName: string | null = null;
     let foulAppearanceChance = 1;
 
@@ -663,6 +706,16 @@ export class PuzzleSessionService implements OnDestroy {
       && this.hasSkill(attacker, 'Strip Ball')
       && !this.hasSkill(defender, 'Sure Hands');
 
+    // Capture the attacker's negatrait (Bone Head / Animal Savagery / Really Stupid)
+    // check NOW — before the push `moves` below relocate the attacker (e.g. a follow
+    // up). The test, and its Really Stupid support check, must use the attacker's
+    // position from BEFORE it moved, which is when the test is actually made.
+    if (attacker) {
+      attackerName = attacker.name;
+      attackerNegatraitName = this.negatraitName(attacker);
+      attackerNegatraitChance = this.negatraitChance(board, attacker);
+    }
+
     for (const move of moves) {
       const player = players.find((p) => p.id === move.playerId);
       if (player) {
@@ -674,11 +727,6 @@ export class PuzzleSessionService implements OnDestroy {
     if (attackerId) {
       const attacker = players.find((p) => p.id === attackerId);
       if (attacker) {
-        // Negatrait (Bone Head / Animal Savagery): captured before hasMoved flips,
-        // logged separately from the block result below.
-        attackerName = attacker.name;
-        attackerNegatraitName = this.negatraitName(attacker);
-        attackerBoneHead = this.boneHeadChance(board, attacker);
 
         // Foul Appearance: the defender forces the attacker to roll 2+ before the block.
         if (defender && this.hasSkill(defender, 'Foul Appearance')) {
@@ -761,7 +809,7 @@ export class PuzzleSessionService implements OnDestroy {
     const factors: { reason: string; factor: number }[] = [];
     if (attackerName !== null) {
       factors.push({ reason: `Block — ${attackerName}`, factor: blockChance });
-      factors.push({ reason: `${attackerNegatraitName} — ${attackerName}`, factor: attackerBoneHead });
+      factors.push({ reason: `${attackerNegatraitName} — ${attackerName}`, factor: attackerNegatraitChance });
     }
     if (defenderName !== null) {
       factors.push({ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearanceChance });
@@ -793,11 +841,11 @@ export class PuzzleSessionService implements OnDestroy {
     // Negatrait (Bone Head / Animal Savagery / Really Stupid): captured BEFORE
     // hasMoved flips, so a player going straight to a block is still gated.
     let attackerNegatraitName = 'Negatrait';
-    let attackerNegatrait = 1;
+    let attackerNegatraitChance = 1;
     let blitzPlayerId = board.blitzPlayerId;
     if (attacker) {
       attackerNegatraitName = this.negatraitName(attacker);
-      attackerNegatrait = this.boneHeadChance(board, attacker);
+      attackerNegatraitChance = this.negatraitChance(board, attacker);
       // Moving before the (first) block is a Blitz: this player claims the team's
       // Blitz. Guard on !hasBlocked so a Frenzy second block does not re-derive it.
       if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
@@ -815,6 +863,12 @@ export class PuzzleSessionService implements OnDestroy {
     const defender = players.find((p) => p.id === defenderId);
     if (defender) {
       defender.prone = true;
+    }
+
+    // Wrestle: a Wrestle attacker is Placed Prone alongside the defender on a Both
+    // Down (both players in the Block Action go down). A Block attacker stays up.
+    if (attacker && this.hasSkill(attacker, 'Wrestle')) {
+      attacker.prone = true;
     }
 
     // Eye Gouge: mark the defender as unable to provide assists.
@@ -838,11 +892,15 @@ export class PuzzleSessionService implements OnDestroy {
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
       { reason: `Both Down — ${attackerName ?? 'blocker'}`, factor: blockChance },
-      { reason: `${attackerNegatraitName} — ${attackerName ?? 'blocker'}`, factor: attackerNegatrait },
+      { reason: `${attackerNegatraitName} — ${attackerName ?? 'blocker'}`, factor: attackerNegatraitChance },
       ...(foulAppearanceBD < 1 ? [{ reason: `Foul Appearance — ${defenderNameBD}`, factor: foulAppearanceBD }] : [])
     ]);
 
-    boardSignal.set({ ...board, players, ball, blitzPlayerId, solved, successChance, chanceLog });
+    // A Both Down against a player flagged `bothDown: false` cannot be part of a
+    // correct solution: allow it to resolve, but mark the puzzle as incorrect.
+    const incorrectSolution = board.incorrectSolution || defender?.bothDown === false;
+
+    boardSignal.set({ ...board, players, ball, blitzPlayerId, solved, successChance, chanceLog, incorrectSolution });
     if (solved) this.markSolved(key);
   }
 
@@ -875,11 +933,11 @@ export class PuzzleSessionService implements OnDestroy {
     const attackerName = attacker?.name ?? null;
     // Negatrait captured BEFORE hasMoved flips so a straight-to-vomit player is gated.
     let attackerNegatraitName = 'Negatrait';
-    let attackerNegatrait = 1;
+    let attackerNegatraitChance = 1;
     let blitzPlayerId = board.blitzPlayerId;
     if (attacker) {
       attackerNegatraitName = this.negatraitName(attacker);
-      attackerNegatrait = this.boneHeadChance(board, attacker);
+      attackerNegatraitChance = this.negatraitChance(board, attacker);
       // Moving before the attack is a Blitz: this player claims the team's Blitz.
       if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
       attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
@@ -909,7 +967,7 @@ export class PuzzleSessionService implements OnDestroy {
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
       { reason: `Vomit — ${attackerName ?? 'attacker'}`, factor: vomitChance },
-      { reason: `${attackerNegatraitName} — ${attackerName ?? 'attacker'}`, factor: attackerNegatrait },
+      { reason: `${attackerNegatraitName} — ${attackerName ?? 'attacker'}`, factor: attackerNegatraitChance },
       ...(foulAppearance < 1 ? [{ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearance }] : [])
     ]);
 
@@ -985,7 +1043,7 @@ export class PuzzleSessionService implements OnDestroy {
    *  - Really Stupid: 4+ (3/6) when no standing team-mate is adjacent, or 2+
    *    (5/6) when a non-prone team-mate stands next to the player.
    */
-  private boneHeadChance(board: WorkingBoard, player: WorkingPlayer): number {
+  private negatraitChance(board: WorkingBoard, player: WorkingPlayer): number {
     if (player.hasMoved) return 1;
 
     if (this.hasSkill(player, 'Bone Head') || this.hasSkill(player, 'Animal Savagery')) {
@@ -1068,7 +1126,9 @@ export class PuzzleSessionService implements OnDestroy {
           prone: player.prone ?? false,
           hasBlocked: false,
           frenzyUsed: false,
-          eyeGouged: false
+          eyeGouged: false,
+          goTo: player.goTo,
+          bothDown: player.bothDown
         };
       }),
       selectedPlayerId: null,
@@ -1078,7 +1138,10 @@ export class PuzzleSessionService implements OnDestroy {
       handoffUsed: false,
       blitzPlayerId: null,
       successChance: 1,
-      chanceLog: []
+      chanceLog: [],
+      incorrectSolution: false,
+      hints: data.hints ?? [],
+      hintsRevealed: 0
     };
   }
 

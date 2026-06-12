@@ -1,0 +1,18 @@
+@if (hasHints()) {
+  <aside class="hints-panel">
+    <h5 class="hints-heading">💡 Hints</h5>
+    @if (revealedHints().length > 0) {
+      <ol class="hints-list">
+        @for (hint of revealedHints(); track $index) {
+          <li>{{ hint }}</li>
+        }
+      </ol>
+    }
+    @if (hasMoreHints()) {
+      <button type="button" class="btn-hint" (click)="requestHint()">
+        Reveal hint {{ revealedCount() + 1 }} / {{ hints().length }}
+      </button>
+    }
+  </aside>
+}
+

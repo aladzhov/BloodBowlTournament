@@ -1,70 +1,78 @@
 {
   "date": "2026-06-17",
-  "title": "Principles",
+  "title": "Hillbilly",
   "author": "Atanas Ladzhov",
-  "type": "surf",
+  "type": "score",
   "data": {
-    "field": { "rows": 9, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 3 } },
+    "hints": ["Some of the defenders are Titchy", "If uphilling an Ogre, what results would be acceptable?"],
+    "field": { "rows": 8, "cols": 6 },
+    "ball": { "position": { "x": 7, "y": 2 } },
     "players": [
       {
         "team": "home",
-        "name": "Werewolf",
+        "name": "Ghoul Runner",
+        "position": { "x": 5 , "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Dodge", "Regeneration", "Wrestle"],
+        "extraSkills": ["Wrestle"],
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Ghoul Runner",
+        "position": { "x": 7 , "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Dodge", "Regeneration"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "home",
+        "name": "Zombie Lineman",
+        "position": { "x": 5 , "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady", "Wrestle"],
+        "extraSkills": ["Wrestle"]
+      },
+      {
+        "team": "away",
+        "name": "Ogre Blocker",
+        "position": { "x": 3 , "y": 1 },
+        "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Bone Head", "Mighty Blow", "Thick Skull", "Throw Team-mate"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "away",
+        "name": "Ogre Runt Punter",
+        "position": { "x": 3 , "y": 3 },
+        "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 4, "armor": 10 },
+        "skills": ["Bone Head", "Guard", "Kick Team-mate", "Mighty Blow", "Thick Skull"],
+        "extraSkills": ["Guard"],
+        "bothDown": false
+      },
+      {
+        "team": "away",
+        "name": "Gnoblar Lineman",
+        "position": { "x": 1 , "y": 5 },
+        "characteristics": { "movement": 5, "strength": 1, "agility": 3, "passing": 4, "armor": 6 },
+        "skills": ["Diving Tackle", "Dodge", "Right Stuff", "Sidestep", "Stunty", "Titchy"],
+        "extraSkills": ["Diving Tackle"]
+      },
+      {
+        "team": "away",
+        "name": "Gnoblar Lineman",
         "position": { "x": 1 , "y": 1 },
-        "characteristics": { "movement": 8, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
-        "skills": ["Claws", "Frenzy", "Regeneration"]
-      },
-      {
-        "team": "home",
-        "name": "Zombie Lineman",
-        "position": { "x": 5, "y": 2 },
-        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
-        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
-      },
-      {
-        "team": "home",
-        "name": "Zombie Lineman",
-        "position": { "x": 5, "y": 4 },
-        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
-        "skills": ["Eye Gouge", "Regeneration", "Unsteady"]
-      },
-      {
-        "team": "home",
-        "name": "Flesh Golem",
-        "position": { "x": 3, "y": 5 },
-        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 6, "armor": 10 },
-        "skills": ["Regeneration", "Stand Firm", "Thick Skull", "Unsteady"]
+        "characteristics": { "movement": 5, "strength": 1, "agility": 3, "passing": 4, "armor": 6 },
+        "skills": ["Dodge", "Right Stuff", "Sidestep", "Stunty", "Titchy"]
       },
       {
         "team": "away",
-        "name": "Wood Elf Catcher",
-        "position": { "x": 3, "y": 4 },
-        "characteristics": { "movement": 8, "strength": 2, "agility": 2, "passing": 3, "armor": 8 },
-        "skills": ["Catch", "Dodge", "Sprint"]
-      },
-      {
-        "team": "away",
-        "name": "Wood Elf Lineman",
-        "position": { "x": 4, "y": 4 },
-        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
-        "skills": [],
-        "prone": true
-      },
-      {
-        "team": "away",
-        "name": "Wood Elf Lineman",
-        "position": { "x": 6, "y": 4 },
-        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
-        "skills": []
-      },
-      {
-        "team": "away",
-        "name": "Wood Elf Lineman",
-        "position": { "x": 5, "y": 3 },
-        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 2, "armor": 8 },
-        "skills": []
+        "name": "Gnoblar Lineman",
+        "position": { "x": 2 , "y": 4 },
+        "characteristics": { "movement": 5, "strength": 1, "agility": 3, "passing": 4, "armor": 6 },
+        "skills": ["Dodge", "Right Stuff", "Sidestep", "Stunty", "Titchy"]
       }
     ],
-    "targetScore": 24
+    "targetScore": 57
   }
 }

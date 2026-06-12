@@ -1,0 +1,48 @@
+<aside class="player-details" [class.empty]="!player()">
+  @if (player(); as p) {
+    <h4
+      class="details-name"
+      [class.home]="p.team === 'home'"
+      [class.away]="p.team === 'away'">
+      {{ p.name }}
+    </h4>
+    @if (p.prone || p.activated || p.eyeGouged) {
+      <div class="details-status">
+        @if (p.prone) {
+          <span class="status-tag status-prone">Prone</span>
+        }
+        @if (p.activated) {
+          <span class="status-tag status-activated">Activated</span>
+        }
+        @if (p.eyeGouged) {
+          <span class="status-tag status-eye-gouged">Eye Gouged</span>
+        }
+      </div>
+    }
+    <div class="skills">
+      <h5>Characteristics</h5>
+      <ul class="characteristics">
+        <li><span>MA</span><strong>{{ p.characteristics.movement }}</strong></li>
+        <li><span>ST</span><strong>{{ p.characteristics.strength }}</strong></li>
+        <li><span>AG</span><strong>{{ p.characteristics.agility }}+</strong></li>
+        <li><span>PA</span><strong>{{ p.characteristics.passing }}+</strong></li>
+        <li><span>AV</span><strong>{{ p.characteristics.armor }}+</strong></li>
+      </ul>
+    </div>
+    <div class="skills">
+      <h5>Skills</h5>
+      <div class="skill-tags">
+        @for (skill of p.skills; track skill) {
+          @if (p.extraSkills.includes(skill)) {
+            <span class="skill-tag-red">{{ skill }}</span>
+          } @else {
+            <span class="skill-tag">{{ skill }}</span>
+          }
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="details-hint">Hover a player to see their stats and skills</p>
+  }
+</aside>
+

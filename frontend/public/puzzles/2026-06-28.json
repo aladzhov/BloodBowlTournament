@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "sack",
   "data": {
+    "hints": ["Consider the skill upgrades"],
     "field": { "rows": 6, "cols": 7 },
     "ball": { "position": { "x": 3, "y": 4 } },
     "players": [
@@ -29,7 +30,8 @@
         "name": "Chaos Chosen",
         "position": { "x": 2 , "y": 2 },
         "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
-        "skills": ["Arm Bar"],
+        "skills": ["Arm Bar", "Break Tackle"],
+        "extraSkills": ["Break Tackle"],
         "prone": true
       },
       {
@@ -37,8 +39,8 @@
         "name": "Chaos Chosen",
         "position": { "x": 1 , "y": 4 },
         "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
-        "skills": ["Arm Bar", "Block"],
-        "extraSkills": ["Block"],
+        "skills": ["Arm Bar", "Mighty Blow"],
+        "extraSkills": ["Mighty Blow"],
         "prone": true
       },
       {
@@ -68,9 +70,10 @@
         "name": "Skink Lineman",
         "position": { "x": 0 , "y": 2 },
         "characteristics": { "movement": 8, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
-        "skills": ["Dodge", "Stunty"]
+        "skills": ["Diving Tackle", "Dodge", "Stunty"],
+        "extraSkills": ["Diving Tackle"]
       }
     ],
-    "targetScore": 52
+    "targetScore": 62
   }
 }

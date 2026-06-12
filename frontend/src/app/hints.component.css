@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+.hints-panel {
+  border: 1px solid var(--border-light);
+  border-radius: 0.6rem;
+  background: #fafafa;
+  padding: 0.75rem 0.9rem;
+}
+
+.hints-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.hints-list {
+  margin: 0 0 0.6rem;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+}
+
+.btn-hint {
+  width: 100%;
+  background: var(--bg-green);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.btn-hint:hover {
+  background: var(--bg-green-dark);
+}
+

@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "score",
   "data": {
+    "hints": ["Consider the skill upgrades", "Look for chain pushes"],
     "field": { "rows": 6, "cols": 7 },
     "ball": { "position": { "x": 2, "y": 3 } },
     "players": [
@@ -17,7 +18,7 @@
       },
       {
         "team": "home",
-        "name": "Wight",
+        "name": "Wight Blitzer",
         "position": { "x": 4, "y": 4 },
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
         "skills": ["Block", "Guard", "Regeneration", "Tackle", "Thick Skull"],

@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "sack",
   "data": {
+    "hints": ["Look for chain pushes", "Consider Strip Ball vs Dodge"],
     "field": { "rows": 5, "cols": 7 },
     "ball": { "position": { "x": 1, "y": 1 } },
     "players": [

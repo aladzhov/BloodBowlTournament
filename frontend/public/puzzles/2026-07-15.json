@@ -1,0 +1,80 @@
+{
+  "date": "2026-07-15",
+  "title": "Solid Defence",
+  "author": "Atanas Ladzhov",
+  "type": "sack",
+  "data": {
+    "hints": ["Block the ball carrier with 2 dice", "Defensive counters Guard"],
+    "field": { "rows": 7, "cols": 5 },
+    "ball": { "position": { "x": 1, "y": 2 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Tomb Guardian",
+        "position": { "x": 2 , "y": 2 },
+        "characteristics": { "movement": 4, "strength": 5, "agility": 5, "passing": 6, "armor": 10 },
+        "skills": ["Brawler", "Decay", "Guard", "Regeneration"],
+        "extraSkills": ["Guard"],
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Tomb Kings Blitzer",
+        "position": { "x": 5 , "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Regeneration", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Skeleton Lineman",
+        "position": { "x": 6 , "y": 2 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 6, "armor": 8 },
+        "skills": ["Regeneration", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Skeleton Lineman",
+        "position": { "x": 2 , "y": 1 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 6, "armor": 8 },
+        "skills": ["Regeneration", "Thick Skull", "Wrestle"],
+        "extraSkills": ["Wrestle"]
+      },
+      {
+        "team": "away",
+        "name": "Troll Slayer",
+        "position": { "x": 0 , "y": 2 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Dauntless", "Frenzy", "Hatred (Troll)", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Lineman",
+        "position": { "x": 3, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Lineman",
+        "position": { "x": 1, "y": 4 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Runner",
+        "position": { "x": 1, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Sprint", "Sure Hands", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Blitzer",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Diving Tackle", "Tackle", "Thick Skull"]
+      }
+    ],
+    "targetScore": 56
+  }
+}

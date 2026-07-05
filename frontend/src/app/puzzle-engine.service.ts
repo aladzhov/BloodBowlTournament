@@ -116,7 +116,9 @@ export class PuzzleEngineService {
 
     if (player) {
       if (player.team === 'away') {
-        return selected ? { type: 'menu', target: player } : { type: 'none' };
+        if (!selected) return { type: 'none' };
+        const adjacent = this.isAdjacent(selected.x, selected.y, player.x, player.y);
+        return adjacent ? { type: 'menu', target: player } : { type: 'none' };
       }
 
       // Friendly player clicked while another friendly is active → menu (if it has options).
@@ -983,8 +985,7 @@ export class PuzzleEngineService {
 
   /**
    * Probability (0..1) that a pass from `passer` to `receiver` completes without
-   * causing a turnover. Models the throw (Passing test) and the catch; interceptions
-   * are not modelled.
+   * causing a turnover. Models the throw (Passing test) and the catch
    *
    * Throw modifiers:
    *  - Distance band (exact BB ruler lookup, see PASS_BAND_TABLE):
@@ -1050,7 +1051,47 @@ export class PuzzleEngineService {
       catchProb = 1 - (1 - catchProb) * (1 - catchProb);
     }
 
-    return throwProb * catchProb;
+    // -- Intercept --
+    let interceptFailProb = 1;
+    const interceptors = board.players
+      .filter(interceptor =>
+        interceptor.team === 'away' && !interceptor.prone
+      && this.canIntercept(receiver, passer, interceptor));
+    if (interceptors.length > 0) {
+      const interceptor = interceptors.reduce((bestAgility, player) =>
+        player.characteristics.agility < bestAgility.characteristics.agility ? player : bestAgility);
+      interceptFailProb = 1 - this.rollSuccess(interceptor.characteristics.agility + 3)
+    }
+
+    return throwProb * catchProb * interceptFailProb;
+  }
+
+  canIntercept(receiver: WorkingPlayer, passer: WorkingPlayer, interceptor: WorkingPlayer, threshold = 0.85): boolean {
+    const dx = receiver.x - passer.x;
+    const dy = receiver.y - passer.y;
+    const lineLengthSq = dx * dx + dy * dy;
+
+    if (lineLengthSq === 0) return false; // Thrown and landing in the same square
+
+    // Calculate projection factor t
+    let t = ((interceptor.x - passer.x) * dx + (interceptor.y - passer.y) * dy) / lineLengthSq;
+
+    // Must be between the thrower and the destination
+    if (t <= 0 || t >= 1) {
+      return false;
+    }
+
+    // Find the closest point on the line segment
+    const closestX = passer.x + t * dx;
+    const closestY = passer.y + t * dy;
+
+    // Calculate distance from interceptor center to the line
+    const distDx = interceptor.x - closestX;
+    const distDy = interceptor.y - closestY;
+    const distance = Math.sqrt(distDx * distDx + distDy * distDy);
+
+    // If within the ruler's width threshold, it's an eligible intercept square
+    return distance <= threshold;
   }
 
   /**

@@ -55,7 +55,18 @@
             <time class="puzzle-date">{{ formattedDate() }}</time>
             <span class="puzzle-author">by {{ current().author }}</span>
           </div>
-          <h3 class="puzzle-title">{{ current().title }}</h3>
+          <div class="title-row">
+            <h3 class="puzzle-title">{{ current().title }}</h3>
+            @if (revealed()) {
+              <span class="objective-label">🎯 {{ objectiveLabel() }}</span>
+              @if (!solved()) {
+                <div class="timer" aria-live="polite" aria-label="Elapsed time">
+                  <span class="timer-icon">⏱</span>
+                  <span class="timer-display">{{ timerDisplay() }}</span>
+                </div>
+              }
+            }
+          </div>
           @if (revealed()) {
             <button
               class="btn-restart"
@@ -256,8 +267,6 @@
               </div>
 
               <div class="board-side">
-                <p class="objective-label">🎯 {{ objectiveLabel() }}</p>
-
                 <app-player-details [player]="hoveredPlayer()"></app-player-details>
 
                 <app-success-breakdown
@@ -278,34 +287,32 @@
           @if (!revealed()) {
             <div class="puzzle-veil" aria-hidden="true">
               <p class="veil-text">Start solving to reveal the puzzle</p>
+              <button class="btn-start" (click)="startSolving()">
+                ▶ Start Solving
+              </button>
+            </div>
+          }
+
+          @if (revealed() && solved() && showResultDialog()) {
+            <div class="result-overlay" role="dialog" aria-label="Puzzle result" (click)="dismissResultDialog()">
+              <div class="result-card" (click)="$event.stopPropagation()">
+                @if (!isIncorrectSolution()) {
+                  <h3 class="result-title">{{ solvedTitle() }}</h3>
+                  <p class="result-time">{{ timerDisplay() }}</p>
+                  <p class="result-chance">{{ chancePercent() }}% chance for success</p>
+                }
+                @if (isIncorrectSolution()) {
+                  <h3 class="result-title incorrect">Not a correct solution!</h3>
+                  <p class="result-hint">This is not a correct solution!</p>
+                } @else if (canDoBetter()) {
+                  <p class="result-hint">Great job — but you can do better!</p>
+                }
+              </div>
             </div>
           }
         </div>
 
         <footer class="puzzle-footer">
-          @if (!revealed()) {
-            <button class="btn-start" (click)="startSolving()">
-              ▶ Start Solving
-            </button>
-          } @else {
-            @if (solved()) {
-              <div class="solved-badge" role="status">
-                @if (!isIncorrectSolution()) {
-                  <p class="solved-title">{{ solvedTitle() }} {{ timerDisplay() }} - {{ chancePercent() }}% chance for success.</p>
-                }
-                @if (isIncorrectSolution()) {
-                  <p class="solved-hint incorrect">This is not a correct solution!</p>
-                } @else if (canDoBetter()) {
-                  <p class="solved-hint">Great job — but you can do better!</p>
-                }
-              </div>
-            } @else {
-              <div class="timer" aria-live="polite" aria-label="Elapsed time">
-                <span class="timer-icon">⏱</span>
-                <span class="timer-display">{{ timerDisplay() }}</span>
-              </div>
-            }
-          }
         </footer>
       </article>
     }

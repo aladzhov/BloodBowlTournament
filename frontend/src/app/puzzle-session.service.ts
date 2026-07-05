@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal, Signal, WritableSignal } from '@angular/core';
-import { PuzzleCharacteristics, PuzzleData, PuzzlePosition, PuzzleTeam, PuzzleType } from './puzzles.data';
+import {PuzzleCharacteristics, PuzzleData, PuzzlePlayer, PuzzlePosition, PuzzleTeam, PuzzleType} from './puzzles.data';
 import { PuzzleEngineService } from './puzzle-engine.service';
 
 export interface PuzzleSessionState {
@@ -30,6 +30,15 @@ export interface WorkingPlayer {
   hasBlocked: boolean;
   /** Whether the player has already used their Frenzy second block this activation. */
   frenzyUsed: boolean;
+  /**
+   * Set while an Animal Savagery player has begun an activation with a non-block
+   * action and has not yet blocked. Animal Savagery's start-of-activation roll is
+   * 2+ (5/6) when the activation includes a Block, but only 4+ (3/6) when it does
+   * not — and whether a Block happens is unknown on a non-block first action. The
+   * roll is therefore deferred while this flag is set, then settled to 5/6 if the
+   * player later blocks, or to 3/6 when the activation ends with no block.
+   */
+  animalSavageryPending?: boolean;
   /**
    * True when this player has been hit by an attacker with the Eye Gouge skill.
    * An eye-gouged player cannot provide assists (offensive or defensive) for any block.
@@ -214,18 +223,27 @@ export class PuzzleSessionService implements OnDestroy {
 
     const players = board.players.map((p) => ({ ...p }));
 
+    let previous: WorkingPlayer | undefined;
     if (board.selectedPlayerId !== null && board.selectedPlayerId !== playerId) {
-      const previous = players.find((p) => p.id === board.selectedPlayerId);
+      previous = players.find((p) => p.id === board.selectedPlayerId);
       if (previous) {
         previous.activated = true;
       }
     }
 
+    // Switching players ends the previous activation: settle a deferred Animal
+    // Savagery roll (they did not block → 3/6).
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      ...this.settleAnimalSavagery(previous)
+    ]);
+
     boardSignal.set({
       ...board,
       players,
       selectedPlayerId: playerId,
-      lastMovedPlayerId: null
+      lastMovedPlayerId: null,
+      successChance,
+      chanceLog
     });
   }
 
@@ -298,11 +316,13 @@ export class PuzzleSessionService implements OnDestroy {
       : 1;
 
     // Bone Head: 2+ on D6 required before the player's first action (5/6 chance).
-    const negatraitChance = this.negatraitChance(board, selected);
+    // A move is not a block, so an Animal Savagery roll is deferred (see negatraitStart).
+    const neg = this.negatraitStart(board, selected, false);
 
     // Moving a different player finalizes (activates) the previously moved one.
+    let previous: WorkingPlayer | undefined;
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
-      const previous = players.find((p) => p.id === board.lastMovedPlayerId);
+      previous = players.find((p) => p.id === board.lastMovedPlayerId);
       if (previous) {
         previous.activated = true;
       }
@@ -329,16 +349,21 @@ export class PuzzleSessionService implements OnDestroy {
       moving.movementLeft -= 1;
     }
     moving.hasMoved = true;
+    if (neg.pending) moving.animalSavageryPending = true;
 
     const possessesBall = carrying || pickingUp;
     // A touchdown is scored when the ball carrier reaches the endzone (row 0, i.e. x === 0).
     const solved = board.puzzleType === 'score' && possessesBall && x === 0;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      // Settle the previously activated player's deferred Animal Savagery roll (no block).
+      ...this.settleAnimalSavagery(previous),
       { reason: `Dodge — ${selected.name}`, factor: dodgeChance },
       { reason: `Rush — ${selected.name}`, factor: rushChance },
       { reason: `Pick up — ${selected.name}`, factor: pickupChance },
-      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: neg.factor },
+      // If this move scored, the mover's own activation ends here with no block.
+      ...(solved ? this.settleAnimalSavagery(moving) : [])
     ]);
 
     boardSignal.set({
@@ -380,11 +405,13 @@ export class PuzzleSessionService implements OnDestroy {
 
     // The negatrait check (Bone Head / Animal Savagery / Really Stupid) is the
     // first step of activation — it is rolled before the prone player stands up.
-    const negatraitChance = this.negatraitChance(board, selected);
+    // Standing up is not a block, so an Animal Savagery roll is deferred.
+    const neg = this.negatraitStart(board, selected, false);
 
     // Standing a different player finalizes the previously moved one.
+    let previous: WorkingPlayer | undefined;
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
-      const previous = players.find((p) => p.id === board.lastMovedPlayerId);
+      previous = players.find((p) => p.id === board.lastMovedPlayerId);
       if (previous) {
         previous.activated = true;
       }
@@ -394,9 +421,11 @@ export class PuzzleSessionService implements OnDestroy {
     standing.movementLeft = Math.max(0, standing.movementLeft - 3);
     standing.prone = false;
     standing.hasMoved = true;
+    if (neg.pending) standing.animalSavageryPending = true;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
-      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
+      ...this.settleAnimalSavagery(previous),
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: neg.factor }
     ]);
 
     boardSignal.set({
@@ -472,7 +501,8 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const landingChance = this.engine.jumpProbability(board, selected, x, y);
-    const negatraitChance = this.negatraitChance(board, selected);
+    // A jump is not a block, so an Animal Savagery roll is deferred.
+    const neg = this.negatraitStart(board, selected, false);
 
     // Picking up the ball on landing also requires an Agility test.
     // (ballOnTarget / alreadyCarrying were already computed for the PA=0 guard above.)
@@ -481,8 +511,9 @@ export class PuzzleSessionService implements OnDestroy {
       : 1;
 
     // Jumping a different player finalizes (activates) the previously moved one.
+    let previous: WorkingPlayer | undefined;
     if (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== selected.id) {
-      const previous = players.find((p) => p.id === board.lastMovedPlayerId);
+      previous = players.find((p) => p.id === board.lastMovedPlayerId);
       if (previous) {
         previous.activated = true;
       }
@@ -500,15 +531,18 @@ export class PuzzleSessionService implements OnDestroy {
       moving.sureFeetUsed = sureFeetUsed;
     }
     moving.hasMoved = true;
+    if (neg.pending) moving.animalSavageryPending = true;
 
     const possessesBall = carrying || pickingUp;
     const solved = board.puzzleType === 'score' && possessesBall && x === 0;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      ...this.settleAnimalSavagery(previous),
       { reason: `Rush — ${selected.name}`, factor: rushChance },
       { reason: `Jump over ${prone.name} — ${selected.name}`, factor: landingChance },
       { reason: `Pick up — ${selected.name}`, factor: pickupChance },
-      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: negatraitChance }
+      { reason: `${this.negatraitName(selected)} — ${selected.name}`, factor: neg.factor },
+      ...(solved ? this.settleAnimalSavagery(moving) : [])
     ]);
 
     boardSignal.set({
@@ -557,7 +591,8 @@ export class PuzzleSessionService implements OnDestroy {
     const passChance = passerOrig
       ? this.engine.passProbability(board, passerOrig, target)
       : 1;
-    const passerBoneHead = passerOrig ? this.negatraitChance(board, passerOrig) : 1;
+    // A pass is not a block, so an Animal Savagery roll is deferred then settled below.
+    const passerNeg = passerOrig ? this.negatraitStart(board, passerOrig, false) : { factor: 1, pending: false };
 
     const players = board.players.map((p) => ({ ...p }));
 
@@ -565,6 +600,7 @@ export class PuzzleSessionService implements OnDestroy {
     const passer = players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
     if (passer) {
       passer.activated = true;
+      if (passerNeg.pending) passer.animalSavageryPending = true;
     }
 
     const solved = board.puzzleType === 'score' && target.x === 0;
@@ -572,8 +608,10 @@ export class PuzzleSessionService implements OnDestroy {
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
       { reason: `Pass — ${passerOrig?.name ?? 'passer'} → ${target.name}`, factor: passChance },
       ...(passerOrig
-        ? [{ reason: `${this.negatraitName(passerOrig)} — ${passerOrig.name}`, factor: passerBoneHead }]
-        : [])
+        ? [{ reason: `${this.negatraitName(passerOrig)} — ${passerOrig.name}`, factor: passerNeg.factor }]
+        : []),
+      // The passer's activation ends here with no block — settle any Animal Savagery.
+      ...this.settleAnimalSavagery(passer)
     ]);
 
     boardSignal.set({
@@ -621,19 +659,23 @@ export class PuzzleSessionService implements OnDestroy {
     const players = board.players.map((p) => ({ ...p }));
 
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y);
+    // A hand-off is not a block, so an Animal Savagery roll is deferred then settled below.
+    const carrierNeg = carrierOrig ? this.negatraitStart(board, carrierOrig, false) : { factor: 1, pending: false };
     if (carrier) {
       carrier.activated = true;
+      if (carrierNeg.pending) carrier.animalSavageryPending = true;
     }
 
     const catchChance = this.engine.handoffProbability(board, target);
-    const carrierBoneHead = carrierOrig ? this.negatraitChance(board, carrierOrig) : 1;
     const solved = board.puzzleType === 'score' && target.x === 0;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
       { reason: `Hand-off — ${carrierOrig?.name ?? 'carrier'} → ${target.name}`, factor: catchChance },
       ...(carrierOrig
-        ? [{ reason: `${this.negatraitName(carrierOrig)} — ${carrierOrig.name}`, factor: carrierBoneHead }]
-        : [])
+        ? [{ reason: `${this.negatraitName(carrierOrig)} — ${carrierOrig.name}`, factor: carrierNeg.factor }]
+        : []),
+      // The carrier's activation ends here with no block — settle any Animal Savagery.
+      ...this.settleAnimalSavagery(carrier)
     ]);
 
     boardSignal.set({
@@ -692,6 +734,8 @@ export class PuzzleSessionService implements OnDestroy {
     let attackerNegatraitChance = 1;
     let defenderName: string | null = null;
     let foulAppearanceChance = 1;
+    // Rush chance for the Block step when the Blitz exhausted the attacker's movement.
+    let blockRushChance = 1;
 
     // Track the ball carrier's position before any changes.
     const carrier = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
@@ -713,8 +757,15 @@ export class PuzzleSessionService implements OnDestroy {
     if (attacker) {
       attackerName = attacker.name;
       attackerNegatraitName = this.negatraitName(attacker);
-      attackerNegatraitChance = this.negatraitChance(board, attacker);
+      // A block passes Animal Savagery on 2+ (5/6), whether straight-to-block or a Blitz.
+      attackerNegatraitChance = this.negatraitStart(board, attacker, true).factor;
     }
+
+    // A different player who moved (but did not block) this activation has their
+    // deferred Animal Savagery roll settled (no block → 3/6) when the next player acts.
+    const prevMoved = (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== attackerId)
+      ? players.find((p) => p.id === board.lastMovedPlayerId)
+      : undefined;
 
     for (const move of moves) {
       const player = players.find((p) => p.id === move.playerId);
@@ -737,7 +788,8 @@ export class PuzzleSessionService implements OnDestroy {
         // Blitz. Guard on !hasBlocked so a Frenzy second block — where hasMoved is
         // already true from the first block — does not re-derive blitz ownership.
         if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
-        attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
+        // The Block step costs a square of movement; Rush for it if movement is spent.
+        blockRushChance = this.spendBlockMovement(board, attacker);
         attacker.hasMoved = true;
 
         // If this is a Frenzy second block, mark it as used
@@ -776,12 +828,17 @@ export class PuzzleSessionService implements OnDestroy {
       if (board.puzzleType === 'sack') solved = true;
     }
 
-    // If the away-team carrier was knocked prone (and stays on pitch), scatter the ball.
-    // For 'sack' puzzles this also solves the puzzle.
-    if (carrier && carrier.team === 'away' && carrier.prone && !removePlayerId && !shouldStripBall) {
-      const scattered = this.scatterBall(players, board, carrier.x, carrier.y);
-      if (scattered) ball = scattered;
-      if (board.puzzleType === 'sack') solved = true;
+    // If a player is knocked prone over the ball — whether the carrier was knocked
+    // down where they stood, chain-pushed while carrying it, or shoved onto a loose
+    // ball — they cannot hold it, so it scatters to the nearest empty square.
+    // Dislodging the away ball carrier also solves a 'sack' puzzle.
+    if (!removePlayerId && !shouldStripBall) {
+      const proneOnBall = players.find((p) => p.x === ball.x && p.y === ball.y && p.prone) ?? null;
+      if (proneOnBall) {
+        const scattered = this.scatterBall(players, board, ball.x, ball.y);
+        if (scattered) ball = scattered;
+        if (board.puzzleType === 'sack' && proneOnBall.team === 'away') solved = true;
+      }
     }
 
     // Score: home ball carrier chain-pushed onto the touchdown line (row 0).
@@ -807,9 +864,15 @@ export class PuzzleSessionService implements OnDestroy {
     }
 
     const factors: { reason: string; factor: number }[] = [];
+    // Settle a different player's deferred Animal Savagery (they did not block).
+    factors.push(...this.settleAnimalSavagery(prevMoved));
     if (attackerName !== null) {
+      const attackerNow = players.find((p) => p.id === attackerId);
       factors.push({ reason: `Block — ${attackerName}`, factor: blockChance });
+      factors.push({ reason: `Rush — ${attackerName}`, factor: blockRushChance });
       factors.push({ reason: `${attackerNegatraitName} — ${attackerName}`, factor: attackerNegatraitChance });
+      // A Blitz (move then block) settles the attacker's deferred Animal Savagery on 2+.
+      factors.push(...this.settleAnimalSavageryBlock(attackerNow));
     }
     if (defenderName !== null) {
       factors.push({ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearanceChance });
@@ -843,13 +906,22 @@ export class PuzzleSessionService implements OnDestroy {
     let attackerNegatraitName = 'Negatrait';
     let attackerNegatraitChance = 1;
     let blitzPlayerId = board.blitzPlayerId;
+    // Rush chance for the Block step when the Blitz exhausted the attacker's movement.
+    let blockRushChance = 1;
+    // A different player who moved (but did not block) this activation has their
+    // deferred Animal Savagery roll settled (no block → 3/6) when this block happens.
+    const prevMoved = (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== attackerId)
+      ? players.find((p) => p.id === board.lastMovedPlayerId)
+      : undefined;
     if (attacker) {
       attackerNegatraitName = this.negatraitName(attacker);
-      attackerNegatraitChance = this.negatraitChance(board, attacker);
+      // A block passes Animal Savagery on 2+ (5/6), whether straight-to-block or a Blitz.
+      attackerNegatraitChance = this.negatraitStart(board, attacker, true).factor;
       // Moving before the (first) block is a Blitz: this player claims the team's
       // Blitz. Guard on !hasBlocked so a Frenzy second block does not re-derive it.
       if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
-      attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
+      // The Block step costs a square of movement; Rush for it if movement is spent.
+      blockRushChance = this.spendBlockMovement(board, attacker);
       attacker.hasMoved = true;
 
       // If this is a Frenzy second block, mark it as used
@@ -876,23 +948,27 @@ export class PuzzleSessionService implements OnDestroy {
       defender.eyeGouged = true;
     }
 
-    // Scatter the ball if the defender (away team) was carrying it and is now prone.
-    // For 'sack' puzzles this also solves the puzzle.
+    // Scatter the ball if whoever stands on it was knocked prone by the Both Down
+    // (the defender always, and a Wrestle attacker too) — a prone player cannot hold
+    // the ball. Dislodging the away ball carrier also solves a 'sack' puzzle.
     const carrierBD = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
     let ball = board.ball;
     let solved = false;
-    if (carrierBD && carrierBD.id === defenderId && carrierBD.team === 'away') {
+    if (carrierBD && carrierBD.prone) {
       const scattered = this.scatterBall(players, board, carrierBD.x, carrierBD.y);
       if (scattered) ball = scattered;
-      if (board.puzzleType === 'sack') solved = true;
+      if (board.puzzleType === 'sack' && carrierBD.team === 'away') solved = true;
     }
 
     const foulAppearanceBD = (defender && this.hasSkill(defender, 'Foul Appearance')) ? 5 / 6 : 1;
     const defenderNameBD = defender?.name ?? null;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      ...this.settleAnimalSavagery(prevMoved),
       { reason: `Both Down — ${attackerName ?? 'blocker'}`, factor: blockChance },
+      { reason: `Rush — ${attackerName ?? 'blocker'}`, factor: blockRushChance },
       { reason: `${attackerNegatraitName} — ${attackerName ?? 'blocker'}`, factor: attackerNegatraitChance },
+      ...this.settleAnimalSavageryBlock(attacker),
       ...(foulAppearanceBD < 1 ? [{ reason: `Foul Appearance — ${defenderNameBD}`, factor: foulAppearanceBD }] : [])
     ]);
 
@@ -935,12 +1011,21 @@ export class PuzzleSessionService implements OnDestroy {
     let attackerNegatraitName = 'Negatrait';
     let attackerNegatraitChance = 1;
     let blitzPlayerId = board.blitzPlayerId;
+    // Rush chance for the attack step when the Blitz exhausted the attacker's movement.
+    let blockRushChance = 1;
+    // A different player who moved (but did not block) this activation has their
+    // deferred Animal Savagery roll settled (no block → 3/6) when this attack happens.
+    const prevMoved = (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== attackerId)
+      ? players.find((p) => p.id === board.lastMovedPlayerId)
+      : undefined;
     if (attacker) {
       attackerNegatraitName = this.negatraitName(attacker);
-      attackerNegatraitChance = this.negatraitChance(board, attacker);
+      // A Vomit attack counts as a block for Animal Savagery — passes on 2+ (5/6).
+      attackerNegatraitChance = this.negatraitStart(board, attacker, true).factor;
       // Moving before the attack is a Blitz: this player claims the team's Blitz.
       if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
-      attacker.movementLeft = Math.max(0, attacker.movementLeft - 1);
+      // The attack step costs a square of movement; Rush for it if movement is spent.
+      blockRushChance = this.spendBlockMovement(board, attacker);
       attacker.hasMoved = true;
       attacker.hasBlocked = true;
     }
@@ -950,15 +1035,15 @@ export class PuzzleSessionService implements OnDestroy {
       defender.prone = true;
     }
 
-    // Scatter the ball if the (away) defender carrier was knocked prone.
-    // For 'sack' puzzles this also solves the puzzle.
+    // Scatter the ball if the player standing on it was knocked prone by the Vomit —
+    // a prone player cannot hold the ball. Dislodging the away carrier solves 'sack'.
     const carrierV = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
     let ball = board.ball;
     let solved = false;
-    if (carrierV && carrierV.id === defenderId && carrierV.team === 'away') {
+    if (carrierV && carrierV.prone) {
       const scattered = this.scatterBall(players, board, carrierV.x, carrierV.y);
       if (scattered) ball = scattered;
-      if (board.puzzleType === 'sack') solved = true;
+      if (board.puzzleType === 'sack' && carrierV.team === 'away') solved = true;
     }
 
     // Foul Appearance: the target forces the attacker to roll 2+ before the Vomit.
@@ -966,8 +1051,11 @@ export class PuzzleSessionService implements OnDestroy {
     const defenderName = defender?.name ?? null;
 
     const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      ...this.settleAnimalSavagery(prevMoved),
       { reason: `Vomit — ${attackerName ?? 'attacker'}`, factor: vomitChance },
+      { reason: `Rush — ${attackerName ?? 'attacker'}`, factor: blockRushChance },
       { reason: `${attackerNegatraitName} — ${attackerName ?? 'attacker'}`, factor: attackerNegatraitChance },
+      ...this.settleAnimalSavageryBlock(attacker),
       ...(foulAppearance < 1 ? [{ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearance }] : [])
     ]);
 
@@ -1004,6 +1092,33 @@ export class PuzzleSessionService implements OnDestroy {
   private hasSkill(player: WorkingPlayer, skill: string): boolean {
     const target = skill.toLowerCase().replace(/[^a-z]/g, '');
     return player.skills.some((s) => s.toLowerCase().replace(/[^a-z]/g, '') === target);
+  }
+
+  /**
+   * Spend one square of movement for the Block step of a Blitz. If the attacker
+   * has normal movement left, one point is used. Otherwise the block must be made
+   * by Rushing: a Rush square is consumed and its 2+ chance (5/6, with a Sure Feet
+   * reroll) is returned so the caller can fold it into the success chance.
+   *
+   * Returns the Rush probability (1 when no Rush was needed). Mutates the attacker's
+   * movementLeft / rushLeft / sureFeetUsed accordingly.
+   */
+  private spendBlockMovement(board: WorkingBoard, attacker: WorkingPlayer): number {
+    if (attacker.movementLeft > 0) {
+      attacker.movementLeft -= 1;
+      return 1;
+    }
+    if (attacker.rushLeft > 0) {
+      // Compute the chance BEFORE marking Sure Feet used (rushProbability reads it).
+      const rushChance = this.engine.rushProbability(board, attacker);
+      attacker.rushLeft -= 1;
+      if (this.hasSkill(attacker, 'Sure Feet') && !attacker.sureFeetUsed) {
+        attacker.sureFeetUsed = true;
+      }
+      return rushChance;
+    }
+    // No movement and no Rush squares remain — nothing to spend.
+    return 1;
   }
 
   /**
@@ -1052,7 +1167,10 @@ export class PuzzleSessionService implements OnDestroy {
 
     if (this.hasSkill(player, 'Really Stupid')) {
       const supported = board.players.some(
-        (p) => p.id !== player.id && p.team === player.team && !p.prone
+        (p) => p.id !== player.id
+          && p.team === player.team
+          && !p.prone
+          && !this.hasSkill(p, 'Really Stupid')
           && Math.max(Math.abs(p.x - player.x), Math.abs(p.y - player.y)) === 1
       );
       return supported ? 5 / 6 : 3 / 6;
@@ -1067,6 +1185,51 @@ export class PuzzleSessionService implements OnDestroy {
     if (this.hasSkill(player, 'Animal Savagery')) return 'Animal Savagery';
     if (this.hasSkill(player, 'Really Stupid')) return 'Really Stupid';
     return 'Negatrait';
+  }
+
+  /**
+   * Resolve the start-of-activation negatrait factor for a player's first action.
+   * `isBlock` indicates whether this first action is a Block-type action (Block,
+   * Blitz, Both Down or Projectile Vomit).
+   *
+   * Bone Head / Really Stupid behave exactly as before. Animal Savagery is the
+   * special case: its roll passes on 2+ (5/6) when the activation includes a
+   * Block, but only on 4+ (3/6) when it does not. On a non-block first action it
+   * is not yet known whether a Block will follow, so the factor is deferred
+   * (returns `{ factor: 1, pending: true }`) and settled later — to 5/6 on a
+   * subsequent block (settleAnimalSavageryBlock), or to 3/6 when the activation
+   * ends without a block (settleAnimalSavagery).
+   */
+  private negatraitStart(
+    board: WorkingBoard,
+    player: WorkingPlayer,
+    isBlock: boolean
+  ): { factor: number; pending: boolean } {
+    if (!player.hasMoved && this.hasSkill(player, 'Animal Savagery')) {
+      return isBlock ? { factor: 5 / 6, pending: false } : { factor: 1, pending: true };
+    }
+    return { factor: this.negatraitChance(board, player), pending: false };
+  }
+
+  /**
+   * Settle a deferred Animal Savagery roll when the activation ends with NO block:
+   * the penalty rises from 1/6 to 3/6. Mutates the player's pending flag and
+   * returns the chance factor to fold in (empty when nothing is pending).
+   */
+  private settleAnimalSavagery(player: WorkingPlayer | undefined | null): { reason: string; factor: number }[] {
+    if (!player || !player.animalSavageryPending) return [];
+    player.animalSavageryPending = false;
+    return [{ reason: `Animal Savagery — ${player.name}`, factor: 3 / 6 }];
+  }
+
+  /**
+   * Settle a deferred Animal Savagery roll when the player DOES block during the
+   * activation (e.g. a Blitz: move then block): the roll passes on 2+ (5/6).
+   */
+  private settleAnimalSavageryBlock(player: WorkingPlayer | undefined | null): { reason: string; factor: number }[] {
+    if (!player || !player.animalSavageryPending) return [];
+    player.animalSavageryPending = false;
+    return [{ reason: `Animal Savagery — ${player.name}`, factor: 5 / 6 }];
   }
 
   /**

@@ -1,0 +1,86 @@
+{
+  "date": "2026-07-12",
+  "title": "Dead Dog",
+  "author": "Atanas Ladzhov",
+  "type": "surf",
+  "data": {
+    "hints": ["Look for chain pushes", "Try to surf the Vampire Blitzer"],
+    "field": { "rows": 7, "cols": 7 },
+    "ball": { "position": { "x": 2, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Troll Slayer",
+        "position": { "x": 2 , "y": 6 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Dauntless", "Frenzy", "Hatred (Troll)", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"],
+        "prone": true,
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 3, "y": 5 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Runner",
+        "position": { "x": 6, "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Sprint", "Sure Hands", "Thick Skull"]
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Lineman",
+        "position": { "x": 2, "y": 0 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"],
+        "prone": true,
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Dwarf Runner",
+        "position": { "x": 4, "y": 5 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Dodge", "Sprint", "Sure Hands", "Thick Skull"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Vampire Blitzer",
+        "position": { "x": 1, "y": 0 },
+        "characteristics": { "movement": 6, "strength": 4, "agility": 2, "passing": 4, "armor": 9 },
+        "skills": ["Bloodlust 3+", "Hypnotic Gaze", "Juggernaut", "Regeneration"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Vampire Runner",
+        "position": { "x": 2, "y": 1 },
+        "characteristics": { "movement": 8, "strength": 3, "agility": 2, "passing": 3, "armor": 8 },
+        "skills": ["Bloodlust 3+", "Dodge", "Hypnotic Gaze", "Regeneration"],
+        "extraSkills": ["Dodge"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Vampire Runner",
+        "position": { "x": 3, "y": 2 },
+        "characteristics": { "movement": 8, "strength": 3, "agility": 2, "passing": 3, "armor": 8 },
+        "skills": ["Bloodlust 3+", "Dodge", "Hypnotic Gaze", "Regeneration"],
+        "extraSkills": ["Dodge"]
+      }
+    ],
+    "targetScore": 88
+  }
+}

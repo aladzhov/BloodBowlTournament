@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "surf",
   "data": {
+    "hints": ["Dodging is optional. The defenders won't use it", "Block with multiple dice when possible", "Surf the Wood Elf Catcher"],
     "field": { "rows": 9, "cols": 7 },
     "ball": { "position": { "x": 2, "y": 3 } },
     "players": [

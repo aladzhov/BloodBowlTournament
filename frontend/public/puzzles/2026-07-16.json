@@ -1,0 +1,103 @@
+{
+  "date": "2026-07-16",
+  "title": "Bai Ivan",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "hints": ["Take advantage of the Guard Wight", "Look for chain pushes", "Blitz with the Ball Carrier"],
+    "field": { "rows": 7, "cols": 7 },
+    "ball": { "position": { "x": 1, "y": 3 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Wight Blitzer",
+        "position": { "x": 3 , "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Guard", "Regeneration", "Tackle", "Thick Skull"],
+        "extraSkills": ["Guard"]
+      },
+      {
+        "team": "home",
+        "name": "Ghoul Runner",
+        "position": { "x": 1, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
+        "skills": ["Block", "Dodge", "Regeneration"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "home",
+        "name": "Zombie Lineman",
+        "position": { "x": 2, "y": 3 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Eye Gouge", "Regeneration", "Unsteady"],
+        "prone": true,
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Ghoul Runner",
+        "position": { "x": 0, "y": 1 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
+        "skills": ["Wrestle", "Dodge", "Regeneration"],
+        "extraSkills": ["Wrestle"]
+      },
+      {
+        "team": "home",
+        "name": "Wight Blitzer",
+        "position": { "x": 5 , "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 5, "armor": 9 },
+        "skills": ["Block", "Mighty Blow", "Regeneration", "Tackle", "Thick Skull"],
+        "extraSkills": ["Mighty Blow"]
+      },
+      {
+        "team": "away",
+        "name": "Chaos Chosen",
+        "position": { "x": 0, "y": 2 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Block"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "away",
+        "name": "Chaos Chosen",
+        "position": { "x": 3, "y": 2 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Block"],
+        "extraSkills": ["Block"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Chaos Chosen",
+        "position": { "x": 3, "y": 4 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 3, "passing": 5, "armor": 10 },
+        "skills": ["Arm Bar", "Block"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "away",
+        "name": "Beastman Lineman",
+        "position": { "x": 1, "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
+        "skills": ["Horns", "Thick Skull", "Tackle"],
+        "extraSkills": ["Tackle"]
+      },
+      {
+        "team": "away",
+        "name": "Beastman Lineman",
+        "position": { "x": 4, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
+        "skills": ["Horns", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Beastman Lineman",
+        "position": { "x": 1, "y": 0 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
+        "skills": ["Horns", "Tackle", "Thick Skull"],
+        "extraSkills": ["Tackle"]
+      }
+    ],
+    "targetScore": 76
+  }
+}

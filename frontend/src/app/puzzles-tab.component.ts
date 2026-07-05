@@ -87,6 +87,7 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   readonly currentIndex = signal(0);
   readonly hoveredPlayer = signal<WorkingPlayer | null>(null);
+  readonly showResultDialog = signal(true);
 
   /** The player targeted for an action menu (opponent or friendly). */
   readonly actionTarget = signal<WorkingPlayer | null>(null);
@@ -371,6 +372,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.sessionService.setLastViewedKey(this.current().date);
     this.sessionService.setDisplayed(this.current().date);
     this.puzzleDateChange.emit(this.current().date);
+    this.showResultDialog.set(true);
   }
 
   previous(): void {
@@ -393,12 +395,18 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   startSolving(): void {
     this.sessionService.start(this.current().date);
+    this.showResultDialog.set(true);
   }
 
   restart(): void {
     this.hoveredPlayer.set(null);
     this.closeMenu();
     this.sessionService.resetBoard(this.current().date, this.current().data, this.current().type ?? 'score');
+    this.showResultDialog.set(true);
+  }
+
+  dismissResultDialog(): void {
+    this.showResultDialog.set(false);
   }
 
   /** Reveal the next hint for the current puzzle. */

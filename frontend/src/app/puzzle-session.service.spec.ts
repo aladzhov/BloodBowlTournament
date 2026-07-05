@@ -575,4 +575,255 @@ describe('PuzzleSessionService board mechanics', () => {
       expect(rs?.factor).toBeCloseTo(5 / 6);
     });
   });
+
+  describe('Animal Savagery: heavier penalty when the activation has no block', () => {
+    function asData(): PuzzleData {
+      return {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 6, y: 6 } },
+        players: [
+          { team: 'home', name: 'Beast', position: { x: 1, y: 1 },
+            characteristics: { movement: 6, strength: 4, agility: 3, passing: 4, armor: 9 },
+            skills: ['Animal Savagery'] },
+          { team: 'home', name: 'Lineman', position: { x: 3, y: 3 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+            skills: [] },
+          { team: 'away', name: 'Victim', position: { x: 3, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+    }
+
+    it('passes on 2+ (5/6) when the player blocks straight away', () => {
+      const data = asData();
+      // Beast is adjacent to the Victim and blocks immediately (no movement first).
+      data.players[2].position = { x: 2, y: 1 };
+      service.selectPlayer('as1', data, 'home-0');
+      service.applyBothDown('as1', data, 'home-0', 'away-2', 1);
+
+      const board = service.board('as1', data)();
+      const as = board.chanceLog.find((e) => e.reason.startsWith('Animal Savagery'));
+      expect(as?.factor).toBeCloseTo(5 / 6);
+      expect(board.successChance).toBeCloseTo(5 / 6);
+    });
+
+    it('passes on 2+ (5/6) on a Blitz (move then block)', () => {
+      const data = asData();
+      service.selectPlayer('as2', data, 'home-0');
+      // Move adjacent to the Victim at (3,1), then block — this is a Blitz.
+      service.moveSelectedTo('as2', data, 2, 1);
+      // No penalty has been folded in yet — the roll is deferred until we know
+      // whether a block follows.
+      expect(service.board('as2', data)().successChance).toBeCloseTo(1);
+
+      service.applyBothDown('as2', data, 'home-0', 'away-2', 1);
+      const board = service.board('as2', data)();
+      const as = board.chanceLog.find((e) => e.reason.startsWith('Animal Savagery'));
+      expect(as?.factor).toBeCloseTo(5 / 6);
+      expect(board.successChance).toBeCloseTo(5 / 6);
+    });
+
+    it('drops to 4+ (3/6) when the activation ends with no block', () => {
+      const data = asData();
+      service.selectPlayer('as3', data, 'home-0');
+      // Beast just moves and never blocks.
+      service.moveSelectedTo('as3', data, 2, 1);
+      expect(service.board('as3', data)().successChance).toBeCloseTo(1);
+
+      // Switching to another player ends the Beast's activation with no block.
+      service.activatePlayer('as3', data, 'home-1');
+      const board = service.board('as3', data)();
+      const as = board.chanceLog.find((e) => e.reason.startsWith('Animal Savagery'));
+      expect(as?.factor).toBeCloseTo(3 / 6);
+      expect(board.successChance).toBeCloseTo(3 / 6);
+    });
+
+    it('drops to 4+ (3/6) when a different player blocks after the Beast only moved', () => {
+      const data = asData();
+      service.selectPlayer('as4', data, 'home-0');
+      service.moveSelectedTo('as4', data, 1, 2);
+
+      // A different player blocks — the Beast's no-block activation is settled (3/6).
+      service.applyBothDown('as4', data, 'home-1', 'away-2', 1);
+      const board = service.board('as4', data)();
+      const as = board.chanceLog.find((e) => e.reason.startsWith('Animal Savagery'));
+      expect(as?.factor).toBeCloseTo(3 / 6);
+    });
+  });
+
+  describe('ball scatters when a player is knocked prone over it', () => {
+    it('scatters when a home ball carrier is knocked prone (Wrestle on a Both Down)', () => {
+      const data: PuzzleData = {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 1, y: 1 } },
+        players: [
+          { team: 'home', name: 'Wrestler', position: { x: 1, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+            skills: ['Wrestle'] },
+          { team: 'away', name: 'Target', position: { x: 2, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+      service.applyBothDown('sc1', data, 'home-0', 'away-1', 1);
+
+      const board = service.board('sc1', data)();
+      // The Wrestle attacker is placed prone on the ball, so it bounces away.
+      expect(board.players.find((p) => p.id === 'home-0')!.prone).toBe(true);
+      expect(board.ball).not.toEqual({ x: 1, y: 1 });
+      // The ball never lands on top of another player.
+      expect(board.players.some((p) => p.x === board.ball.x && p.y === board.ball.y)).toBe(false);
+    });
+
+    it('keeps the ball when the carrier stays standing on a Both Down (no Wrestle)', () => {
+      const data: PuzzleData = {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 1, y: 1 } },
+        players: [
+          { team: 'home', name: 'Blocker', position: { x: 1, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
+            skills: ['Block'] },
+          { team: 'away', name: 'Target', position: { x: 2, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+      service.applyBothDown('sc2', data, 'home-0', 'away-1', 1);
+
+      const board = service.board('sc2', data)();
+      // A Block attacker stays up and keeps the ball where it was.
+      expect(board.players.find((p) => p.id === 'home-0')!.prone).toBe(false);
+      expect(board.ball).toEqual({ x: 1, y: 1 });
+    });
+
+    it('scatters when a player is pushed onto a loose ball and knocked prone', () => {
+      const data: PuzzleData = {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 0, y: 2 } },
+        players: [
+          { team: 'home', name: 'Pusher', position: { x: 2, y: 2 },
+            characteristics: { movement: 6, strength: 4, agility: 3, passing: 4, armor: 9 },
+            skills: [] },
+          { team: 'away', name: 'Victim', position: { x: 1, y: 2 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+      // Push the Victim from (1,2) onto the loose ball at (0,2) and knock them down.
+      service.applyPushMoves('sc3', data,
+        [{ playerId: 'away-1', x: 0, y: 2 }],
+        1, 'home-0', 'away-1', true);
+
+      const board = service.board('sc3', data)();
+      expect(board.players.find((p) => p.id === 'away-1')!.prone).toBe(true);
+      // The prone player cannot hold the loose ball, so it scatters off (0,2).
+      expect(board.ball).not.toEqual({ x: 0, y: 2 });
+      expect(board.players.some((p) => p.x === board.ball.x && p.y === board.ball.y)).toBe(false);
+    });
+
+    it('scatters and solves a sack puzzle when the away carrier is knocked prone', () => {
+      const data: PuzzleData = {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 2, y: 1 } },
+        players: [
+          { team: 'home', name: 'Blitzer', position: { x: 1, y: 1 },
+            characteristics: { movement: 6, strength: 4, agility: 3, passing: 4, armor: 9 },
+            skills: [] },
+          { team: 'away', name: 'Carrier', position: { x: 2, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+      // Create the board as a 'sack' puzzle before resolving the block.
+      service.board('sc4', data, 'sack');
+      // Knock the away carrier down in place (Pow with no push).
+      service.applyPushMoves('sc4', data, [], 1, 'home-0', 'away-1', true);
+
+      const board = service.board('sc4', data, 'sack')();
+      expect(board.players.find((p) => p.id === 'away-1')!.prone).toBe(true);
+      expect(board.ball).not.toEqual({ x: 2, y: 1 });
+      expect(board.solved).toBe(true);
+    });
+  });
+
+  describe('Blitz block must Rush when normal movement is exhausted', () => {
+    function blitzData(attackerSkills: string[] = []): PuzzleData {
+      return {
+        field: { rows: 4, cols: 7 },
+        ball: { position: { x: 6, y: 6 } },
+        players: [
+          // MA 1: a single move adjacent to the target exhausts normal movement,
+          // so the Block step of the Blitz must be made by Rushing.
+          { team: 'home', name: 'Blitzer', position: { x: 1, y: 1 },
+            characteristics: { movement: 1, strength: 4, agility: 3, passing: 4, armor: 9 },
+            skills: attackerSkills },
+          { team: 'away', name: 'Target', position: { x: 3, y: 1 },
+            characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 },
+            skills: [] }
+        ],
+        targetScore: 10
+      };
+    }
+
+    it('folds the Rush 2+ (5/6) into the block when the blitz used all movement', () => {
+      const data = blitzData();
+      service.selectPlayer('bz1', data, 'home-0');
+      // Move adjacent to the Target — this spends the Blitzer's only movement point.
+      service.moveSelectedTo('bz1', data, 2, 1);
+      expect(service.board('bz1', data)().players.find((p) => p.id === 'home-0')!.movementLeft).toBe(0);
+      // No chance lost on the (non-dodge) move yet.
+      expect(service.board('bz1', data)().successChance).toBeCloseTo(1);
+
+      // Block (Pow, no push) — the Block step has no movement left, so it Rushes.
+      service.applyPushMoves('bz1', data, [], 1, 'home-0', 'away-1', true);
+
+      const board = service.board('bz1', data)();
+      const rush = board.chanceLog.find((e) => e.reason.startsWith('Rush'));
+      // The Rush 2+ roll (5/6) is applied — not silently skipped.
+      expect(rush?.factor).toBeCloseTo(5 / 6);
+      expect(board.successChance).toBeCloseTo(5 / 6);
+
+      const blitzer = board.players.find((p) => p.id === 'home-0')!;
+      expect(blitzer.movementLeft).toBe(0);
+      // One Rush square was consumed for the block (2 → 1).
+      expect(blitzer.rushLeft).toBe(1);
+      expect(board.players.find((p) => p.id === 'away-1')!.prone).toBe(true);
+    });
+
+    it('applies a Sure Feet reroll to the Rushed block (35/36)', () => {
+      const data = blitzData(['Sure Feet']);
+      service.selectPlayer('bz2', data, 'home-0');
+      service.moveSelectedTo('bz2', data, 2, 1);
+      service.applyPushMoves('bz2', data, [], 1, 'home-0', 'away-1', true);
+
+      const board = service.board('bz2', data)();
+      const rush = board.chanceLog.find((e) => e.reason.startsWith('Rush'));
+      // 2+ with a Sure Feet reroll: 1 - (1/6)^2 = 35/36.
+      expect(rush?.factor).toBeCloseTo(35 / 36);
+      expect(board.players.find((p) => p.id === 'home-0')!.sureFeetUsed).toBe(true);
+    });
+
+    it('does not Rush for the block when normal movement remains', () => {
+      const data = blitzData();
+      data.players[0].characteristics.movement = 6; // plenty of movement
+      service.selectPlayer('bz3', data, 'home-0');
+      service.moveSelectedTo('bz3', data, 2, 1);
+      service.applyPushMoves('bz3', data, [], 1, 'home-0', 'away-1', true);
+
+      const board = service.board('bz3', data)();
+      // No Rush factor below 1 was logged, and the chance stays a clean 1.
+      expect(board.chanceLog.some((e) => e.reason.startsWith('Rush'))).toBe(false);
+      expect(board.successChance).toBeCloseTo(1);
+      const blitzer = board.players.find((p) => p.id === 'home-0')!;
+      // The block spent normal movement (6 → move 5 → block 4), Rush untouched.
+      expect(blitzer.movementLeft).toBe(4);
+      expect(blitzer.rushLeft).toBe(2);
+    });
+  });
 });

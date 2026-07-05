@@ -85,6 +85,31 @@ describe('PuzzleEngineService', () => {
     });
   });
 
+  it('opens a menu when clicking an adjacent enemy player while one is selected', () => {
+    const selected = player({ id: 'home-0', x: 1, y: 1 });
+    const enemy = player({ id: 'away-0', team: 'away', x: 2, y: 1 });
+    const state = board([selected, enemy]);
+    const cells = engine.buildCells(state);
+    const enemyCell = cells.find((c) => c.player?.id === 'away-0')!;
+
+    expect(engine.resolveCellClick(state, enemyCell, selected)).toEqual({
+      type: 'menu',
+      target: enemy
+    });
+  });
+
+  it('does not open a menu when clicking a non-adjacent enemy player', () => {
+    const selected = player({ id: 'home-0', x: 1, y: 1 });
+    const enemy = player({ id: 'away-0', team: 'away', x: 3, y: 3 });
+    const state = board([selected, enemy]);
+    const cells = engine.buildCells(state);
+    const enemyCell = cells.find((c) => c.player?.id === 'away-0')!;
+
+    expect(engine.resolveCellClick(state, enemyCell, selected)).toEqual({
+      type: 'none'
+    });
+  });
+
   it('offers Activate player for a deactivated team-mate, plus Pass when carrying the ball', () => {
     const selected = player({ id: 'home-0', x: 1, y: 1 });
     const friend = player({ id: 'home-1', x: 3, y: 2, activated: false });

@@ -4,6 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "score",
   "data": {
+    "hints": ["It is a special move"],
     "field": { "rows": 5, "cols": 7 },
     "ball": { "position": { "x": 3, "y": 3 } },
     "players": [

@@ -113,6 +113,13 @@
   font-weight: 700;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 /* ── Puzzle body / blur ── */
 .puzzle-body-wrapper {
   position: relative;
@@ -453,9 +460,10 @@
 
 .objective-label {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--bg-green);
+  white-space: nowrap;
 }
 
 .solved-title,
@@ -481,6 +489,67 @@
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+/* ── Result overlay ── */
+.result-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 10;
+  cursor: pointer;
+}
+
+.result-card {
+  background: white;
+  border: 2px solid var(--bg-green);
+  border-radius: 1rem;
+  padding: 2rem 3rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  max-width: 90%;
+  cursor: default;
+}
+
+.result-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-green);
+}
+
+.result-title.incorrect {
+  color: var(--bg-red);
+}
+
+.result-time {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.result-chance {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.result-hint {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bg-red);
+}
+
 
 /* ── Footer ── */
 .puzzle-footer {
@@ -537,7 +606,21 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bg-green);
+}
+
+.puzzle-header .timer {
+  font-size: 1.1rem;
+}
+
+.timer-icon {
+  font-size: 1.2em;
+}
+
+.timer-display {
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-icon {
@@ -602,5 +685,34 @@
   .block-result-img {
     width: 32px;
     height: 32px;
+  }
+
+  /* Position the veil button over the field on mobile */
+  .puzzle-veil {
+    justify-content: flex-start;
+    padding-top: 30%;
+  }
+
+  /* Adjust result card for mobile */
+  .result-card {
+    padding: 1.5rem 2rem;
+  }
+
+  .result-title {
+    font-size: 1.5rem;
+  }
+
+  .result-time {
+    font-size: 1.2rem;
+  }
+
+  .result-chance {
+    font-size: 0.95rem;
+  }
+
+  /* Position result overlay over field on mobile */
+  .result-overlay {
+    justify-content: flex-start;
+    padding-top: 25%;
   }
 }

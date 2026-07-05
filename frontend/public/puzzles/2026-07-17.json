@@ -1,0 +1,88 @@
+{
+  "date": "2026-07-17",
+  "title": "Unsung hero",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "hints": ["Make a block ...", "... with the Squire"],
+    "field": { "rows": 7, "cols": 5 },
+    "ball": { "position": { "x": 6, "y": 2 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Grail Knight",
+        "position": { "x": 5 , "y": 1 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Dauntless", "Guard", "Steady Footing"],
+        "extraSkills": ["Guard"],
+        "prone": true
+      },
+      {
+        "team": "home",
+        "name": "Bretonnian Squire",
+        "position": { "x": 5 , "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Wrestle"]
+      },
+      {
+        "team": "home",
+        "name": "Bretonnian Knight Catcher",
+        "position": { "x": 6 , "y": 2 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Catch", "Dauntless", "Dodge", "Nerves of Steel"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Blitzer",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Block", "Dodge"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Blitzer",
+        "position": { "x": 1, "y": 3 },
+        "characteristics": { "movement": 7, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Block", "Dodge"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Lineman",
+        "position": { "x": 0, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Dodge"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Lineman",
+        "position": { "x": 1, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Dodge"],
+        "extraSkills": ["Dodge"]
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Lineman",
+        "position": { "x": 0, "y": 0 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Dodge"],
+        "extraSkills": ["Dodge"],
+        "prone": true
+      },
+      {
+        "team": "away",
+        "name": "Dark Elf Lineman",
+        "position": { "x": 0, "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 2, "passing": 3, "armor": 9 },
+        "skills": ["Dodge"],
+        "extraSkills": ["Dodge"],
+        "prone": true
+      }
+    ],
+    "targetScore": 30
+  }
+}

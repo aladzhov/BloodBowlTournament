@@ -290,10 +290,14 @@ export class PuzzleEngineService {
   /**
    * Compute effective attacker and defender Strength values, adding:
    *  - Horns (+1 for the attacker when blitzing, i.e. hasMoved is true)
-   *  - Offensive assists (attacker teammates adjacent to the defender,
-   *    not marked — or Guard unless negated by Defensive)
-   *  - Defensive assists (defender teammates adjacent to the defender,
-   *    not marked — or Guard unless negated by Defensive)
+   *  - Offensive assists (attacker teammates adjacent to the defender, granted
+   *    unconditionally if not marked by any OTHER standing opponent — the
+   *    defender's own tackle zone never counts as marking for a plain assist.
+   *    If marked by another opponent, only Guard can bypass that marking, and
+   *    only if no adjacent opponent — including the defender itself — has
+   *    Defensive, which negates Guard's bypass specifically)
+   *  - Defensive assists (defender teammates adjacent to the attacker, using
+   *    the same Guard/Defensive interaction, mirrored for the attacker's side)
    */
   private effectiveStrengths(
     board: WorkingBoard,
@@ -313,35 +317,41 @@ export class PuzzleEngineService {
     const all = board.players;
 
     // Offensive assists: an attacker's team-mate adds +1 ST if it is adjacent to
-    // the DEFENDER (the block target) and is not itself marked by a standing
-    // opponent — ignoring the defender being blocked, who never prevents assists.
+    // the DEFENDER (the block target). The defender's own tackle zone never
+    // counts as marking for a plain assist, so if there are no OTHER standing
+    // opponents adjacent to the assister, it assists unconditionally. If there
+    // are other markers, only Guard can bypass them — unless any adjacent
+    // opponent (including the defender itself) has Defensive, which negates
+    // Guard's bypass ability specifically (Defensive counters Guard, but never
+    // blocks an assist that would succeed without Guard anyway).
     for (const p of all) {
       if (p.id === attacker.id || p.team !== homeTeam || p.prone || p.eyeGouged) continue;
       if (!this.isAdjacent(p.x, p.y, defender.x, defender.y)) continue;
-      const markers = all.filter(
-        e => e.team === awayTeam && e.id !== defender.id && !e.prone && this.isAdjacent(e.x, e.y, p.x, p.y)
+      const adjacentEnemies = all.filter(
+        e => e.team === awayTeam && !e.prone && this.isAdjacent(e.x, e.y, p.x, p.y)
       );
-      if (markers.length === 0) {
+      const otherMarkers = adjacentEnemies.filter(e => e.id !== defender.id);
+      if (otherMarkers.length === 0) {
         aSt += 1;
-      } else if (this.hasSkill(p, 'Guard')) {
-        // Guard lets you assist while marked, unless an adjacent enemy has Defensive.
-        if (!markers.some(e => this.hasSkill(e, 'Defensive'))) aSt += 1;
+      } else if (this.hasSkill(p, 'Guard') && !adjacentEnemies.some(e => this.hasSkill(e, 'Defensive'))) {
+        aSt += 1;
       }
     }
 
     // Defensive assists: a defender's team-mate adds +1 ST if it is adjacent to
-    // the ATTACKER (the player making the block) and is not itself marked by a
-    // standing opponent — ignoring the attacker, who never prevents assists.
+    // the ATTACKER (the player making the block), mirroring the same Guard /
+    // Defensive interaction described above.
     for (const p of all) {
       if (p.id === defender.id || p.team !== awayTeam || p.prone || p.eyeGouged) continue;
       if (!this.isAdjacent(p.x, p.y, attacker.x, attacker.y)) continue;
-      const markers = all.filter(
-        f => f.team === homeTeam && f.id !== attacker.id && !f.prone && this.isAdjacent(f.x, f.y, p.x, p.y)
+      const adjacentEnemies = all.filter(
+        f => f.team === homeTeam && !f.prone && this.isAdjacent(f.x, f.y, p.x, p.y)
       );
-      if (markers.length === 0) {
+      const otherMarkers = adjacentEnemies.filter(f => f.id !== attacker.id);
+      if (otherMarkers.length === 0) {
         dSt += 1;
-      } else if (this.hasSkill(p, 'Guard')) {
-        if (!markers.some(f => this.hasSkill(f, 'Defensive'))) dSt += 1;
+      } else if (this.hasSkill(p, 'Guard') && !adjacentEnemies.some(f => this.hasSkill(f, 'Defensive'))) {
+        dSt += 1;
       }
     }
 

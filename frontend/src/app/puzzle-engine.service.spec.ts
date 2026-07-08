@@ -947,6 +947,46 @@ describe('PuzzleEngineService', () => {
       // Prone assister exerts no assist → equal ST → 1 die → 5/6.
       expect(near(engine.blockProbability(state, attacker, defender, 'push'), ONE_DIE_PUSH)).toBe(true);
     });
+
+    it('a Defensive defender does NOT block a plain assist that needs no Guard', () => {
+      // Attacker (2,6) blocks a Defensive defender (1,5); helper (0,5) is adjacent only
+      // to the defender itself, with no other marker. The base assist rule already
+      // ignores the block target's own tackle zone, and Defensive only negates Guard's
+      // bypass ability — it never blocks an assist that doesn't need Guard at all.
+      // → attacker ST 4 vs 3 → 2 dice, attacker chooses.
+      const attacker = player({ id: 'home-0', x: 2, y: 6, skills: ['Block'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 1, y: 5, skills: ['Defensive'] });
+      const helper   = player({ id: 'home-1', x: 0, y: 5, skills: [] });
+      const state = board([attacker, defender, helper]);
+
+      expect(near(engine.blockProbability(state, attacker, defender, 'push'), TWO_DICE_ATT)).toBe(true);
+    });
+
+    it('a Defensive defender cancels a Guard-based assist that would otherwise bypass a marker', () => {
+      // Reproduces the reported bug: helper has Guard, and is adjacent to a Defensive
+      // defender plus another (non-Defensive) marker. Guard would normally let it
+      // assist despite being marked, but the defender's Defensive negates Guard's
+      // bypass ability → equal ST → 1 die → 5/6 push (not 2 dice).
+      const attacker = player({ id: 'home-0', x: 2, y: 6, skills: ['Block'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 1, y: 5, skills: ['Defensive'] });
+      const helper   = player({ id: 'home-1', x: 0, y: 5, skills: ['Guard'] });
+      const otherMarker = player({ id: 'away-1', team: 'away', x: 0, y: 6, skills: [] });
+      const state = board([attacker, defender, helper, otherMarker]);
+
+      expect(near(engine.blockProbability(state, attacker, defender, 'push'), ONE_DIE_PUSH)).toBe(true);
+    });
+
+    it('a Defensive marker (not the block target) still cancels a Guard assist as before', () => {
+      // Helper has Guard and is adjacent to the defender (assist target) plus a
+      // separate Defensive marker → assist still cancelled (pre-existing behaviour).
+      const attacker = player({ id: 'home-0', x: 2, y: 6, skills: ['Block'] });
+      const defender = player({ id: 'away-0', team: 'away', x: 1, y: 5, skills: [] });
+      const helper   = player({ id: 'home-1', x: 0, y: 5, skills: ['Guard'] });
+      const defensiveMarker = player({ id: 'away-1', team: 'away', x: 0, y: 6, skills: ['Defensive'] });
+      const state = board([attacker, defender, helper, defensiveMarker]);
+
+      expect(near(engine.blockProbability(state, attacker, defender, 'push'), ONE_DIE_PUSH)).toBe(true);
+    });
   });
 
   describe('vomitProbability — Projectile Vomit (2D6 > AV)', () => {

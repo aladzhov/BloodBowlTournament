@@ -4,7 +4,7 @@
   "author": "Atanas Ladzhov",
   "type": "sack",
   "data": {
-    "hints": ["Block the ball carrier with 2 dice", "Defensive counters Guard"],
+    "hints": ["Defensive counters Guard", "Block the ball carrier with the Wrestle Skeleton Lineman"],
     "field": { "rows": 7, "cols": 5 },
     "ball": { "position": { "x": 1, "y": 2 } },
     "players": [
@@ -75,6 +75,6 @@
         "skills": ["Block", "Diving Tackle", "Tackle", "Thick Skull"]
       }
     ],
-    "targetScore": 56
+    "targetScore": 66
   }
 }

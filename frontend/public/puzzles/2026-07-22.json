@@ -1,10 +1,10 @@
 {
-  "date": "2026-07-16",
+  "date": "2026-07-22",
   "title": "Bai Ivan",
   "author": "Atanas Ladzhov",
   "type": "score",
   "data": {
-    "hints": ["Take advantage of the Guard Wight", "Look for chain pushes", "Blitz with the Ball Carrier"],
+    "hints": ["Look for chain pushes", "Use the Guard Wight for two blocks", "Blitz with the Ball Carrier"],
     "field": { "rows": 7, "cols": 7 },
     "ball": { "position": { "x": 1, "y": 3 } },
     "players": [

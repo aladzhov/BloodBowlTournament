@@ -49,6 +49,18 @@ interface JumpState {
 }
 
 /**
+ * Active when a blocker with Grab must decide whether to use the skill. Offered
+ * only when a normal (non-Grab) push would result in a chain push, since that is
+ * the only case where using Grab changes the outcome.
+ */
+interface GrabChoiceState {
+  /** The push state to commit once the user decides, with `grab` set accordingly. */
+  base: PushState;
+  /** The blocked player's name, shown in the prompt. */
+  defenderName: string;
+}
+
+/**
  * Active when a home-team player with Stand Firm is about to be chain-pushed.
  * The user chooses whether that player stays put or accepts the push.
  */
@@ -113,6 +125,48 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly standFirmChoiceState = signal<StandFirmChoiceState | null>(null);
   readonly choosingStandFirm = computed(() => this.standFirmChoiceState() !== null);
 
+  /**
+   * Active while a blocker with Grab is being asked whether to use the skill.
+   * Only presented when a normal push would chain-push another player.
+   */
+  readonly grabChoiceState = signal<GrabChoiceState | null>(null);
+  readonly choosingGrab = computed(() => this.grabChoiceState() !== null);
+  readonly grabDefenderName = computed(() => this.grabChoiceState()?.defenderName ?? '');
+
+  /**
+   * Active while a standing player with Hit and Run is offered a free one-square
+   * move after fully resolving a Block or Stab. The user clicks a destination or skips.
+   */
+  readonly hitAndRunState = signal<{ playerId: string } | null>(null);
+  readonly choosingHitAndRun = computed(() => this.hitAndRunState() !== null);
+
+  /** The free-move destinations offered for the current Hit and Run. */
+  readonly hitAndRunTargets = computed(() => {
+    const state = this.hitAndRunState();
+    if (!state) {
+      return [];
+    }
+    const board = this.working();
+    const player = board.players.find((p) => p.id === state.playerId);
+    if (!player) {
+      return [];
+    }
+    return this.engine.hitAndRunSquares(board, player);
+  });
+
+  private readonly hitAndRunTargetKeys = computed(
+    () => new Set(this.hitAndRunTargets().map((s) => `${s.x},${s.y}`))
+  );
+
+  /** Name of the player taking a Hit and Run move (for the prompt). */
+  readonly hitAndRunPlayerName = computed(() => {
+    const state = this.hitAndRunState();
+    if (!state) {
+      return '';
+    }
+    return this.working().players.find((p) => p.id === state.playerId)?.name ?? '';
+  });
+
   /** Active after a push resolves, waiting for Follow Up / Stay choice. */
   readonly followUpState = signal<FollowUpState | null>(null);
   readonly followingUp = computed(() => this.followUpState() !== null);
@@ -172,7 +226,8 @@ export class PuzzlesTabComponent implements OnDestroy {
     return !!p && p.prone && !p.activated && p.movementLeft >= 3
       && this.revealed() && !this.solved()
       && !this.pushing() && !this.jumping() && !this.followingUp()
-      && !this.offeringBlitz() && !this.choosingStandFirm();
+      && !this.offeringBlitz() && !this.choosingStandFirm() && !this.choosingGrab()
+      && !this.choosingHitAndRun();
   });
 
   /** The pushback squares offered for the player currently being pushed. */
@@ -187,19 +242,38 @@ export class PuzzlesTabComponent implements OnDestroy {
       return [];
     }
     if (!state.grab) {
+      // A home-team player with Sidestep caught in a chain push chooses which free
+      // adjacent square to step into, rather than being forced in the push direction.
+      const sidestep = this.sidestepChoiceSquares();
+      if (sidestep.length > 0) {
+        return sidestep;
+      }
       return this.engine.pushOptions(board, current.x, current.y, state.dir);
     }
-    // Grab: offer every unoccupied adjacent square, AND still allow a normal push
-    // into the three directly-away squares (an occupied one triggers a chain push).
-    const grabSquares = this.engine.grabSquares(board, current.x, current.y);
-    const chainSquares = this.engine.pushChainSquares(board, current.x, current.y, state.dir);
-    const byKey = new Map<string, { x: number; y: number; occupantId: string | null }>();
-    for (const s of [...grabSquares, ...chainSquares]) {
-      const key = `${s.x},${s.y}`;
-      // Prefer an entry carrying an occupant (so chain pushes remain selectable).
-      if (!byKey.has(key) || s.occupantId !== null) byKey.set(key, s);
+    // Grab: the target may only be pushed into an EMPTY square adjacent to it —
+    // Grab can never push a player into an occupied square (no chain push). The
+    // normal-direction empty squares are a subset of these, so declining Grab and
+    // taking a normal push remains possible (Grab is optional).
+    return this.engine.grabSquares(board, current.x, current.y);
+  });
+
+  /**
+   * When the player currently being chain-pushed is a home-team player with the
+   * Sidestep skill and has at least one free adjacent square, Sidestep lets that
+   * player choose which adjacent square to move into. Returns those empty adjacent
+   * squares; empty when Sidestep does not apply or the player is boxed in.
+   */
+  private readonly sidestepChoiceSquares = computed(() => {
+    const state = this.pushState();
+    if (!state || state.proneInPlaceOnly) {
+      return [];
     }
-    return [...byKey.values()];
+    const board = this.working();
+    const current = board.players.find((p) => p.id === state.currentId);
+    if (!current || current.team !== 'home' || !this.hasSkill(current, 'Sidestep')) {
+      return [];
+    }
+    return this.engine.grabSquares(board, current.x, current.y);
   });
 
   private readonly pushTargetKeys = computed(
@@ -219,6 +293,8 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly pushOutOfBoundsAvailable = computed(() => {
     const state = this.pushState();
     if (!state) return false;
+    // A Sidestep player choosing a free adjacent square is never pushed off the pitch.
+    if (this.sidestepChoiceSquares().length > 0) return false;
     const board = this.working();
     const current = board.players.find((p) => p.id === state.currentId);
     if (!current) return false;
@@ -431,8 +507,19 @@ export class PuzzlesTabComponent implements OnDestroy {
       return;
     }
 
+    // While choosing a Hit and Run destination, clicks pick that free-move square.
+    if (this.choosingHitAndRun()) {
+      this.onHitAndRunSquareChosen(cell);
+      return;
+    }
+
     // While waiting for a Stand Firm choice, board clicks are suppressed.
     if (this.choosingStandFirm()) {
+      return;
+    }
+
+    // While waiting for a Grab choice, board clicks are suppressed.
+    if (this.choosingGrab()) {
       return;
     }
 
@@ -500,6 +587,18 @@ export class PuzzlesTabComponent implements OnDestroy {
         this.checkBlitzAfterBlock(attacker.id);
       }
       return;
+    } else if (id === 'stab' && target) {
+      // Stab: resolve immediately (no push), then offer Blitz continuation.
+      const attacker = this.selectedPlayer();
+      if (attacker) {
+        const stabChance = this.engine.stabProbability(target);
+        this.sessionService.applyStab(
+          this.current().date, this.current().data, attacker.id, target.id, stabChance
+        );
+        this.closeMenu();
+        this.checkBlitzAfterBlock(attacker.id);
+      }
+      return;
     } else if (id === 'jump' && target) {
       // Enter landing-selection mode; the jumper stays selected.
       const jumper = this.selectedPlayer();
@@ -516,6 +615,33 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   isJumpTarget(cell: BoardCell): boolean {
     return this.jumping() && this.jumpTargetKeys().has(`${cell.x},${cell.y}`);
+  }
+
+  isHitAndRunTarget(cell: BoardCell): boolean {
+    return this.choosingHitAndRun() && this.hitAndRunTargetKeys().has(`${cell.x},${cell.y}`);
+  }
+
+  /** Apply the Hit and Run free move once the user clicks a destination square. */
+  private onHitAndRunSquareChosen(cell: BoardCell): void {
+    const state = this.hitAndRunState();
+    if (!state || !this.isHitAndRunTarget(cell)) {
+      return;
+    }
+    this.hitAndRunState.set(null);
+    this.sessionService.applyHitAndRun(
+      this.current().date, this.current().data, state.playerId, cell.x, cell.y
+    );
+    this.offerBlitzOrFinalize(state.playerId);
+  }
+
+  /** Decline the Hit and Run free move and continue resolving the activation. */
+  skipHitAndRun(): void {
+    const state = this.hitAndRunState();
+    if (!state) {
+      return;
+    }
+    this.hitAndRunState.set(null);
+    this.offerBlitzOrFinalize(state.playerId);
   }
 
   /** Resolve a Jump Over once the user clicks a landing square. */
@@ -591,17 +717,28 @@ export class PuzzlesTabComponent implements OnDestroy {
     const stumbleConvertsToPush =
       this.hasSkill(defender, 'Dodge') && !this.hasSkill(attacker, 'Tackle');
 
+    // Juggernaut: on a Blitz (the attacker moved before blocking) a chosen Both Down
+    // is treated as a Push Back instead. Only applies when the attacker has neither
+    // Block nor Wrestle — either of those lets them keep Both Down as a knockdown,
+    // so the conversion would not be wanted.
+    const juggernautConvertsBothDown = sel.has('bothdown')
+      && this.hasSkill(attacker, 'Juggernaut') && attacker.hasMoved
+      && !this.hasSkill(attacker, 'Block') && !this.hasSkill(attacker, 'Wrestle');
+
     // Board effect: if Push Back is one of the accepted outcomes the result is
     // always a plain push (the defender is not knocked prone). A Stumble that Dodge
-    // converts counts as a push too. Knockdown only applies when every accepted
-    // result is a knockdown (no push outcome selected).
-    const hasPushback = sel.has('pushback') || (sel.has('stumble') && stumbleConvertsToPush);
+    // converts counts as a push too, as does a Juggernaut-converted Both Down.
+    // Knockdown only applies when every accepted result is a knockdown (no push).
+    const hasPushback = sel.has('pushback')
+      || (sel.has('stumble') && stumbleConvertsToPush)
+      || juggernautConvertsBothDown;
 
     // A Stumble is a knockdown only when Dodge does NOT convert it to a push.
     const stumbleKnocksDown = sel.has('stumble') && !stumbleConvertsToPush;
 
-    // "Prone in Place" is offered whenever Both Down is among the selections.
-    const allowProneInPlace = sel.has('bothdown');
+    // "Prone in Place" is offered whenever Both Down is among the selections — unless
+    // Juggernaut converted it to a Push Back, which knocks nobody down.
+    const allowProneInPlace = sel.has('bothdown') && !juggernautConvertsBothDown;
 
     // Stand Firm: the direct block target refuses to be pushed — skip the push phase.
     // Both Down is excluded: the defender goes prone via the normal BD "Prone in Place" path.
@@ -677,11 +814,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     // Grab: the blocker may push the target into any unoccupied adjacent square,
     // provided at least one exists. Grab only works on a stationary Block — never
     // as part of a Blitz (the blocker must not have moved this activation).
-    const grab = this.hasSkill(blocker, 'Grab')
+    const grabPossible = this.hasSkill(blocker, 'Grab')
       && !blocker.hasMoved
       && this.engine.grabSquares(this.working(), defender.x, defender.y).length > 0;
 
-    if (options.length === 0 && !canPushOob && !grab) {
+    if (options.length === 0 && !canPushOob && !grabPossible) {
       // All push squares may be blocked by away-team Stand Firm players. Apply the
       // block with the defender staying in place rather than aborting the block.
       const blockChance2 = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
@@ -697,7 +834,8 @@ export class PuzzlesTabComponent implements OnDestroy {
 
     const blockChance = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
     this.blockStage.set(false);
-    this.pushState.set({
+
+    const base: PushState = {
       dir,
       frames: [],
       currentId: defender.id,
@@ -709,8 +847,41 @@ export class PuzzlesTabComponent implements OnDestroy {
       knocksDown: result === 'stumble' || result === 'pow',
       allowProneInPlace,
       proneInPlaceOnly: false,
-      grab
-    });
+      grab: grabPossible
+    };
+
+    // A normal (non-Grab) push chain-pushes another player only when every in-bounds
+    // square in the block direction is occupied (pushOptions then returns the occupied
+    // squares). Grab lets the blocker avoid that chain push, so the choice is only
+    // meaningful — and only offered — in that case. Otherwise Grab is applied silently
+    // (its extra empty destinations never hurt).
+    const wouldChainPush = options.length > 0 && options.every((s) => s.occupantId !== null);
+    if (grabPossible && wouldChainPush) {
+      this.grabChoiceState.set({ base, defenderName: defender.name });
+      return;
+    }
+
+    this.pushState.set(base);
+  }
+
+  /** Use the Grab skill: push the target into any empty adjacent square. */
+  useGrab(): void {
+    const choice = this.grabChoiceState();
+    if (!choice) {
+      return;
+    }
+    this.grabChoiceState.set(null);
+    this.pushState.set({ ...choice.base, grab: true });
+  }
+
+  /** Decline Grab: resolve the push as a normal block (chain push allowed). */
+  declineGrab(): void {
+    const choice = this.grabChoiceState();
+    if (!choice) {
+      return;
+    }
+    this.grabChoiceState.set(null);
+    this.pushState.set({ ...choice.base, grab: false });
   }
 
   /**
@@ -918,6 +1089,9 @@ export class PuzzlesTabComponent implements OnDestroy {
    * defender's choice, not the attacker's). Resolves the push immediately so the
    * user is never offered the pushback squares. A no-op for players without
    * Sidestep or without an available `goTo` square (normal pushback applies).
+   *
+   * Home-team Sidestep players are skipped here: the user picks their square from
+   * the free adjacent squares offered by `sidestepChoiceSquares`.
    */
   private autoResolveSidestep(): void {
     const state = this.pushState();
@@ -927,6 +1101,10 @@ export class PuzzlesTabComponent implements OnDestroy {
     const board = this.working();
     const current = board.players.find((p) => p.id === state.currentId);
     if (!current || !this.hasSkill(current, 'Sidestep')) {
+      return;
+    }
+    // Home-team Sidestep player with a free adjacent square: let the user choose.
+    if (current.team === 'home' && this.engine.grabSquares(board, current.x, current.y).length > 0) {
       return;
     }
     const square = this.engine.sidestepSquare(board, current);
@@ -1028,6 +1206,8 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.followUpState.set(null);
     this.blitzChoiceAttackerId.set(null);
     this.standFirmChoiceState.set(null);
+    this.grabChoiceState.set(null);
+    this.hitAndRunState.set(null);
   }
 
   /**
@@ -1046,6 +1226,35 @@ export class PuzzlesTabComponent implements OnDestroy {
 
     // A Wrestle attacker placed Prone by their own Both Down cannot continue —
     // their activation ends immediately.
+    if (attacker.prone) {
+      this.sessionService.finalizeBlockerActivation(
+        this.current().date, this.current().data, attackerId
+      );
+      return;
+    }
+
+    // Hit and Run: after fully resolving the Block/Stab, a still-standing player with
+    // the skill may take one free square (ignoring tackle zones) into an unmarked
+    // square. Offered only when such a square exists; the user may still skip it.
+    if (this.hasSkill(attacker, 'Hit and Run')
+        && this.engine.hitAndRunSquares(board, attacker).length > 0) {
+      this.hitAndRunState.set({ playerId: attackerId });
+      return;
+    }
+
+    this.offerBlitzOrFinalize(attackerId);
+  }
+
+  /**
+   * Offer the Blitz continuation (continue moving) when the attacker still has
+   * movement/Rush and owns — or has not spent — the team's Blitz; otherwise finalise
+   * their activation. Reached after a block resolves and any Hit and Run is settled.
+   */
+  private offerBlitzOrFinalize(attackerId: string): void {
+    const board = this.working();
+    const attacker = board.players.find((p) => p.id === attackerId);
+    if (!attacker || board.solved) return;
+
     if (attacker.prone) {
       this.sessionService.finalizeBlockerActivation(
         this.current().date, this.current().data, attackerId

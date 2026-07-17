@@ -1064,6 +1064,132 @@ export class PuzzleSessionService implements OnDestroy {
   }
 
   /**
+   * Resolve a Stab attack: used instead of a Block, the attacker rolls 2D6 vs the
+   * target's Armour Value with no block dice, so the target's Block / Dodge give no
+   * protection. On a break an Injury roll follows — abstracted here to the target
+   * being taken out of action (knocked Prone). Like a Block this can be the team's
+   * Blitz (when the attacker moved first), costs 1 movement, and locks the attacker
+   * out of a further block/stab this activation.
+   *
+   * `stabChance` (0..1) is the probability the armour roll beat the target AV and is
+   * folded into the running success chance.
+   */
+  applyStab(
+    key: string,
+    data: PuzzleData,
+    attackerId: string,
+    defenderId: string,
+    stabChance: number = 1
+  ): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+
+    if (board.solved) {
+      return;
+    }
+
+    const players = board.players.map((p) => ({ ...p }));
+
+    const attacker = players.find((p) => p.id === attackerId);
+    const attackerName = attacker?.name ?? null;
+    // Negatrait captured BEFORE hasMoved flips so a straight-to-stab player is gated.
+    let attackerNegatraitName = 'Negatrait';
+    let attackerNegatraitChance = 1;
+    let blitzPlayerId = board.blitzPlayerId;
+    // Rush chance for the attack step when the Blitz exhausted the attacker's movement.
+    let blockRushChance = 1;
+    // A different player who moved (but did not block) this activation has their
+    // deferred Animal Savagery roll settled (no block → 3/6) when this attack happens.
+    const prevMoved = (board.lastMovedPlayerId !== null && board.lastMovedPlayerId !== attackerId)
+      ? players.find((p) => p.id === board.lastMovedPlayerId)
+      : undefined;
+    if (attacker) {
+      attackerNegatraitName = this.negatraitName(attacker);
+      // A Stab attack counts as a block for Animal Savagery — passes on 2+ (5/6).
+      attackerNegatraitChance = this.negatraitStart(board, attacker, true).factor;
+      // Moving before the attack is a Blitz: this player claims the team's Blitz.
+      if (attacker.hasMoved && !attacker.hasBlocked) blitzPlayerId = attacker.id;
+      // The attack step costs a square of movement; Rush for it if movement is spent.
+      blockRushChance = this.spendBlockMovement(board, attacker);
+      attacker.hasMoved = true;
+      attacker.hasBlocked = true;
+    }
+
+    const defender = players.find((p) => p.id === defenderId);
+    if (defender) {
+      defender.prone = true;
+    }
+
+    // Scatter the ball if the player standing on it was taken out by the Stab —
+    // a prone player cannot hold the ball. Dislodging the away carrier solves 'sack'.
+    const carrierS = players.find((p) => p.x === board.ball.x && p.y === board.ball.y) ?? null;
+    let ball = board.ball;
+    let solved = false;
+    if (carrierS && carrierS.prone) {
+      const scattered = this.scatterBall(players, board, carrierS.x, carrierS.y);
+      if (scattered) ball = scattered;
+      if (board.puzzleType === 'sack' && carrierS.team === 'away') solved = true;
+    }
+
+    // Foul Appearance: the target forces the attacker to roll 2+ before the Stab.
+    const foulAppearance = (defender && this.hasSkill(defender, 'Foul Appearance')) ? 5 / 6 : 1;
+    const defenderName = defender?.name ?? null;
+
+    const { successChance, chanceLog } = this.applyChanceFactors(board, [
+      ...this.settleAnimalSavagery(prevMoved),
+      { reason: `Stab — ${attackerName ?? 'attacker'}`, factor: stabChance },
+      { reason: `Rush — ${attackerName ?? 'attacker'}`, factor: blockRushChance },
+      { reason: `${attackerNegatraitName} — ${attackerName ?? 'attacker'}`, factor: attackerNegatraitChance },
+      ...this.settleAnimalSavageryBlock(attacker),
+      ...(foulAppearance < 1 ? [{ reason: `Foul Appearance — ${defenderName}`, factor: foulAppearance }] : [])
+    ]);
+
+    boardSignal.set({ ...board, players, ball, blitzPlayerId, solved, successChance, chanceLog });
+    if (solved) this.markSolved(key);
+  }
+
+  /**
+   * Apply a Hit and Run free move: the player relocates one square after a Block or
+   * Stab, ignoring tackle zones (no Dodge roll) and at no movement cost, so the
+   * running success chance is unaffected. The ball follows a carrier, and a 'score'
+   * puzzle is solved if the carrier reaches the endzone (row 0).
+   */
+  applyHitAndRun(
+    key: string,
+    data: PuzzleData,
+    playerId: string,
+    x: number,
+    y: number
+  ): void {
+    const boardSignal = this.boardSignal(key, data);
+    const board = boardSignal();
+
+    if (board.solved) {
+      return;
+    }
+
+    const players = board.players.map((p) => ({ ...p }));
+    const mover = players.find((p) => p.id === playerId);
+    if (!mover) {
+      return;
+    }
+
+    const carrying = board.ball.x === mover.x && board.ball.y === mover.y;
+    mover.x = x;
+    mover.y = y;
+
+    const solved = board.puzzleType === 'score' && carrying && x === 0;
+
+    boardSignal.set({
+      ...board,
+      players,
+      ball: carrying ? { x, y } : board.ball,
+      solved: board.solved || solved
+    });
+    if (solved) this.markSolved(key);
+  }
+
+  /**
    * Mark the blocking player as activated (done for this turn) and clear the
    * selection. Called when the player chooses NOT to continue moving after a block.
    */

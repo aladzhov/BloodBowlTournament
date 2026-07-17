@@ -33,7 +33,12 @@ export const allTournaments: Tournament[] = [
     url: 'https://tourplay.net/en/blood-bowl/scorchers-cup',
     sponsors: [{
       logo: "charlie-vector-logo.png",
-      url: "https://www.charlievictorproducts.com/collections/all"}]
+      url: "https://www.charlievictorproducts.com/collections/all"
+    },
+      {
+        logo: "the-other-castle.png",
+        url: "https://castle.bg/"
+      }]
   },
   {
     name: 'Melon Field Bowl 7',

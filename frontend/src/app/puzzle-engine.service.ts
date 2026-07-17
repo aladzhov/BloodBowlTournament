@@ -15,6 +15,7 @@ export interface BoardCell {
 export type ActionId =
   | 'block'
   | 'vomit'
+  | 'stab'
   | 'jump'
   | 'activate'
   | 'pass'
@@ -179,6 +180,14 @@ export class PuzzleEngineService {
       if (!selected.prone && !target.prone && this.hasSkill(selected, 'Projectile Vomit')
           && !selected.hasBlocked && (!selected.hasMoved || blitzAvailable)) {
         options.push({ id: 'vomit', label: 'Vomit', kind: 'opponent' });
+      }
+      // Stab: an alternative to a Block that rolls armour directly (no block dice),
+      // so Block / Dodge on the target give no protection. It is not a Block, so
+      // Frenzy / Wrestle etc. do not interact; gated like a Block/Vomit — the player
+      // may not have already blocked/stabbed, and needs the team's Blitz if it moved.
+      if (!selected.prone && !target.prone && this.hasSkill(selected, 'Stab')
+          && !selected.hasBlocked && (!selected.hasMoved || blitzAvailable)) {
+        options.push({ id: 'stab', label: 'Stab', kind: 'opponent' });
       }
       // Jump Over: only over a Prone (or Stunned) player — or any player with the
       // Leap skill — and only when a valid landing exists and the cost is affordable.
@@ -769,24 +778,29 @@ export class PuzzleEngineService {
   }
 
   /**
-   * The three on-board squares directly away from the blocker (with occupant info,
-   * NOT reduced to empties). Used so a Grab blocker can still choose a normal push
-   * — including an occupied square that triggers a chain push. Away-team Stand Firm
-   * squares are excluded (they refuse to be pushed).
+   * Hit and Run destinations: empty, on-board squares adjacent to `player` that the
+   * player may step into for free (ignoring tackle zones) after a Block or Stab, and
+   * in which they would NOT be Marked — i.e. not adjacent to any standing opposition
+   * player. Returns [] when Hit and Run cannot be used (no such square exists).
    */
-  pushChainSquares(board: WorkingBoard, x: number, y: number, dir: PushDirection): PushSquare[] {
-    return this.pushSquares(dir, x, y)
-      .filter((s) => s.x >= 0 && s.y >= 0 && s.x < board.rows && s.y < board.cols)
-      .map((s) => ({
-        x: s.x,
-        y: s.y,
-        occupantId: board.players.find((p) => p.x === s.x && p.y === s.y)?.id ?? null
-      }))
-      .filter((s) => {
-        if (s.occupantId === null) return true;
-        const occ = board.players.find((p) => p.id === s.occupantId);
-        return !(occ?.team === 'away' && this.hasSkill(occ, 'Stand Firm'));
-      });
+  hitAndRunSquares(board: WorkingBoard, player: WorkingPlayer): PushSquare[] {
+    const result: PushSquare[] = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const sx = player.x + dx;
+        const sy = player.y + dy;
+        if (sx < 0 || sy < 0 || sx >= board.rows || sy >= board.cols) continue;
+        if (board.players.some((p) => p.x === sx && p.y === sy)) continue;
+        // Marked = a standing opposition player is adjacent to the destination square.
+        const marked = board.players.some(
+          (p) => p.team !== player.team && !p.prone && this.isAdjacent(sx, sy, p.x, p.y)
+        );
+        if (marked) continue;
+        result.push({ x: sx, y: sy, occupantId: null });
+      }
+    }
+    return result;
   }
 
   /**
@@ -841,6 +855,19 @@ export class PuzzleEngineService {
    * not affect Vomit — it is a flat 2D6-vs-AV roll.
    */
   vomitProbability(target: WorkingPlayer): number {
+    return this.twoD6Above(target.characteristics.armor);
+  }
+
+  /**
+   * Probability (0..1) that a Stab attack breaks the target's armour.
+   *
+   * Stab is used instead of a Block: no block dice are rolled. Instead the attacker
+   * makes a straight 2D6 Armour roll against the target (so Block / Dodge give no
+   * help), and on a break an Injury roll follows. Tackle zones, assists and Strength
+   * do not apply. Modelled here — like Projectile Vomit — as a flat 2D6-vs-AV roll;
+   * the follow-up Injury roll is abstracted to the target being taken out of action.
+   */
+  stabProbability(target: WorkingPlayer): number {
     return this.twoD6Above(target.characteristics.armor);
   }
 

@@ -1008,6 +1008,88 @@ describe('PuzzleEngineService', () => {
     });
   });
 
+  describe('hitAndRunSquares — Hit and Run free move (unmarked, empty, adjacent)', () => {
+    it('offers empty adjacent squares that are not adjacent to a standing opponent', () => {
+      // Attacker at (2,2); a standing opponent at (0,2) marks (1,1), (1,2), (1,3).
+      const attacker = player({ id: 'home-0', x: 2, y: 2, skills: ['Hit and Run'] });
+      const opponent = player({ id: 'away-0', team: 'away', x: 0, y: 2 });
+      const state = board([attacker, opponent]);
+
+      const squares = engine.hitAndRunSquares(state, attacker).map((s) => `${s.x},${s.y}`).sort();
+      // (1,1),(1,2),(1,3) are marked by the opponent at (0,2); (2,1),(2,3),(3,1),(3,2),(3,3) remain.
+      expect(squares).toEqual(['2,1', '2,3', '3,1', '3,2', '3,3'].sort());
+    });
+
+    it('excludes occupied and off-board squares', () => {
+      // Attacker in the corner (0,0): only (0,1),(1,0),(1,1) are on-board; (1,1) is occupied.
+      const attacker = player({ id: 'home-0', x: 0, y: 0, skills: ['Hit and Run'] });
+      const blocker = player({ id: 'home-1', x: 1, y: 1 });
+      const state = board([attacker, blocker]);
+
+      const squares = engine.hitAndRunSquares(state, attacker).map((s) => `${s.x},${s.y}`).sort();
+      expect(squares).toEqual(['0,1', '1,0'].sort());
+    });
+
+    it('ignores prone opponents when deciding whether a square is Marked', () => {
+      // A prone opponent exerts no tackle zone, so it never marks an adjacent square.
+      const attacker = player({ id: 'home-0', x: 2, y: 2, skills: ['Hit and Run'] });
+      const prone = player({ id: 'away-0', team: 'away', x: 0, y: 2, prone: true });
+      const state = board([attacker, prone]);
+
+      const squares = engine.hitAndRunSquares(state, attacker).map((s) => `${s.x},${s.y}`).sort();
+      expect(squares).toEqual(['1,1', '1,2', '1,3', '2,1', '2,3', '3,1', '3,2', '3,3'].sort());
+    });
+
+    it('returns [] when every adjacent square would leave the player Marked', () => {
+      // Attacker at (1,1) boxed by opponents so all empty neighbours stay in a tackle zone.
+      const attacker = player({ id: 'home-0', x: 1, y: 1, skills: ['Hit and Run'] });
+      const o1 = player({ id: 'away-0', team: 'away', x: 0, y: 0 });
+      const o2 = player({ id: 'away-1', team: 'away', x: 2, y: 2 });
+      const o3 = player({ id: 'away-2', team: 'away', x: 0, y: 2 });
+      const o4 = player({ id: 'away-3', team: 'away', x: 2, y: 0 });
+      const state = board([attacker, o1, o2, o3, o4]);
+
+      expect(engine.hitAndRunSquares(state, attacker)).toEqual([]);
+    });
+  });
+
+  describe('stabProbability — Stab (2D6 > AV, no block dice)', () => {
+    const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
+
+    it('AV 8: needs 9+ on 2D6 → 10/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 } });
+      expect(near(engine.stabProbability(target), 10 / 36)).toBe(true);
+    });
+
+    it('AV 7: needs 8+ on 2D6 → 15/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 7 } });
+      expect(near(engine.stabProbability(target), 15 / 36)).toBe(true);
+    });
+
+    it('AV 9: needs 10+ on 2D6 → 6/36', () => {
+      const target = player({ characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 9 } });
+      expect(near(engine.stabProbability(target), 6 / 36)).toBe(true);
+    });
+
+    it('offers a Stab option against an adjacent standing opponent (Block/Dodge ignored)', () => {
+      const attacker = player({ id: 'home-0', x: 2, y: 2, skills: ['Stab'] });
+      const target = player({ id: 'away-0', team: 'away', x: 2, y: 3, skills: ['Block', 'Dodge'] });
+      const state = board([attacker, target]);
+
+      const ids = engine.actionOptions(state, attacker, target).map((o) => o.id);
+      expect(ids).toContain('stab');
+    });
+
+    it('does not offer Stab once the attacker has already blocked', () => {
+      const attacker = player({ id: 'home-0', x: 2, y: 2, skills: ['Stab'], hasBlocked: true });
+      const target = player({ id: 'away-0', team: 'away', x: 2, y: 3 });
+      const state = board([attacker, target]);
+
+      const ids = engine.actionOptions(state, attacker, target).map((o) => o.id);
+      expect(ids).not.toContain('stab');
+    });
+  });
+
   describe('Pass / Hand Off to an already-activated team-mate', () => {
     it('offers Pass and Hand Off when the receiver is already activated', () => {
       // Carrier holds the ball at (1,1); an adjacent team-mate is already activated.

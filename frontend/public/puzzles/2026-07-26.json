@@ -1,10 +1,10 @@
 {
-  "date": "2026-07-17",
+  "date": "2026-07-26",
   "title": "Unsung hero",
   "author": "Atanas Ladzhov",
   "type": "score",
   "data": {
-    "hints": ["Make a block ...", "... with the Squire"],
+    "hints": ["Blitz with the squire", "Don't dodge"],
     "field": { "rows": 7, "cols": 5 },
     "ball": { "position": { "x": 6, "y": 2 } },
     "players": [

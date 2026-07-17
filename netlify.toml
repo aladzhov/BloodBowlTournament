@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[dev]
+  command = "cd frontend && npx ng serve --configuration=development"
+  targetPort = 4200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

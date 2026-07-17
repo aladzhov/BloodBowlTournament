@@ -92,8 +92,8 @@
                     <div
                       class="field-cell"
                       [class.dark]="(cell.x + cell.y) % 2 === 1"
-                      [class.move-target]="cell.isMoveTarget && !pushing() && !jumping()"
-                      [class.push-target]="isPushTarget(cell) || isJumpTarget(cell)"
+                      [class.move-target]="cell.isMoveTarget && !pushing() && !jumping() && !choosingHitAndRun()"
+                      [class.push-target]="isPushTarget(cell) || isJumpTarget(cell) || isHitAndRunTarget(cell)"
                       [class.sidestep-preview]="isSidestepPreview(cell)"
                       [class.selectable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
                       [class.targetable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
@@ -132,7 +132,7 @@
                         </div>
                       } @else if (cell.hasBall) {
                         <span class="ball-marker loose" aria-label="loose ball">🏈</span>
-                      } @else if (cell.isMoveTarget && !pushing() && !jumping()) {
+                      } @else if (cell.isMoveTarget && !pushing() && !jumping() && !choosingHitAndRun()) {
                         <span class="move-indicator" [class.dodge]="cell.requiresDodge" [class.rush]="cell.requiresRush">
                           @if (cell.requiresDodge && cell.requiresRush) { dodge+rush }
                           @else if (cell.requiresDodge) { dodge }
@@ -182,6 +182,21 @@
                       <div class="action-buttons">
                         <button type="button" class="action-button" (click)="standFirmStay()">Stay Put</button>
                         <button type="button" class="action-button opponent" (click)="standFirmAccept()">Accept Push</button>
+                      </div>
+                    </div>
+                  } @else if (choosingGrab()) {
+                    <div class="action-menu" role="dialog" aria-label="Use Grab?">
+                      <span class="action-title">Use Grab on {{ grabDefenderName() }}?</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-button" (click)="useGrab()">Use Grab</button>
+                        <button type="button" class="action-button opponent" (click)="declineGrab()">Normal Push</button>
+                      </div>
+                    </div>
+                  } @else if (choosingHitAndRun()) {
+                    <div class="action-menu" role="dialog" aria-label="Hit and Run">
+                      <span class="action-title">{{ hitAndRunPlayerName() }} — Hit and Run →</span>
+                      <div class="action-buttons">
+                        <button type="button" class="action-cancel" (click)="skipHitAndRun()">Skip</button>
                       </div>
                     </div>
                   } @else if (offeringBlitz()) {

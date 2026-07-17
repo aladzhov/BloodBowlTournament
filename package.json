@@ -9,7 +9,6 @@
     "netlify:dev": "netlify dev --offline --no-open"
   },
   "devDependencies": {
-    "netlify-cli": "^22.4.0"
+    "netlify-cli": "^26.2.0"
   }
 }
-

@@ -1,0 +1,57 @@
+{
+  "date": "2026-07-29",
+  "title": "Slip & Slide",
+  "author": "Atanas Ladzhov",
+  "type": "score",
+  "data": {
+    "hints": ["Use Sidestep to score"],
+    "field": { "rows": 5, "cols": 4 },
+    "ball": { "position": { "x": 1, "y": 0 } },
+    "players": [
+      {
+        "team": "home",
+        "name": "Black Orc",
+        "position": { "x": 3 , "y": 1 },
+        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Brawler", "Grab"]
+      },
+      {
+        "team": "home",
+        "name": "Black Orc",
+        "position": { "x": 0 , "y": 1 },
+        "characteristics": { "movement": 4, "strength": 4, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Brawler", "Grab"]
+      },
+      {
+        "team": "home",
+        "name": "Goblin Bruiser",
+        "position": { "x": 1, "y": 0 },
+        "characteristics": { "movement": 6, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
+        "skills": ["Dodge", "Right Stuff", "Sidestep", "Stunty", "Thick Skull"],
+        "extraSkills": ["Sidestep"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Blitzer",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Diving Tackle", "Tackle", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Lineman",
+        "position": { "x": 1, "y": 2 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Dwarf Lineman",
+        "position": { "x": 0, "y": 0 },
+        "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
+        "skills": ["Block", "Defensive", "Thick Skull"]
+      }
+    ],
+    "targetScore": 58
+  }
+}

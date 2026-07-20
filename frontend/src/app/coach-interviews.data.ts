@@ -111,6 +111,43 @@ export const coachInterviews: Record<string, CoachInterview> = {
         answer: "I think it's the best board game you can play, and for me personally, it helped me settle into Bulgaria much more easily. It's given me a social circle, and I've made some great friends through it."
       }
     ]
+  },
+  'Deyan Paskalev': {
+    intro: `Winner of the Scorchers Cup`,
+    questions: [
+      {
+        question: "When and how did you start playing?",
+        answer: "It was Blood Bowl (1), the video game, around 2009 or 2010. I was bashing through the campaign against the AI with a Chaos team with mass Claw, Block, and Mighty Blow. Back then, you could stack Mighty Blow on top of Claw, and the AI was always pretty bad."
+      },
+      {
+        question: "Who introduced you to Blood Bowl?",
+        answer: "When I saw the game in a gaming club, I started researching it. I remember watching videos by TotalBiscuit (John Bain), who had created a friendly league with other content creators. He sadly passed away a few years later. When I realized the 2016 tabletop edition had been released, I had to jump in. I bought four teams, even though I had no idea who I would play against."
+      },
+      {
+        question: "1-5 - how competitive are you?",
+        answer: "While I am not the most competitive person and enjoy playing for fun, I am probably a little more competitive than most people in our community. 4/5."
+      },
+      {
+        question: "Which is your favorite team?",
+        answer: "Very hard question. I like most teams, but over the years I have evolved from preferring bash teams to enjoying hybrid and agile teams. I do not want to depend on removals to be able to make plays on the pitch."
+      },
+      {
+        question: "Who is your favorite player?",
+        answer: "Hard to say, but I have a nicely custom-built model of Varag Ghoul-Chewer, so I will go with him."
+      },
+      {
+        question: "If there is one thing you can change in Blood Bowl, what would it be?",
+        answer: "The game is in a good state. I would just like to see more teams and more great models."
+      },
+      {
+        question: "What are some of your most memorable moments?",
+        answer: "Traveling with the guys for sure! I especially loved my experience at the World Cup in Alicante, where I finished unbeaten with a 3-6-0 record, and at Eurobowl in Athens, where I achieved some good results against world-class opponents."
+      },
+      {
+        question: "What do you like about Blood Bowl in general?",
+        answer: "Actually, the game is a perfect fit for me. I love the miniatures, the lore, the variability of the dice, and the strategic depth of the game."
+      }
+    ]
   }
 };
 

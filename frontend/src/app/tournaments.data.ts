@@ -22,7 +22,7 @@ export const allTournaments: Tournament[] = [
     location: 'The Other Castle, Sofia',
     dates: '31 May 2026',
     format: 'EuroBowl 2026',
-    url: 'https://tourplay.net/en/blood-bowl/the-wyrm-up',
+    url: 'https://tourplay.net/en/blood-bowl/the-wyrm-up/classifications',
     tracked: true
   },
   {
@@ -30,7 +30,7 @@ export const allTournaments: Tournament[] = [
     location: 'The Other Castle, Sofia',
     dates: '19 July 2026',
     format: 'EuroBowl 2026',
-    url: 'https://tourplay.net/en/blood-bowl/scorchers-cup',
+    url: 'https://tourplay.net/en/blood-bowl/scorchers-cup/classifications',
     sponsors: [{
       logo: "charlie-vector-logo.png",
       url: "https://www.charlievictorproducts.com/collections/all"
@@ -38,7 +38,8 @@ export const allTournaments: Tournament[] = [
       {
         logo: "the-other-castle.png",
         url: "https://castle.bg/"
-      }]
+      }],
+    tracked: true
   },
   {
     name: 'Melon Field Bowl 7',

@@ -18,11 +18,4 @@ describe('App', () => {
     expect(app.activeTab).toBe('main');
   });
 
-  it('keeps the previous seasons tab disabled', () => {
-    const app = createApp();
-
-    app.selectTab('previous-seasons');
-
-    expect(app.activeTab).toBe('main');
-  });
 });

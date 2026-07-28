@@ -5,7 +5,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { findCoachBySlug, getCoachCardPath, rankedBulgarianCoachEntries } from './coach-card.data';
 import { PuzzleSessionService } from './puzzle-session.service';
 
-type TabId = 'main' | 'previous-seasons' | 'bulgarian-fumbbl' | 'coach-card' | 'puzzles';
+type TabId = 'main' | 'coach-card' | 'puzzles' | 'bulgarian-fumbbl';
 
 interface TabDefinition {
   id: TabId;
@@ -29,7 +29,6 @@ export class App implements OnInit {
 
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
-    { id: 'previous-seasons', label: 'Previous Seasons', disabled: true },
     { id: 'coach-card', label: 'Coach Cards' },
     { id: 'puzzles', label: 'Puzzles' },
     // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
@@ -37,6 +36,7 @@ export class App implements OnInit {
 
   activeTab: TabId = 'main';
   selectedCoachForInterview: string | null = null;
+  isClockMode = false;
 
   constructor(
     private readonly titleService: Title,
@@ -46,11 +46,29 @@ export class App implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (this.detectClockMode()) {
+      this.isClockMode = true;
+      this.titleService.setTitle('Match Clock | Blood Bowl Bulgaria');
+      return;
+    }
     this.syncStateFromPath(this.currentPath(), true);
+  }
+
+  /** The clock lives on the clock.* subdomain (or /clock for local testing). */
+  private detectClockMode(): boolean {
+    const location = this.document.defaultView?.location;
+    if (!location) {
+      return false;
+    }
+    const subdomain = location.hostname.split('.')[0];
+    return subdomain === 'clock' || location.pathname.startsWith('/clock');
   }
 
   @HostListener('window:popstate')
   onPopState(): void {
+    if (this.isClockMode) {
+      return;
+    }
     this.syncStateFromPath(this.currentPath(), false);
   }
 
@@ -130,11 +148,6 @@ export class App implements OnInit {
           description: this.selectedCoachForInterview
             ? `Blood Bowl Bulgaria coach card for ${this.selectedCoachForInterview}: browse interview Q&A highlights and current season standing details.`
             : 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.'
-        };
-      case 'previous-seasons':
-        return {
-          title: `${this.seoSiteName} | Previous Seasons and Results`,
-          description: 'Blood Bowl Bulgaria archive: browse previous Bulgarian Blood Bowl Cup seasons and results.'
         };
       case 'puzzles':
         return {

@@ -15,14 +15,15 @@
 }
 
 .section-heading {
-  margin-top: 3rem;
+  margin-top: 0;
   margin-bottom: 1.5rem;
 }
 
 .section-heading h2 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: var(--bg-green);
 }
 
 /* ── Navigation ── */
@@ -518,6 +519,13 @@
   cursor: default;
 }
 
+.result-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
 .result-title {
   margin: 0;
   font-size: 2rem;
@@ -664,7 +672,7 @@
 }
 
 .puzzles-tab {
-  padding: 2rem 0;
+  padding: 4rem 0 5rem;
 }
 
 /* ── Mobile: shrink in-square text and block dice ── */
@@ -696,6 +704,11 @@
   /* Adjust result card for mobile */
   .result-card {
     padding: 1.5rem 2rem;
+  }
+
+  .result-image {
+    width: 100px;
+    height: 100px;
   }
 
   .result-title {

@@ -1,0 +1,81 @@
+@if (phase() === 'setup') {
+  <div class="clock-setup">
+    <h1>Blood Bowl Clock</h1>
+
+    <div class="setup-field">
+      <label>Per turn</label>
+      <div class="time-inputs">
+        <input type="number" min="0" max="59" [(ngModel)]="turnMin" aria-label="Turn minutes" />
+        <span>:</span>
+        <input type="number" min="0" max="59" [(ngModel)]="turnSec" aria-label="Turn seconds" />
+      </div>
+    </div>
+
+    <div class="setup-field">
+      <label>Time bank</label>
+      <div class="time-inputs">
+        <input type="number" min="0" max="59" [(ngModel)]="bankMin" aria-label="Bank minutes" />
+        <span>:</span>
+        <input type="number" min="0" max="59" [(ngModel)]="bankSec" aria-label="Bank seconds" />
+      </div>
+    </div>
+
+    <button type="button" class="start-button" (click)="start()">Start</button>
+    <p class="hint">Tap your own half to end your turn. The bank only runs once your per-turn time is gone.</p>
+  </div>
+} @else {
+  <div class="clock-board">
+    <!-- Player 2 (top, rotated so they face the phone from the opposite side) -->
+    <button
+      type="button"
+      class="player-panel top"
+      [class.active]="running() === 2"
+      [class.idle]="running() !== 2"
+      [class.flagged]="flagged() === 2"
+      (click)="tapPlayer(2)">
+      <div class="panel-inner">
+        <div class="frame turn" [class.warn]="p2TurnWarn()" [class.spent]="p2TurnSpent()">
+          <span class="frame-label">Turn</span>
+          <span class="frame-time">{{ format(p2Turn()) }}</span>
+        </div>
+        <div class="frame bank" [class.warn]="p2BankWarn()">
+          <span class="frame-label">Bank</span>
+          <span class="frame-time">{{ format(p2Bank()) }}</span>
+        </div>
+      </div>
+    </button>
+
+    <div class="control-bar">
+      <button type="button" class="control pause" (click)="togglePause()" [disabled]="running() === null" [attr.aria-label]="paused() ? 'Resume' : 'Pause'">
+        @if (paused()) {
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+        }
+      </button>
+      <button type="button" class="control reset" (click)="reset()" aria-label="Reset">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="currentColor"/></svg>
+      </button>
+    </div>
+
+    <!-- Player 1 (bottom) -->
+    <button
+      type="button"
+      class="player-panel bottom"
+      [class.active]="running() === 1"
+      [class.idle]="running() !== 1"
+      [class.flagged]="flagged() === 1"
+      (click)="tapPlayer(1)">
+      <div class="panel-inner">
+        <div class="frame turn" [class.warn]="p1TurnWarn()" [class.spent]="p1TurnSpent()">
+          <span class="frame-label">Turn</span>
+          <span class="frame-time">{{ format(p1Turn()) }}</span>
+        </div>
+        <div class="frame bank" [class.warn]="p1BankWarn()">
+          <span class="frame-label">Bank</span>
+          <span class="frame-time">{{ format(p1Bank()) }}</span>
+        </div>
+      </div>
+    </button>
+  </div>
+}

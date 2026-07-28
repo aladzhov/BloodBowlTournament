@@ -18,15 +18,23 @@
   padding: 4.5rem 0;
 }
 
+.section:first-child {
+  padding-top: 4rem;
+}
+
 .section-heading {
-  margin-top: 3rem;
-  margin-bottom: 2rem;
+  margin-top: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.section > .section-heading:first-child {
+  margin-top: 0;
 }
 
 .section-heading h2 {
-  margin: 0 0 0.5rem;
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
 }
 
 .section-subtitle {

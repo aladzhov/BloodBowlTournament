@@ -1,51 +1,52 @@
 <main class="app-shell">
-  <section class="hero-banner" id="home">
-    <div class="hero-image"></div>
-    <div class="hero-overlay"></div>
-    <div class="container hero-content">
-      <div class="hero-copy">
-        <h1>{{ title }} {{ season }}</h1>
-        <p>Battle for glory in the Bulgarian Blood Bowl circuit</p>
+  @if (isClockMode) {
+    <app-clock></app-clock>
+  } @else {
+    <section class="hero-banner" id="home">
+      <div class="hero-image"></div>
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <div class="hero-copy">
+          <h1>{{ title }} {{ season }}</h1>
+          <p>Battle for glory in the Bulgarian Blood Bowl circuit</p>
+        </div>
+
+        <nav class="tab-bar" aria-label="Site sections">
+          @for (tab of tabs; track tab.id) {
+            <button
+              type="button"
+              class="tab-button"
+              [class.active]="activeTab === tab.id"
+              [disabled]="tab.disabled"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="selectTab(tab.id)">
+              {{ tab.label }}
+            </button>
+          }
+        </nav>
       </div>
+      <div class="flag-band" aria-hidden="true">
+        <span class="white"></span>
+        <span class="green"></span>
+        <span class="red"></span>
+      </div>
+    </section>
 
-      <nav class="tab-bar" aria-label="Site sections">
-        @for (tab of tabs; track tab.id) {
-          <button
-            type="button"
-            class="tab-button"
-            [class.active]="activeTab === tab.id"
-            [disabled]="tab.disabled"
-            [attr.aria-selected]="activeTab === tab.id"
-            (click)="selectTab(tab.id)">
-            {{ tab.label }}
-          </button>
-        }
-      </nav>
-    </div>
-    <div class="flag-band" aria-hidden="true">
-      <span class="white"></span>
-      <span class="green"></span>
-      <span class="red"></span>
-    </div>
-  </section>
-
-  @switch (activeTab) {
-    @case ('main') {
-      <app-main-tab (coachInterviewSelected)="openCoachInterview($event)"></app-main-tab>
-    }
-    @case ('coach-card') {
-      <app-coach-card
-        [selectedCoach]="selectedCoachForInterview"
-        (selectedCoachChange)="setSelectedCoach($event)"></app-coach-card>
-    }
-    @case ('bulgarian-fumbbl') {
-      <app-bulgarian-fumbbl-tab></app-bulgarian-fumbbl-tab>
-    }
-    @case ('previous-seasons') {
-      <app-previous-seasons-tab></app-previous-seasons-tab>
-    }
-    @case ('puzzles') {
-      <app-puzzles-tab (puzzleDateChange)="onPuzzleDateChange($event)"></app-puzzles-tab>
+    @switch (activeTab) {
+      @case ('main') {
+        <app-main-tab (coachInterviewSelected)="openCoachInterview($event)"></app-main-tab>
+      }
+      @case ('coach-card') {
+        <app-coach-card
+          [selectedCoach]="selectedCoachForInterview"
+          (selectedCoachChange)="setSelectedCoach($event)"></app-coach-card>
+      }
+      @case ('bulgarian-fumbbl') {
+        <app-bulgarian-fumbbl-tab></app-bulgarian-fumbbl-tab>
+      }
+      @case ('puzzles') {
+        <app-puzzles-tab (puzzleDateChange)="onPuzzleDateChange($event)"></app-puzzles-tab>
+      }
     }
   }
 </main>

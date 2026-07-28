@@ -311,16 +311,22 @@
           @if (revealed() && solved() && showResultDialog()) {
             <div class="result-overlay" role="dialog" aria-label="Puzzle result" (click)="dismissResultDialog()">
               <div class="result-card" (click)="$event.stopPropagation()">
-                @if (!isIncorrectSolution()) {
+                @if (isIncorrectSolution()) {
+                  <img src="orc-no.png" alt="Incorrect solution" class="result-image" />
+                  <h3 class="result-title incorrect">Not a correct solution!</h3>
+                  <p class="result-hint">This is not a correct solution!</p>
+                } @else {
+                  @if (canDoBetter()) {
+                    <img src="orc-close.png" alt="Incorrect solution" class="result-image" />
+                  } @else {
+                    <img src="orc-success.png" alt="Correct solution" class="result-image" />
+                  }
                   <h3 class="result-title">{{ solvedTitle() }}</h3>
                   <p class="result-time">{{ timerDisplay() }}</p>
                   <p class="result-chance">{{ chancePercent() }}% chance for success</p>
-                }
-                @if (isIncorrectSolution()) {
-                  <h3 class="result-title incorrect">Not a correct solution!</h3>
-                  <p class="result-hint">This is not a correct solution!</p>
-                } @else if (canDoBetter()) {
-                  <p class="result-hint">Great job — but you can do better!</p>
+                  @if (canDoBetter()) {
+                    <p class="result-hint">Great job — but you can do better!</p>
+                  }
                 }
               </div>
             </div>

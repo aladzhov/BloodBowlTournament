@@ -392,10 +392,10 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   readonly solvedTitle = computed(() => {
     switch (this.current().type ?? 'score') {
-      case 'surf':  return '🏄 Surfed! Solved in';
-      case 'sack':  return '💥 Sacked! Solved in';
+      case 'surf':  return 'Surfed! Solved in';
+      case 'sack':  return 'Sacked! Solved in';
       case 'score':
-      default:      return '🏆 Touchdown! Solved in';
+      default:      return 'Touchdown! Solved in';
     }
   });
 

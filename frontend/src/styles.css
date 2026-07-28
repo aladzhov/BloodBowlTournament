@@ -37,3 +37,46 @@ input,
 textarea {
   font-family: inherit;
 }
+
+.bordered-white-inside {
+  color: #fff;
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+
+/*
+ * Arc ("rainbow") text. Curves a word into an upward arch.
+ * Requires each character wrapped in its own <span>, e.g.:
+ *   <span class="rainbow"><span>R</span><span>a</span>...<span>w</span></span>
+ * Supports up to 15 characters; letters tilt along the arc.
+ */
+.rainbow {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
+.rainbow > span {
+  display: inline-block;
+  transform-origin: 50% 2.4em;
+}
+
+.rainbow > span:nth-child(1)  { transform: rotate(-35deg); }
+.rainbow > span:nth-child(2)  { transform: rotate(-30deg); }
+.rainbow > span:nth-child(3)  { transform: rotate(-25deg); }
+.rainbow > span:nth-child(4)  { transform: rotate(-20deg); }
+.rainbow > span:nth-child(5)  { transform: rotate(-15deg); }
+.rainbow > span:nth-child(6)  { transform: rotate(-10deg); }
+.rainbow > span:nth-child(7)  { transform: rotate(-5deg); }
+.rainbow > span:nth-child(8)  { transform: rotate(0deg); }
+.rainbow > span:nth-child(9)  { transform: rotate(5deg); }
+.rainbow > span:nth-child(10) { transform: rotate(10deg); }
+.rainbow > span:nth-child(11) { transform: rotate(15deg); }
+.rainbow > span:nth-child(12) { transform: rotate(20deg); }
+.rainbow > span:nth-child(13) { transform: rotate(25deg); }
+.rainbow > span:nth-child(14) { transform: rotate(30deg); }
+.rainbow > span:nth-child(15) { transform: rotate(35deg); }

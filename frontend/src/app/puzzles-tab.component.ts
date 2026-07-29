@@ -385,6 +385,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     switch (this.current().type ?? 'score') {
       case 'surf':  return 'Surf a player';
       case 'sack':  return 'Sack the ball';
+      case 'query': return 'Answer the question';
       case 'score':
       default:      return 'Score a touchdown';
     }
@@ -394,6 +395,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     switch (this.current().type ?? 'score') {
       case 'surf':  return 'Surfed! Solved in';
       case 'sack':  return 'Sacked! Solved in';
+      case 'query': return 'Correct! Answered in';
       case 'score':
       default:      return 'Touchdown! Solved in';
     }
@@ -405,12 +407,28 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly chancePercent = computed(() => Math.round(this.working().successChance * 1000) / 10);
   readonly targetScore = computed(() => this.working().targetScore);
 
+  /**
+   * True for `query` puzzles: the board is read-only (hover only) and the puzzle
+   * is solved by answering a question instead of moving players.
+   */
+  readonly isQuery = computed(() => (this.current().type ?? 'score') === 'query');
+
+  /** The question for the current puzzle, or null when it is not a query puzzle. */
+  readonly query = computed(() => this.working().query);
+
+  /** The answer the solver submitted for the current query puzzle, if any. */
+  readonly queryAnswer = computed(() => this.working().queryAnswer);
+
   /** True when the solved chance is below the target (the solver could do better). */
-  readonly canDoBetter = computed(() => this.chancePercent() < this.targetScore());
+  readonly canDoBetter = computed(() =>
+    !this.isQuery() && this.chancePercent() < this.targetScore()
+  );
   /** True when the solved chance exceeds the target by 1 or more (wrong path taken),
-   * or a forbidden action (e.g. a Both Down flagged `bothDown: false`) was used. */
+   * or a forbidden action (e.g. a Both Down flagged `bothDown: false`) was used.
+   * For query puzzles it is simply a wrong answer. */
   readonly isIncorrectSolution = computed(() =>
-    this.working().incorrectSolution || this.chancePercent() >= this.targetScore() + 1
+    this.working().incorrectSolution
+      || (!this.isQuery() && this.chancePercent() >= this.targetScore() + 1)
   );
 
 
@@ -490,8 +508,22 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.sessionService.revealNextHint(this.current().date, this.current().data);
   }
 
+  /** Submit the solver's answer to a query puzzle. */
+  onQueryAnswer(answer: string): void {
+    if (!this.isQuery() || !this.revealed() || this.solved()) {
+      return;
+    }
+    this.sessionService.submitQueryAnswer(this.current().date, this.current().data, answer);
+    this.showResultDialog.set(true);
+  }
+
   onCellClick(cell: BoardCell): void {
     if (!this.revealed() || this.solved()) {
+      return;
+    }
+
+    // Query puzzles are read-only: the solver may hover for details but not move.
+    if (this.isQuery()) {
       return;
     }
 

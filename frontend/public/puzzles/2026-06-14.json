@@ -6,12 +6,12 @@
   "data": {
     "hints": ["Get rid of the tackler", "Look for chain pushes"],
     "field": { "rows": 6, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 4 } },
     "players": [
       {
         "team": "home",
         "name": "Goblin Bruiser",
         "position": { "x": 2, "y": 4 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
         "skills": ["Dodge", "Right Stuff", "Stunty", "Thick Skull"]
       },

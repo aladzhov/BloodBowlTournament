@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Consider the skill upgrades"],
     "field": { "rows": 6, "cols": 7 },
-    "ball": { "position": { "x": 3, "y": 4 } },
     "players": [
       {
         "team": "home",
@@ -47,6 +46,7 @@
         "team": "away",
         "name": "Saurus Blocker",
         "position": { "x": 3 , "y": 4 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 4, "agility": 5, "passing": 6, "armor": 10 },
         "skills": ["Juggernaut", "Unsteady"]
       },

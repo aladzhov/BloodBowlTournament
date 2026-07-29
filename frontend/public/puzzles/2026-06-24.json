@@ -6,7 +6,6 @@
   "data": {
     "hints": ["What skill would help you deal with Blodgers?"],
     "field": { "rows": 6, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 2 } },
     "players": [
       {
         "team": "home",
@@ -36,6 +35,7 @@
         "team": "away",
         "name": "Gutter Runner",
         "position": { "x": 2, "y": 2 },
+        "ball": true,
         "characteristics": { "movement": 9, "strength": 2, "agility": 2, "passing": 4, "armor": 8 },
         "skills": ["Block", "Dodge", "Stab"],
         "extraSkills": ["Block"]

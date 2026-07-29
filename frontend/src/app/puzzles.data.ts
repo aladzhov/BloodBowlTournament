@@ -15,7 +15,7 @@ export interface PuzzleCharacteristics {
 
 export type PuzzleTeam = 'home' | 'away';
 
-export type PuzzleType = 'score' | 'sack' | 'surf'
+export type PuzzleType = 'score' | 'sack' | 'surf' | 'query'
 
 export interface PuzzlePlayer {
   team: PuzzleTeam;
@@ -26,6 +26,8 @@ export interface PuzzlePlayer {
   extraSkills?: string[];
   activated?: boolean;
   prone?: boolean;
+  /** Set on the player holding the ball at the start of the puzzle. */
+  ball?: boolean;
   goTo?: PuzzlePosition[];
   /**
    * Whether a Both Down result against this player may be part of a correct
@@ -45,11 +47,48 @@ export interface PuzzleBall {
   position: PuzzlePosition;
 }
 
+/**
+ * The question posed by a `query` puzzle. The board is read-only for these
+ * puzzles — the solver inspects the position and answers, either by typing a
+ * freeform answer or by picking one of the predefined `options`.
+ */
+export interface PuzzleQuery {
+  /** The question shown to the solver. */
+  question: string;
+  /**
+   * Predefined answers. When present the solver picks exactly one of them
+   * (radio buttons); when absent the solver types a freeform answer.
+   */
+  options?: string[];
+  /**
+   * Accepted answer(s). Matching is case-insensitive and ignores surrounding
+   * and repeated whitespace. For option-based queries each accepted answer
+   * should match one of the `options`.
+   */
+  answer: string | string[];
+  /**
+   * Optional explanation revealed once the query has been answered. Provide an
+   * array to render it as separate lines/paragraphs.
+   */
+  explanation?: string | string[];
+}
+
 export interface PuzzleData {
   field: PuzzleField;
-  ball: PuzzleBall;
+  /**
+   * Position of a loose ball lying on the pitch. Only needed when no player
+   * carries the ball — a player flagged with `ball: true` takes precedence.
+   * When neither is present the puzzle has no ball on the pitch.
+   */
+  ball?: PuzzleBall;
   players: PuzzlePlayer[];
-  targetScore: number;
+  /**
+   * Best achievable success chance as a percentage. Not meaningful for `query`
+   * puzzles, where it defaults to 100.
+   */
+  targetScore?: number;
+  /** Required for `query` puzzles; ignored by every other puzzle type. */
+  query?: PuzzleQuery;
   /** Optional ordered hints, revealed one at a time when the solver asks. */
   hints?: string[];
 }

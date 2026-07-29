@@ -5,12 +5,12 @@
   "type": "score",
   "data": {
     "field": { "rows": 8, "cols": 7 },
-    "ball": { "position": { "x": 7, "y": 3 } },
     "players": [
       {
         "team": "home",
         "name": "Orc Lineman",
         "position": { "x": 7, "y": 3 },
+        "ball": true,
         "characteristics": { "movement": 5, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
         "skills": []
       },

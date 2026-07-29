@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Look for chain pushes"],
     "field": { "rows": 8, "cols": 6 },
-    "ball": { "position": { "x": 1, "y": 1 } },
     "players": [
       {
         "team": "home",
@@ -48,6 +47,7 @@
         "team": "away",
         "name": "Human Catcher",
         "position": { "x": 1 , "y": 1 },
+        "ball": true,
         "characteristics": { "movement": 8, "strength": 3, "agility": 3, "passing": 4, "armor": 8 },
         "skills": ["Catch", "Dodge"]
       },

@@ -42,7 +42,9 @@ function board(players: WorkingPlayer[], ball = { x: 9, y: 9 }): WorkingBoard {
     chanceLog: [],
     incorrectSolution: false,
     hints: [],
-    hintsRevealed: 0
+    hintsRevealed: 0,
+    query: null,
+    queryAnswer: null
   };
 }
 

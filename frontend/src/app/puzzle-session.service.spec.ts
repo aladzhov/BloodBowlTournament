@@ -4,7 +4,6 @@ import { PuzzleData } from './puzzles.data';
 function makeData(): PuzzleData {
   return {
     field: { rows: 4, cols: 7 },
-    ball: { position: { x: 1, y: 1 } },
     players: [
       {
         team: 'home',
@@ -12,7 +11,8 @@ function makeData(): PuzzleData {
         position: { x: 1, y: 1 },
         characteristics: { movement: 6, strength: 3, agility: 3, passing: 4, armor: 8 },
         skills: [],
-        activated: false
+        activated: false,
+        ball: true
       },
       {
         team: 'home',
@@ -379,7 +379,8 @@ describe('PuzzleSessionService board mechanics', () => {
       data.players[0].prone = true;
       data.players[0].characteristics.movement = movement;
       // Move the ball off the prone player's square to isolate stand-up mechanics.
-      data.ball.position = { x: 6, y: 6 };
+      data.players[0].ball = false;
+      data.ball = { position: { x: 6, y: 6 } };
       return data;
     }
 
@@ -825,5 +826,131 @@ describe('PuzzleSessionService board mechanics', () => {
       expect(blitzer.movementLeft).toBe(4);
       expect(blitzer.rushLeft).toBe(2);
     });
+  });
+});
+
+describe('PuzzleSessionService query puzzles', () => {
+  let service: PuzzleSessionService;
+
+  beforeEach(() => {
+    service = new PuzzleSessionService();
+  });
+
+  afterEach(() => {
+    service.ngOnDestroy();
+  });
+
+  function queryData(): PuzzleData {
+    const data = makeData();
+    delete data.targetScore;
+    data.query = {
+      question: 'How many tackle zones?',
+      answer: ['3', 'three']
+    };
+    return data;
+  }
+
+  it('defaults targetScore to 100 when omitted', () => {
+    expect(service.board('q0', queryData(), 'query')().targetScore).toBe(100);
+  });
+
+  it('exposes the query on the working board', () => {
+    const board = service.board('q1', queryData(), 'query')();
+    expect(board.puzzleType).toBe('query');
+    expect(board.query?.question).toBe('How many tackle zones?');
+    expect(board.queryAnswer).toBeNull();
+  });
+
+  it('accepts a matching answer ignoring case and whitespace', () => {
+    const data = queryData();
+    service.submitQueryAnswer('q2', data, '  Three  ');
+
+    const board = service.board('q2', data, 'query')();
+    expect(board.solved).toBe(true);
+    expect(board.incorrectSolution).toBe(false);
+    expect(board.queryAnswer).toBe('Three');
+    expect(service.sessionState('q2')().solved).toBe(true);
+  });
+
+  it('flags a wrong answer as an incorrect solution but still solves', () => {
+    const data = queryData();
+    service.submitQueryAnswer('q3', data, '4');
+
+    const board = service.board('q3', data, 'query')();
+    expect(board.solved).toBe(true);
+    expect(board.incorrectSolution).toBe(true);
+    expect(board.queryAnswer).toBe('4');
+  });
+
+  it('ignores blank answers and answers after the puzzle is solved', () => {
+    const data = queryData();
+    service.submitQueryAnswer('q4', data, '   ');
+    expect(service.board('q4', data, 'query')().solved).toBe(false);
+
+    service.submitQueryAnswer('q4', data, '3');
+    service.submitQueryAnswer('q4', data, '4');
+    const board = service.board('q4', data, 'query')();
+    expect(board.queryAnswer).toBe('3');
+    expect(board.incorrectSolution).toBe(false);
+  });
+
+  it('clears the submitted answer on restart', () => {
+    const data = queryData();
+    service.start('q5');
+    service.submitQueryAnswer('q5', data, '3');
+    service.resetBoard('q5', data, 'query');
+
+    const board = service.board('q5', data, 'query')();
+    expect(board.queryAnswer).toBeNull();
+    expect(board.solved).toBe(false);
+    expect(board.query?.question).toBe('How many tackle zones?');
+    expect(service.sessionState('q5')().solved).toBe(false);
+  });
+});
+
+describe('PuzzleSessionService initial ball placement', () => {
+  let service: PuzzleSessionService;
+
+  beforeEach(() => {
+    service = new PuzzleSessionService();
+  });
+
+  afterEach(() => {
+    service.ngOnDestroy();
+  });
+
+  it('places the ball on the player flagged with ball: true', () => {
+    const data = makeData();
+    expect(service.board('b1', data)().ball).toEqual({ x: 1, y: 1 });
+  });
+
+  it('uses the loose-ball position when no player carries the ball', () => {
+    const data = makeData();
+    delete data.players[0].ball;
+    data.ball = { position: { x: 2, y: 5 } };
+
+    expect(service.board('b2', data)().ball).toEqual({ x: 2, y: 5 });
+  });
+
+  it('prefers the carrying player over a loose-ball position', () => {
+    const data = makeData();
+    data.ball = { position: { x: 2, y: 5 } };
+
+    expect(service.board('b3', data)().ball).toEqual({ x: 1, y: 1 });
+  });
+
+  it('follows the carrier when the flagged player is not the first in the list', () => {
+    const data = makeData();
+    delete data.players[0].ball;
+    data.players[2].ball = true; // the away player at (5, 1)
+
+    expect(service.board('b4', data)().ball).toEqual({ x: 5, y: 1 });
+  });
+
+  it('puts the ball off-board when neither a carrier nor a loose ball is declared', () => {
+    const data = makeData();
+    delete data.players[0].ball;
+
+    expect(service.board('b5', data)().ball).toEqual({ x: -1, y: -1 });
   });
 });

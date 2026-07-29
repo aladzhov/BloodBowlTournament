@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Use Sidestep to score"],
     "field": { "rows": 5, "cols": 4 },
-    "ball": { "position": { "x": 1, "y": 0 } },
     "players": [
       {
         "team": "home",
@@ -26,6 +25,7 @@
         "team": "home",
         "name": "Goblin Bruiser",
         "position": { "x": 1, "y": 0 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 2, "agility": 3, "passing": 4, "armor": 8 },
         "skills": ["Dodge", "Right Stuff", "Sidestep", "Stunty", "Thick Skull"],
         "extraSkills": ["Sidestep"]

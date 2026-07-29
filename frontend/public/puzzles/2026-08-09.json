@@ -1,0 +1,47 @@
+{
+  "date": "2026-08-09",
+  "title": "A new dawn",
+  "author": "Atanas Ladzhov",
+  "type": "query",
+  "data": {
+    "field": { "rows": 5, "cols": 5 },
+    "ball": { "position": { "x": 1, "y": 3 } },
+    "query": {
+      "question": "What is the best chance to pickup the ball?",
+      "options": ["8/9", "2/3", "1/2", "3/4"],
+      "answer": ["3/4", "0.75", "75%"],
+      "explanation": "There is 1 enemy tackle zone. The Human Thrower (effectively AG 4+) has Sure Hands (a reroll)."
+    },
+    "players": [
+      {
+        "team": "home",
+        "name": "Human Thrower",
+        "position": { "x": 4, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
+        "skills": ["Pass", "Sure Hands"]
+      },
+      {
+        "team": "home",
+        "name": "Human Lineman",
+        "position": { "x": 0, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": [],
+        "activated": true
+      },
+      {
+        "team": "home",
+        "name": "Human Lineman",
+        "position": { "x": 4, "y": 4 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": []
+      },
+      {
+        "team": "away",
+        "name": "Orc Blitzer",
+        "position": { "x": 0, "y": 3 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 10 },
+        "skills": ["Block", "Break Tackle"]
+      }
+    ]
+  }
+}

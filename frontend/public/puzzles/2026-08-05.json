@@ -1,12 +1,11 @@
 {
   "date": "2026-08-05",
-  "title": "",
+  "title": "Stunty Menace",
   "author": "Atanas Ladzhov",
   "type": "sack",
   "data": {
     "hints": ["Block with two dice"],
     "field": { "rows": 6, "cols": 6 },
-    "ball": { "position": { "x": 1, "y": 2 } },
     "players": [
       {
         "team": "home",
@@ -40,6 +39,7 @@
         "team": "away",
         "name": "Orc Thrower",
         "position": { "x": 1, "y": 2 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 3, "armor": 9 },
         "skills": ["Pass", "Sure Hands"]
       },

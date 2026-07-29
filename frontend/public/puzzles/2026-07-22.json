@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Look for chain pushes", "Use the Guard Wight for two blocks", "Blitz with the Ball Carrier"],
     "field": { "rows": 7, "cols": 7 },
-    "ball": { "position": { "x": 1, "y": 3 } },
     "players": [
       {
         "team": "home",
@@ -20,6 +19,7 @@
         "team": "home",
         "name": "Ghoul Runner",
         "position": { "x": 1, "y": 3 },
+        "ball": true,
         "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 3, "armor": 8 },
         "skills": ["Block", "Dodge", "Regeneration"],
         "extraSkills": ["Block"]

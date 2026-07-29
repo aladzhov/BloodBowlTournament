@@ -5,12 +5,12 @@
   "type": "score",
   "data": {
     "field": { "rows": 4, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 2 } },
     "players": [
       {
         "team": "home",
         "name": "Dwarf Lineman",
         "position": { "x": 2, "y": 2 },
+        "ball": true,
         "characteristics": { "movement": 4, "strength": 3, "agility": 4, "passing": 5, "armor": 10 },
         "skills": ["Block", "Defensive", "Thick Skull"]
       },

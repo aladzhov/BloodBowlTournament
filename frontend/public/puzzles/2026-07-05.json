@@ -6,12 +6,12 @@
   "data": {
     "hints": ["Can the Jaguar Warrior score?", "Violence is not always the way!"],
     "field": { "rows": 8, "cols": 6 },
-    "ball": { "position": { "x": 7, "y": 3 } },
     "players": [
       {
         "team": "home",
         "name": "Jaguar Warrior",
         "position": { "x": 7 , "y": 3 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 4, "agility": 3, "passing": 4, "armor": 9 },
         "skills": ["Defensive", "Dodge"]
       },

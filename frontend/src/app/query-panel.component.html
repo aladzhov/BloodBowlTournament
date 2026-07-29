@@ -1,0 +1,54 @@
+@if (query(); as q) {
+  <aside class="query-panel">
+    <p class="query-question">{{ q.question }}</p>
+
+    @if (hasOptions()) {
+      <ul class="query-options">
+        @for (option of options(); track option) {
+          <li>
+            <label class="query-option" [class.disabled]="answered() || locked()">
+              <input
+                type="radio"
+                name="query-answer"
+                [value]="option"
+                [checked]="(answered() ? displayAnswer() : draft()) === option"
+                [disabled]="answered() || locked()"
+                (change)="selectOption(option)" />
+              <span class="query-option-text">{{ option }}</span>
+            </label>
+          </li>
+        }
+      </ul>
+    } @else {
+      <input
+        class="query-input"
+        type="text"
+        placeholder="Type your answer…"
+        aria-label="Your answer"
+        [value]="answered() ? displayAnswer() : draft()"
+        [disabled]="answered() || locked()"
+        (input)="onFreeformInput($any($event.target).value)"
+        (keydown.enter)="submit()" />
+    }
+
+    @if (!answered()) {
+      <button type="button" class="btn-answer" [disabled]="!canSubmit()" (click)="submit()">
+        Submit answer
+      </button>
+    } @else {
+      <div class="query-result">
+        <p class="query-answered"><strong>Your answer:</strong> {{ displayAnswer() }}</p>
+        @if (correctAnswers().length > 0) {
+          <p class="query-correct"><strong>Correct:</strong> {{ correctAnswers()[0] }}</p>
+        }
+        @if (explanationLines().length > 0) {
+          <div class="query-explanation">
+            @for (line of explanationLines(); track $index) {
+              <p>{{ line }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </aside>
+}

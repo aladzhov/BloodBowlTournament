@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Blitz with the squire", "Don't dodge"],
     "field": { "rows": 7, "cols": 5 },
-    "ball": { "position": { "x": 6, "y": 2 } },
     "players": [
       {
         "team": "home",
@@ -28,6 +27,7 @@
         "team": "home",
         "name": "Bretonnian Knight Catcher",
         "position": { "x": 6 , "y": 2 },
+        "ball": true,
         "characteristics": { "movement": 7, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
         "skills": ["Catch", "Dauntless", "Dodge", "Nerves of Steel"],
         "extraSkills": ["Dodge"]

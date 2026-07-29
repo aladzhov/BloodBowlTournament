@@ -6,12 +6,12 @@
   "data": {
     "hints": ["It is a special move"],
     "field": { "rows": 5, "cols": 7 },
-    "ball": { "position": { "x": 3, "y": 3 } },
     "players": [
       {
         "team": "home",
         "name": "Woodland Fox",
         "position": { "x": 3, "y": 3 },
+        "ball": true,
         "characteristics": { "movement": 7, "strength": 2, "agility": 2, "passing": 0, "armor": 6 },
         "skills": ["Dodge", "My Ball", "Sidestep", "Stunty"]
       },

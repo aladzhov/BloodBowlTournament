@@ -6,7 +6,6 @@
   "data": {
     "hints": ["Defensive counters Guard", "Block the ball carrier with the Wrestle Skeleton Lineman"],
     "field": { "rows": 7, "cols": 5 },
-    "ball": { "position": { "x": 1, "y": 2 } },
     "players": [
       {
         "team": "home",
@@ -64,6 +63,7 @@
         "team": "away",
         "name": "Dwarf Runner",
         "position": { "x": 1, "y": 2 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
         "skills": ["Sprint", "Sure Hands", "Thick Skull"]
       },

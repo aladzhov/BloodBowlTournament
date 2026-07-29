@@ -13,6 +13,7 @@ import { PuzzlesTabComponent } from './puzzles-tab.component';
 import { PlayerDetailsComponent } from './player-details.component';
 import { SuccessBreakdownComponent } from './success-breakdown.component';
 import { HintsComponent } from './hints.component';
+import { QueryPanelComponent } from './query-panel.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { HintsComponent } from './hints.component';
     PlayerDetailsComponent,
     SuccessBreakdownComponent,
     HintsComponent,
+    QueryPanelComponent,
     ClockComponent
   ],
   imports: [

@@ -1,0 +1,125 @@
+:host {
+  display: block;
+}
+
+.query-panel {
+  border: 1px solid var(--border-light);
+  border-radius: 0.6rem;
+  background: #fafafa;
+  padding: 0.75rem 0.9rem;
+}
+
+.query-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.query-question {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  overflow-wrap: anywhere;
+}
+
+.query-options {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.query-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.query-option.disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.query-option input {
+  margin-top: 0.15rem;
+  accent-color: var(--bg-green);
+}
+
+.query-option-text {
+  overflow-wrap: anywhere;
+}
+
+.query-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.6rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  border: 1px solid var(--border-light);
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.query-input:focus {
+  outline: 2px solid var(--bg-green);
+  outline-offset: -1px;
+}
+
+.btn-answer {
+  width: 100%;
+  background: var(--bg-green);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.btn-answer:hover:not(:disabled) {
+  background: var(--bg-green-dark);
+}
+
+.btn-answer:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.query-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--text-dark);
+}
+
+.query-result p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.query-correct {
+  color: var(--bg-green);
+}
+
+.query-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: var(--text-muted);
+}

@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal, Signal, WritableSignal } from '@angular/core';
-import {PuzzleCharacteristics, PuzzleData, PuzzlePlayer, PuzzlePosition, PuzzleTeam, PuzzleType} from './puzzles.data';
+import {PuzzleCharacteristics, PuzzleData, PuzzlePlayer, PuzzlePosition, PuzzleQuery, PuzzleTeam, PuzzleType} from './puzzles.data';
 import { PuzzleEngineService } from './puzzle-engine.service';
 
 export interface PuzzleSessionState {
@@ -76,7 +76,10 @@ export interface WorkingBoard {
   rows: number;
   cols: number;
   targetScore: number;
-  /** Determines the win condition: 'score' = touchdown, 'surf' = push opponent OOB. */
+  /**
+   * Determines the win condition: 'score' = touchdown, 'surf' = push opponent OOB,
+   * 'sack' = knock the ball loose, 'query' = answer a question about the position.
+   */
   puzzleType: PuzzleType;
   ball: { x: number; y: number };
   players: WorkingPlayer[];
@@ -110,6 +113,10 @@ export interface WorkingBoard {
   hints: string[];
   /** How many hints have been revealed so far (in order). */
   hintsRevealed: number;
+  /** The question for a `query` puzzle, or null for every other puzzle type. */
+  query: PuzzleQuery | null;
+  /** The answer the solver submitted for a `query` puzzle, or null before submission. */
+  queryAnswer: string | null;
 }
 
 /**
@@ -692,6 +699,43 @@ export class PuzzleSessionService implements OnDestroy {
     if (solved) {
       this.markSolved(key);
     }
+  }
+
+  /**
+   * Submit the solver's answer to a `query` puzzle. The puzzle is marked solved
+   * either way; an answer that does not match sets `incorrectSolution` so the
+   * result dialog reports a miss. Answers are compared case-insensitively,
+   * ignoring leading/trailing and repeated whitespace.
+   */
+  submitQueryAnswer(key: string, data: PuzzleData, answer: string): void {
+    const boardSignal = this.boardSignal(key, data, 'query');
+    const board = boardSignal();
+    if (board.solved || !board.query) {
+      return;
+    }
+
+    const trimmed = answer.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+
+    boardSignal.set({
+      ...board,
+      queryAnswer: trimmed,
+      solved: true,
+      incorrectSolution: !this.isQueryAnswerCorrect(board.query, trimmed)
+    });
+    this.markSolved(key);
+  }
+
+  private isQueryAnswerCorrect(query: PuzzleQuery, answer: string): boolean {
+    const accepted = Array.isArray(query.answer) ? query.answer : [query.answer];
+    const normalized = this.normalizeAnswer(answer);
+    return accepted.some((candidate) => this.normalizeAnswer(candidate) === normalized);
+  }
+
+  private normalizeAnswer(value: string): string {
+    return value.trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
   private markSolved(key: string): void {
@@ -1387,13 +1431,28 @@ export class PuzzleSessionService implements OnDestroy {
     return board;
   }
 
-  private createWorkingBoard(data: PuzzleData, puzzleType: PuzzleType = 'score'): WorkingBoard {
-    return {
+  /**
+   * Where the ball starts: on the player flagged `ball: true` if there is one,
+   * otherwise the loose-ball position from the puzzle data. Puzzles that declare
+   * neither have no ball on the pitch, represented by an off-board square.
+   */
+  private initialBallPosition(data: PuzzleData): { x: number; y: number } {
+    const carrier = data.players.find((player) => player.ball);
+    if (carrier) {
+      return { x: carrier.position.x, y: carrier.position.y };
+    }
+    if (data.ball) {
+      return { x: data.ball.position.x, y: data.ball.position.y };
+    }
+    return { x: -1, y: -1 };
+  }
+
+  private createWorkingBoard(data: PuzzleData, puzzleType: PuzzleType = 'score'): WorkingBoard {    return {
       rows: data.field.rows,
       cols: data.field.cols,
-      targetScore: data.targetScore,
+      targetScore: data.targetScore ?? 100,
       puzzleType,
-      ball: { x: data.ball.position.x, y: data.ball.position.y },
+      ball: this.initialBallPosition(data),
       players: data.players.map((player, index) => {
         const hasSprint = player.skills.some(
           (s) => s.toLowerCase().replace(/[^a-z]/g, '') === 'sprint'
@@ -1430,7 +1489,9 @@ export class PuzzleSessionService implements OnDestroy {
       chanceLog: [],
       incorrectSolution: false,
       hints: data.hints ?? [],
-      hintsRevealed: 0
+      hintsRevealed: 0,
+      query: data.query ?? null,
+      queryAnswer: null
     };
   }
 

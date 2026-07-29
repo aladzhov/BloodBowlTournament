@@ -1,0 +1,61 @@
+{
+  "date": "2026-08-16",
+  "title": "Bloodthirsty",
+  "author": "Atanas Ladzhov",
+  "type": "query",
+  "data": {
+    "field": { "rows": 5, "cols": 5 },
+    "query": {
+      "question": "Which player can perform the safest block action (not causing a turnover) against the Pestigor?",
+      "options": ["Bloodseeker", "Bloodspawn", "Khorngor"],
+      "answer": "Khorngor",
+      "explanation": ["Blitzing with the Khorngor would be with 2 dice and because of Juggernaut Both Down would not cause turnover 8/9 (88%).", "The Bloodseeker's blocks are 8/9 * 8/9 (79%).", "The Bloodspawn will block with three dice, but has to pass Unchanneled Fury test - 1/6 * 26/27 (80%)"]
+    },
+    "players": [
+      {
+        "team": "home",
+        "name": "Bloodspawn",
+        "position": { "x": 2, "y": 1 },
+        "characteristics": { "movement": 5, "strength": 5, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Claws", "Frenzy", "Loner (4+)", "Mighty Blow", "Unchannelled Fury"]
+      },
+      {
+        "team": "home",
+        "name": "Bloodseeker",
+        "position": { "x": 2, "y": 0 },
+        "characteristics": { "movement": 5, "strength": 4, "agility": 6, "passing": 6, "armor": 10 },
+        "skills": ["Block", "Frenzy"],
+        "extraSkills": ["Block"]
+      },
+      {
+        "team": "home",
+        "name": "Khorngor",
+        "position": { "x": 2, "y": 2 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Guard", "Horns", "Juggernaut", "Jump Up", "Thick Skull"],
+        "extraSkills": ["Guard"]
+      },
+      {
+        "team": "away",
+        "name": "Pestigor",
+        "position": { "x": 1, "y": 1 },
+        "characteristics": { "movement": 6, "strength": 3, "agility": 3, "passing": 4, "armor": 9 },
+        "skills": ["Horns", "Plague Ridden", "Regeneration", "Steady Footing", "Thick Skull"]
+      },
+      {
+        "team": "away",
+        "name": "Rotter Lineman",
+        "position": { "x": 2, "y": 3 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Decay", "Plague Ridden"]
+      },
+      {
+        "team": "away",
+        "name": "Rotter Lineman",
+        "position": { "x": 3, "y": 3 },
+        "characteristics": { "movement": 5, "strength": 3, "agility": 4, "passing": 6, "armor": 9 },
+        "skills": ["Decay", "Plague Ridden"]
+      }
+    ]
+  }
+}

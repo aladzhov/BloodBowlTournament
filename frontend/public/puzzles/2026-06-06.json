@@ -5,12 +5,12 @@
   "type": "score",
   "data": {
     "field": { "rows": 4, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 0 } },
     "players": [
       {
         "team": "home",
         "name": "Tomb Kings Blitzer",
         "position": { "x": 2, "y": 0 },
+        "ball": true,
         "characteristics": { "movement": 6, "strength": 3, "agility": 4, "passing": 5, "armor": 9 },
         "skills": ["Block", "Regeneration", "Thick Skull"]
       },

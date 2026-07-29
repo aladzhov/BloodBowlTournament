@@ -95,8 +95,8 @@
                       [class.move-target]="cell.isMoveTarget && !pushing() && !jumping() && !choosingHitAndRun()"
                       [class.push-target]="isPushTarget(cell) || isJumpTarget(cell) || isHitAndRunTarget(cell)"
                       [class.sidestep-preview]="isSidestepPreview(cell)"
-                      [class.selectable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
-                      [class.targetable]="!pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
+                      [class.selectable]="!isQuery() && !pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'home' && !cell.player.activated"
+                      [class.targetable]="!isQuery() && !pushing() && !jumping() && revealed() && !solved() && cell.player && cell.player.team === 'away' && selectedPlayer()"
                       (click)="onCellClick(cell)"
                       (mouseenter)="onPlayerHover(cell.player)"
                       (mouseleave)="onPlayerHover(null)">
@@ -284,10 +284,20 @@
               <div class="board-side">
                 <app-player-details [player]="hoveredPlayer()"></app-player-details>
 
-                <app-success-breakdown
-                  [log]="working().chanceLog"
-                  [percent]="chancePercent()">
-                </app-success-breakdown>
+                @if (isQuery()) {
+                  <app-query-panel
+                    [query]="query()"
+                    [submittedAnswer]="queryAnswer()"
+                    [answered]="solved()"
+                    [locked]="!revealed()"
+                    (submitAnswer)="onQueryAnswer($event)">
+                  </app-query-panel>
+                } @else {
+                  <app-success-breakdown
+                    [log]="working().chanceLog"
+                    [percent]="chancePercent()">
+                  </app-success-breakdown>
+                }
 
                 <app-hints
                   [hints]="working().hints"
@@ -313,8 +323,12 @@
               <div class="result-card" (click)="$event.stopPropagation()">
                 @if (isIncorrectSolution()) {
                   <img src="orc-no.png" alt="Incorrect solution" class="result-image" />
-                  <h3 class="result-title incorrect">Not a correct solution!</h3>
-                  <p class="result-hint">This is not a correct solution!</p>
+                  <h3 class="result-title incorrect">
+                    {{ isQuery() ? 'Wrong answer!' : 'Not a correct solution!' }}
+                  </h3>
+                  <p class="result-hint">
+                    {{ isQuery() ? 'That is not the right answer!' : 'This is not a correct solution!' }}
+                  </p>
                 } @else {
                   @if (canDoBetter()) {
                     <img src="orc-close.png" alt="Incorrect solution" class="result-image" />
@@ -323,7 +337,9 @@
                   }
                   <h3 class="result-title">{{ solvedTitle() }}</h3>
                   <p class="result-time">{{ timerDisplay() }}</p>
-                  <p class="result-chance">{{ chancePercent() }}% chance for success</p>
+                  @if (!isQuery()) {
+                    <p class="result-chance">{{ chancePercent() }}% chance for success</p>
+                  }
                   @if (canDoBetter()) {
                     <p class="result-hint">Great job — but you can do better!</p>
                   }

@@ -6,12 +6,12 @@
   "data": {
     "hints": ["Consider the skill upgrades", "Look for chain pushes"],
     "field": { "rows": 6, "cols": 7 },
-    "ball": { "position": { "x": 2, "y": 3 } },
     "players": [
       {
         "team": "home",
         "name": "Mummy",
         "position": { "x": 2 , "y": 3 },
+        "ball": true,
         "characteristics": { "movement": 3, "strength": 5, "agility": 5, "passing": 6, "armor": 10 },
         "skills": ["Guard", "Mighty Blow", "Regeneration"],
         "extraSkills": ["Guard"]

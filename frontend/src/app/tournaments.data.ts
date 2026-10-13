@@ -43,10 +43,17 @@ export const allTournaments: Tournament[] = [
   },
   {
     name: 'Melon Field Bowl 7',
-    location: 'TBD, Sofia',
-    dates: 'TBD November 2026',
+    location: 'The Other Castle, Sofia',
+    dates: '07 November 2026',
     format: 'EuroBowl 2026',
     url: ''
-  }
+  },
+  {
+    name: 'The Rosette',
+    location: 'Mox Games, Sofia',
+    dates: '13 December 2026',
+    format: 'Sevens',
+    url: 'https://tourplay.net/en/blood-bowl/rosette/classifications'
+  },
 ];
 

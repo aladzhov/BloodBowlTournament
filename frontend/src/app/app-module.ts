@@ -10,6 +10,7 @@ import { BulgarianFumbblTabComponent } from './bulgarian-fumbbl-tab.component';
 import { CoachCardComponent } from './coach-card.component';
 import { MainTabComponent } from './main-tab.component';
 import { PuzzlesTabComponent } from './puzzles-tab.component';
+import { SuperstarTabComponent } from './superstar-tab.component';
 import { PlayerDetailsComponent } from './player-details.component';
 import { SuccessBreakdownComponent } from './success-breakdown.component';
 import { HintsComponent } from './hints.component';
@@ -22,6 +23,7 @@ import { QueryPanelComponent } from './query-panel.component';
     CoachCardComponent,
     BulgarianFumbblTabComponent,
     PuzzlesTabComponent,
+    SuperstarTabComponent,
     PlayerDetailsComponent,
     SuccessBreakdownComponent,
     HintsComponent,

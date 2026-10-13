@@ -1,0 +1,475 @@
+.superstar-tab {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem 1.25rem;
+  overflow: hidden;
+}
+
+.gb-status {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.gb-error {
+  color: #b00020;
+}
+
+/* Thematic parchment frame that fills the screen and stays static; only its
+   inner content scrolls when it overflows. */
+.gb-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(34rem, 92vw);
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.35), transparent 60%),
+    linear-gradient(180deg, #f5ecd6 0%, #ece0c2 100%);
+  color: #2b241a;
+  border: 3px solid #6b4e2e;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 6px #b89b6a,
+    0 0 0 8px #6b4e2e,
+    0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Decorative corner studs. */
+.gb-frame::before,
+.gb-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6b4e2e;
+  box-shadow: 0 0 0 3px #b89b6a;
+  z-index: 1;
+}
+
+.gb-frame::before {
+  top: 10px;
+  left: 10px;
+}
+
+.gb-frame::after {
+  bottom: 10px;
+  right: 10px;
+}
+
+/* ---- Setup / hero selection ---- */
+.gb-setup {
+  max-height: calc(100vh - 20rem);
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.gb-setup h3 {
+  margin: 0 0 1rem;
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.gb-heroes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.gb-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 12rem;
+  padding: 1rem;
+  text-align: left;
+  border: 2px solid rgba(107, 78, 46, 0.4);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.gb-hero-card:hover {
+  transform: translateY(-2px);
+}
+
+.gb-hero-card.selected {
+  border-color: #1b7a3d;
+  box-shadow: 0 0 0 2px rgba(27, 122, 61, 0.3);
+}
+
+.gb-hero-race {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.gb-hero-nick {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.gb-hero-skills {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.gb-nick-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 22rem;
+  margin: 0 auto 1.5rem;
+}
+
+.gb-nick-field input,
+.gb-nick-field select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(107, 78, 46, 0.5);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.gb-start,
+.gb-restart,
+.gb-debug-toggle {
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.gb-start {
+  display: block;
+  margin: 0 auto;
+  background: #1b7a3d;
+  color: #fff;
+}
+
+.gb-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Reader ---- */
+.gb-reader {
+  max-height: calc(100vh - 20rem);
+  min-height: 0;
+  width: 100%;
+  max-width: min(52rem, 94vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Page frame on the left, info side panel on the right. */
+.gb-layout {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* The page frame fills the remaining height; its body scrolls internally. */
+.gb-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: min(34rem, 92vw);
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+/* ---- Side panel ---- */
+.gb-side {
+  flex: 0 0 13rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+}
+
+.gb-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.9rem;
+  background:
+    linear-gradient(180deg, #f5ecd6 0%, #ece0c2 100%);
+  border: 2px solid #6b4e2e;
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #b89b6a;
+  color: #2b241a;
+}
+
+.gb-side-label {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.gb-side-nick {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.gb-spp-panel {
+  gap: 0.5rem;
+}
+
+.gb-stat-row {
+  cursor: help;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.gb-spp-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gb-reroll-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gb-reroll-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(161, 16, 32, 0.5);
+  border-radius: 4px;
+  background: rgba(179, 32, 42, 0.12);
+  color: #a11020;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gb-reroll-btn:hover {
+  background: rgba(179, 32, 42, 0.22);
+}
+
+.gb-skill-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gb-skill {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.gb-skill-initial {
+  color: #12622f;
+  background: rgba(27, 122, 61, 0.12);
+}
+
+.gb-skill-extra {
+  color: #a11020;
+  background: rgba(179, 32, 42, 0.12);
+}
+
+.gb-char-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.gb-char {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.2rem;
+  border: 2px solid #6b4e2e;
+  border-radius: 4px;
+  background: rgba(107, 78, 46, 0.08);
+}
+
+.gb-char-key {
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.gb-char-val {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gb-mate-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gb-mate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(107, 78, 46, 0.08);
+}
+
+.gb-mate-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.gb-mate-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gb-mate-progress-label {
+  flex: none;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.gb-mate-bar {
+  flex: 1;
+  height: 0.55rem;
+  border: 1px solid #6b4e2e;
+  border-radius: 999px;
+  background: rgba(107, 78, 46, 0.15);
+  overflow: hidden;
+}
+
+.gb-mate-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1b7a3d 0%, #12622f 100%);
+  transition: width 0.35s ease;
+}
+
+.gb-page-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  white-space: pre-line;
+  line-height: 1.85;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.gb-b {
+  font-weight: 700;
+}
+
+.gb-i {
+  font-style: italic;
+}
+
+.gb-u {
+  text-decoration: underline;
+}
+
+.gb-link {
+  display: inline-block;
+  padding: 0.1rem 0.7rem;
+  margin: 0 0.15rem;
+  border: 2px solid #7d1620;
+  border-radius: 6px;
+  background: #b3202a;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.3;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.gb-link:hover {
+  background: #8f1820;
+  transform: translateY(-1px);
+}
+
+.gb-reset {
+  border-color: #444;
+  background: #2b2b2b;
+}
+.gb-controls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.gb-restart {
+  background: rgba(107, 78, 46, 0.85);
+  color: #fff;
+}
+
+.gb-debug-toggle {
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+}
+
+.gb-debug {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: min(34rem, 92vw);
+  max-height: 22vh;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  border: 1px dashed rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.gb-debug ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  columns: 2;
+}

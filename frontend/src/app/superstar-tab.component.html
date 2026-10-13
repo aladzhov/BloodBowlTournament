@@ -1,0 +1,207 @@
+<section class="superstar-tab">
+  @if (game.loading()) {
+    <p class="gb-status">Loading…</p>
+  } @else if (game.loadError()) {
+    <p class="gb-status gb-error">{{ game.loadError() }}</p>
+  } @else if (!game.started()) {
+    <div class="gb-reader">
+      <div class="gb-layout">
+    <div class="gb-frame gb-setup">
+      <h3>Choose a character</h3>
+      <div class="gb-heroes">
+        @for (hero of game.heroes(); track hero.key) {
+          <button
+            type="button"
+            class="gb-hero-card"
+            [class.selected]="game.selectedRace() === hero.key"
+            (click)="game.selectRace(hero)">
+            <span class="gb-hero-race">{{ hero.race }}</span>
+            <span class="gb-hero-nick">{{ hero.nick }}</span>
+            <span class="gb-hero-skills">{{ hero.skills.join(', ') }}</span>
+          </button>
+        }
+      </div>
+
+      <label class="gb-nick-field">
+        <span>NICKNAME</span>
+        <input
+          type="text"
+          name="nick"
+          [ngModel]="game.nick()"
+          (ngModelChange)="game.nick.set($event)" />
+      </label>
+
+      <label class="gb-nick-field">
+        <span>EXTRA SKILL</span>
+        <select
+          name="extraSkill"
+          [ngModel]="game.extraSkill()"
+          (ngModelChange)="game.extraSkill.set($event)">
+          <option [ngValue]="null">— none —</option>
+          @for (skill of game.availableExtraSkills(); track skill) {
+            <option [ngValue]="skill">{{ skill }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="gb-start" [disabled]="!game.canStart()" (click)="game.start()">
+        Begin
+      </button>
+    </div>
+
+        <aside class="gb-side">
+          <div class="gb-side-panel">
+            <span class="gb-side-label">Nickname</span>
+            <span class="gb-side-nick">{{ game.nick() }}</span>
+          </div>
+
+          @if (game.selectedHero(); as hero) {
+            <div class="gb-side-panel">
+              <span class="gb-side-label">Characteristics</span>
+              <ul class="gb-char-list">
+                <li class="gb-char"><span class="gb-char-key">MA</span><span class="gb-char-val">{{ hero.characteristics.movement }}</span></li>
+                <li class="gb-char"><span class="gb-char-key">ST</span><span class="gb-char-val">{{ hero.characteristics.strength }}</span></li>
+                <li class="gb-char"><span class="gb-char-key">AG</span><span class="gb-char-val">{{ hero.characteristics.agility }}+</span></li>
+                <li class="gb-char"><span class="gb-char-key">PA</span><span class="gb-char-val">{{ hero.characteristics.passing }}+</span></li>
+                <li class="gb-char"><span class="gb-char-key">AV</span><span class="gb-char-val">{{ hero.characteristics.armor }}+</span></li>
+              </ul>
+            </div>
+          }
+
+          <div class="gb-side-panel">
+            <span class="gb-side-label">Skills</span>
+            <ul class="gb-skill-list">
+              @for (skill of game.selectedHero()?.skills ?? []; track skill) {
+                <li class="gb-skill gb-skill-initial">{{ skill }}</li>
+              }
+              @if (game.extraSkill(); as extra) {
+                <li class="gb-skill gb-skill-extra">{{ extra }}</li>
+              }
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  } @else {
+    <div class="gb-reader">
+      <div class="gb-layout">
+        <article class="gb-frame gb-page">
+          @if (game.pageExists(game.currentPage())) {
+            <div class="gb-page-body">
+              @for (node of game.currentNodes(); track $index) {
+                @if (node.kind === 'text') {
+                  <span
+                    [class.gb-b]="node.strong"
+                    [class.gb-i]="node.italic"
+                    [class.gb-u]="node.underline">{{ node.text }}</span>
+                } @else if (node.kind === 'reset') {
+                  <button type="button" class="gb-link gb-reset" (click)="game.restart()">
+                    Отначало
+                  </button>
+                } @else {
+                  <button type="button" class="gb-link" (click)="game.goTo(node.target)">
+                    {{ node.target }}
+                  </button>
+                }
+              }
+            </div>
+          } @else {
+            <p class="gb-status">Край на глава 1. (Страница {{ game.currentPage() }} все още не съществува.)</p>
+          }
+        </article>
+
+        <aside class="gb-side">
+          <div class="gb-side-panel">
+            <span class="gb-side-label">Nickname</span>
+            <span class="gb-side-nick">{{ game.nick() }}</span>
+          </div>
+
+          <div class="gb-side-panel gb-spp-panel">
+            <div class="gb-stat-row" title="Star Player Points — accumulate 3 to get a new skill">
+              <span class="gb-side-label">SPP</span>
+              <span class="gb-spp-value">{{ game.spp() }}</span>
+            </div>
+
+            @if (game.reroll() > 0) {
+              <div class="gb-stat-row" title="Rerolls — press − to spend one when you use it">
+                <span class="gb-side-label">Rerolls</span>
+                <div class="gb-reroll-control">
+                  <span class="gb-spp-value">{{ game.reroll() }}</span>
+                  <button
+                    type="button"
+                    class="gb-reroll-btn"
+                    (click)="game.useReroll()"
+                    aria-label="Use a reroll">−</button>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (game.selectedHero(); as hero) {
+            <div class="gb-side-panel">
+              <span class="gb-side-label">Characteristics</span>
+              <ul class="gb-char-list">
+                <li class="gb-char"><span class="gb-char-key">MA</span><span class="gb-char-val">{{ hero.characteristics.movement }}</span></li>
+                <li class="gb-char"><span class="gb-char-key">ST</span><span class="gb-char-val">{{ hero.characteristics.strength }}</span></li>
+                <li class="gb-char"><span class="gb-char-key">AG</span><span class="gb-char-val">{{ hero.characteristics.agility }}+</span></li>
+                <li class="gb-char"><span class="gb-char-key">PA</span><span class="gb-char-val">{{ hero.characteristics.passing }}+</span></li>
+                <li class="gb-char"><span class="gb-char-key">AV</span><span class="gb-char-val">{{ hero.characteristics.armor }}+</span></li>
+              </ul>
+            </div>
+          }
+
+          <div class="gb-side-panel">
+            <span class="gb-side-label">Skills</span>
+            <ul class="gb-skill-list">
+              @for (skill of game.selectedHero()?.skills ?? []; track skill) {
+                <li class="gb-skill gb-skill-initial">{{ skill }}</li>
+              }
+              @if (game.extraSkill(); as extra) {
+                <li class="gb-skill gb-skill-extra">{{ extra }}</li>
+              }
+            </ul>
+          </div>
+
+          @if (game.revealedTeammates(); as mates) {
+            @if (mates.length > 0) {
+              <div class="gb-side-panel">
+                <span class="gb-side-label">Teammates</span>
+                <ul class="gb-mate-list">
+                  @for (mate of mates; track mate.short) {
+                    <li class="gb-mate">
+                      <span class="gb-mate-name">{{ mate.name }}</span>
+                      <div class="gb-mate-progress">
+                        <span class="gb-mate-progress-label">Assists</span>
+                        <div class="gb-mate-bar" [title]="game.assists()[mate.short] + ' assists'">
+                          <div class="gb-mate-bar-fill" [style.width.%]="game.assistFill(mate.short)"></div>
+                        </div>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          }
+        </aside>
+      </div>
+
+      <div class="gb-controls">
+        <button type="button" class="gb-restart" (click)="game.restart()">Отначало</button>
+        <button type="button" class="gb-debug-toggle" (click)="game.showDebug.set(!game.showDebug())">
+          {{ game.showDebug() ? 'Скрий' : 'Покажи' }} state (debug)
+        </button>
+      </div>
+
+      @if (game.showDebug()) {
+        <div class="gb-debug">
+          <p>Страница: {{ game.currentPage() }} · Раса: {{ game.selectedRace() }} · Nick: {{ game.nick() }} · SPP: {{ game.spp() }} · Rerolls: {{ game.reroll() }}</p>
+          <ul>
+            @for (mate of game.teammates(); track mate.short) {
+              <li>{{ mate.short }}: {{ game.assists()[mate.short] }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</section>

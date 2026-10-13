@@ -4,8 +4,9 @@ import { Meta, Title } from '@angular/platform-browser';
 
 import { findCoachBySlug, getCoachCardPath, rankedBulgarianCoachEntries } from './coach-card.data';
 import { PuzzleSessionService } from './puzzle-session.service';
+import { environment } from '../environments/environment';
 
-type TabId = 'main' | 'coach-card' | 'puzzles' | 'bulgarian-fumbbl';
+type TabId = 'main' | 'coach-card' | 'puzzles' | 'bulgarian-fumbbl' | 'superstar';
 
 interface TabDefinition {
   id: TabId;
@@ -31,6 +32,7 @@ export class App implements OnInit {
     { id: 'main', label: 'Cup' },
     { id: 'coach-card', label: 'Coach Cards' },
     { id: 'puzzles', label: 'Puzzles' },
+    ...(environment.production ? [] : [{ id: 'superstar' as const, label: 'Superstar' }]),
     // { id: 'bulgarian-fumbbl', label: 'Bulgarian Fumbbl' }
   ];
 
@@ -153,6 +155,11 @@ export class App implements OnInit {
         return {
           title: `${this.seoSiteName} | Puzzles`,
           description: 'Blood Bowl Bulgaria puzzles: test your Blood Bowl knowledge.'
+        };
+      case 'superstar':
+        return {
+          title: `${this.seoSiteName} | Superstar`,
+          description: 'Blood Bowl Bulgaria Superstar.'
         };
       case 'main':
       default:

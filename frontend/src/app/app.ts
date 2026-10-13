@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, HostListener, Inject, OnInit } from '@angular/core';
+import { Component, HostListener, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
 import { findCoachBySlug, getCoachCardPath, rankedBulgarianCoachEntries } from './coach-card.data';
@@ -18,7 +18,8 @@ interface TabDefinition {
   selector: 'app-root',
   templateUrl: './app.html',
   standalone: false,
-  styleUrl: './app.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './app.css',
 })
 export class App implements OnInit {
   private readonly siteUrl = 'https://www.bgbb.eu';
@@ -26,7 +27,8 @@ export class App implements OnInit {
   private readonly defaultCoach = rankedBulgarianCoachEntries[0]?.coach ?? null;
   title = 'Bulgarian Blood Bowl Cup';
   season = '2026';
-  private readonly defaultDescription = 'Blood Bowl Bulgaria: follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
+  private readonly defaultDescription =
+    'Blood Bowl Bulgaria: follow the Bulgarian Blood Bowl Cup 2026 with season standings, tournament dates, prizes, rules, and Bulgarian Fumbbl team rosters.';
 
   readonly tabs: TabDefinition[] = [
     { id: 'main', label: 'Cup' },
@@ -44,7 +46,7 @@ export class App implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     @Inject(DOCUMENT) private readonly document: Document,
-    private readonly puzzleSessionService: PuzzleSessionService
+    private readonly puzzleSessionService: PuzzleSessionService,
   ) {}
 
   ngOnInit(): void {
@@ -115,12 +117,18 @@ export class App implements OnInit {
 
   private updateSeo(): void {
     const metadata = this.getSeoMetadata(this.activeTab);
-    const pageUrl = this.getAbsoluteUrl(typeof window !== 'undefined' ? window.location.pathname : '/');
+    const pageUrl = this.getAbsoluteUrl(
+      typeof window !== 'undefined' ? window.location.pathname : '/',
+    );
     const imageUrl = this.getAbsoluteUrl('/bbbg-banner.png');
 
     this.titleService.setTitle(metadata.title);
     this.metaService.updateTag({ name: 'description', content: metadata.description });
-    this.metaService.updateTag({ name: 'keywords', content: 'Blood Bowl Bulgaria, Bulgarian Blood Bowl, Blood Bowl tournaments Bulgaria, Blood Bowl Cup Bulgaria, Bulgarian Fumbbl' });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content:
+        'Blood Bowl Bulgaria, Bulgarian Blood Bowl, Blood Bowl tournaments Bulgaria, Blood Bowl Cup Bulgaria, Bulgarian Fumbbl',
+    });
     this.metaService.updateTag({ property: 'og:title', content: metadata.title });
     this.metaService.updateTag({ property: 'og:description', content: metadata.description });
     this.metaService.updateTag({ property: 'og:url', content: pageUrl });
@@ -140,7 +148,8 @@ export class App implements OnInit {
       case 'bulgarian-fumbbl':
         return {
           title: `${this.seoSiteName} | Bulgarian Fumbbl Teams and Rosters ${this.season}`,
-          description: 'Blood Bowl Bulgaria custom teams: explore Bulgarian Fumbbl rosters, player positions, and team identity for Dobroto and Zloto.'
+          description:
+            'Blood Bowl Bulgaria custom teams: explore Bulgarian Fumbbl rosters, player positions, and team identity for Dobroto and Zloto.',
         };
       case 'coach-card':
         return {
@@ -149,23 +158,23 @@ export class App implements OnInit {
             : `${this.seoSiteName} | Coach Cards`,
           description: this.selectedCoachForInterview
             ? `Blood Bowl Bulgaria coach card for ${this.selectedCoachForInterview}: browse interview Q&A highlights and current season standing details.`
-            : 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.'
+            : 'Blood Bowl Bulgaria coach cards: browse current Bulgarian coaches and short interview Q&A highlights.',
         };
       case 'puzzles':
         return {
           title: `${this.seoSiteName} | Puzzles`,
-          description: 'Blood Bowl Bulgaria puzzles: test your Blood Bowl knowledge.'
+          description: 'Blood Bowl Bulgaria puzzles: test your Blood Bowl knowledge.',
         };
       case 'superstar':
         return {
           title: `${this.seoSiteName} | Superstar`,
-          description: 'Blood Bowl Bulgaria Superstar.'
+          description: 'Blood Bowl Bulgaria Superstar.',
         };
       case 'main':
       default:
         return {
           title: `${this.seoSiteName} ${this.season} | Tournaments, Standings and Community`,
-          description: this.defaultDescription
+          description: this.defaultDescription,
         };
     }
   }
@@ -195,7 +204,7 @@ export class App implements OnInit {
           name: this.seoSiteName,
           url,
           description: this.defaultDescription,
-          inLanguage: 'en'
+          inLanguage: 'en',
         },
         {
           '@type': 'Organization',
@@ -203,9 +212,9 @@ export class App implements OnInit {
           url,
           logo: this.getAbsoluteUrl('/favicon.png'),
           image: imageUrl,
-          sameAs: ['https://www.facebook.com/groups/1092384540884398']
-        }
-      ]
+          sameAs: ['https://www.facebook.com/groups/1092384540884398'],
+        },
+      ],
     });
 
     if (!existingScript) {

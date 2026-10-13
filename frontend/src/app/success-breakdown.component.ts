@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import { ChanceLogEntry } from './puzzle-session.service';
 
 /**
@@ -9,7 +9,8 @@ import { ChanceLogEntry } from './puzzle-session.service';
   selector: 'app-success-breakdown',
   standalone: false,
   templateUrl: './success-breakdown.component.html',
-  styleUrl: './success-breakdown.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './success-breakdown.component.css',
 })
 export class SuccessBreakdownComponent {
   /** Ordered chance-reducing events from the working board. */
@@ -21,8 +22,8 @@ export class SuccessBreakdownComponent {
   readonly rows = computed(() =>
     this.log().map((entry) => ({
       reason: entry.reason,
-      rollFraction: this.toFraction(entry.factor)
-    }))
+      rollFraction: this.toFraction(entry.factor),
+    })),
   );
 
   /**
@@ -51,4 +52,3 @@ export class SuccessBreakdownComponent {
     return b === 0 ? a : this.gcd(b, a % b);
   }
 }
-

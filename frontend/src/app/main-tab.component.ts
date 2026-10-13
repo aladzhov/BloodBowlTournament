@@ -1,9 +1,15 @@
-import {Component, EventEmitter, HostListener, Output} from '@angular/core';
-import {RankingEntry, Tournament} from './app-data.model';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { RankingEntry, Tournament } from './app-data.model';
 import { getCoachCardPath } from './coach-card.data';
 import { hasCoachInterview } from './coach-interviews.data';
-import {standingsEntries} from './standings.data';
-import {allTournaments} from './tournaments.data';
+import { standingsEntries } from './standings.data';
+import { allTournaments } from './tournaments.data';
 
 interface FeatureCard {
   title: string;
@@ -26,7 +32,8 @@ interface DatedArchiveTournament extends Tournament {
   selector: 'app-main-tab',
   standalone: false,
   templateUrl: './main-tab.component.html',
-  styleUrl: './main-tab.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './main-tab.component.css',
 })
 export class MainTabComponent {
   @Output() readonly coachInterviewSelected = new EventEmitter<string>();
@@ -34,22 +41,20 @@ export class MainTabComponent {
   readonly featureCards: FeatureCard[] = [
     {
       title: 'The Cup',
-      description: 'Battle for Bulgaria! Every tournament, every match counts. Every win brings the Crown closer!'
+      description:
+        'Battle for Bulgaria! Every tournament, every match counts. Every win brings the Crown closer!',
     },
     {
       title: 'The Points',
       description: 'Top 10 finishers bag the points',
-      details: [
-        'Tournament winners get one bonus',
-        'Tie-breaks: Touchdowns and then broken bones'
-      ]
+      details: ['Tournament winners get one bonus', 'Tie-breaks: Touchdowns and then broken bones'],
     },
     {
       title: 'The Prize',
       description: 'One Champion, one Prize, one Legendary Ball:',
       imageSrc: '/tomy-prize.jpg',
-      imageAlt: 'Blood Bowl plush'
-    }
+      imageAlt: 'Blood Bowl plush',
+    },
   ];
 
   readonly title = 'Bulgarian Blood Bowl Cup';
@@ -76,7 +81,7 @@ export class MainTabComponent {
       .map((entry, index) => ({
         ...entry,
         rank: index + 1,
-        interviewed: hasCoachInterview(entry.coach)
+        interviewed: hasCoachInterview(entry.coach),
       }));
   }
 
@@ -87,9 +92,7 @@ export class MainTabComponent {
       return '🏳️';
     }
 
-    return String.fromCodePoint(
-      ...[...normalized].map((char) => 127397 + char.charCodeAt(0))
-    );
+    return String.fromCodePoint(...[...normalized].map((char) => 127397 + char.charCodeAt(0)));
   }
 
   openCoachInterview(coach: string): void {
@@ -129,7 +132,7 @@ export class MainTabComponent {
     this.selectedFeatureImage = {
       title: feature.title,
       imageSrc: feature.imageSrc,
-      imageAlt: feature.imageAlt
+      imageAlt: feature.imageAlt,
     };
   }
 
@@ -167,17 +170,19 @@ export class MainTabComponent {
   get latestTrackedPastTournament(): Tournament | null {
     const today = this.startOfDay(new Date());
 
-    return this.allTournaments
-      .map((tournament) => this.withSortDate(tournament))
-      .filter((tournament) => tournament.tracked && tournament.sortDate < today)
-      .sort((left, right) => right.sortDate.getTime() - left.sortDate.getTime())
-      .map(({ sortDate: _, ...tournament }) => tournament)[0] ?? null;
+    return (
+      this.allTournaments
+        .map((tournament) => this.withSortDate(tournament))
+        .filter((tournament) => tournament.tracked && tournament.sortDate < today)
+        .sort((left, right) => right.sortDate.getTime() - left.sortDate.getTime())
+        .map(({ sortDate: _, ...tournament }) => tournament)[0] ?? null
+    );
   }
 
   private withSortDate(tournament: Tournament): DatedArchiveTournament {
     return {
       ...tournament,
-      sortDate: this.parseArchiveTournamentDate(tournament.dates)
+      sortDate: this.parseArchiveTournamentDate(tournament.dates),
     };
   }
 
@@ -218,7 +223,7 @@ export class MainTabComponent {
       'september',
       'october',
       'november',
-      'december'
+      'december',
     ].indexOf(month.toLowerCase());
   }
 
@@ -228,4 +233,3 @@ export class MainTabComponent {
 
   protected readonly hasCoachInterview = hasCoachInterview;
 }
-

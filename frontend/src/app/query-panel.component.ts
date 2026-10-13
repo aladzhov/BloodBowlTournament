@@ -1,4 +1,12 @@
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import type { PuzzleQuery } from './puzzles.data';
 
 /**
@@ -11,7 +19,8 @@ import type { PuzzleQuery } from './puzzles.data';
   selector: 'app-query-panel',
   standalone: false,
   templateUrl: './query-panel.component.html',
-  styleUrl: './query-panel.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './query-panel.component.css',
 })
 export class QueryPanelComponent {
   /** The question for the current puzzle, or null when it is not a query puzzle. */
@@ -35,7 +44,7 @@ export class QueryPanelComponent {
   readonly displayAnswer = computed(() => this.submittedAnswer() ?? '');
 
   readonly canSubmit = computed(
-    () => !this.answered() && !this.locked() && this.draft().trim().length > 0
+    () => !this.answered() && !this.locked() && this.draft().trim().length > 0,
   );
 
   /** The accepted answer(s), revealed once the puzzle has been answered. */

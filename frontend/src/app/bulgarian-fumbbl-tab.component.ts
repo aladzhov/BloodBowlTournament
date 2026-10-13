@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 type TeamViewTab = 'roster' | 'concept';
 
@@ -39,40 +39,37 @@ interface FumbblPlayer {
   selector: 'app-bulgarian-fumbbl-tab',
   standalone: false,
   templateUrl: './bulgarian-fumbbl-tab.component.html',
-  styleUrl: './bulgarian-fumbbl-tab.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './bulgarian-fumbbl-tab.component.css',
 })
 export class BulgarianFumbblTabComponent {
   readonly teams: FumbblTeam[] = [
     {
       name: 'Dobroto',
       logo: '/logo-dobroto.jpeg',
-      details: [
-        'Re-rolls: 70,000 gp.',
-        'Apothecary: Yes',
-        'Leagues: Old World Classic'
-      ],
-      stl: "",
+      details: ['Re-rolls: 70,000 gp.', 'Apothecary: Yes', 'Leagues: Old World Classic'],
+      stl: '',
       conceptImages: [
         {
           src: '/dobroto/kuker.png',
           alt: 'Dobroto 3D concept of a Kuker',
-          title: 'Kuker Concept'
+          title: 'Kuker Concept',
         },
         {
           src: '/dobroto/kuker2.png',
           alt: 'Dobroto alternate 3D concept of a Kuker',
-          title: 'Kuker Alternate Concept'
+          title: 'Kuker Alternate Concept',
         },
         {
           src: '/dobroto/shepherd.png',
           alt: 'Dobroto 3D concept of a Shepherd',
-          title: 'Shepherd Concept'
+          title: 'Shepherd Concept',
         },
         {
           src: '/dobroto/yabalka.png',
           alt: 'Dobroto 3D concept of Zlatna Yabalka',
-          title: 'Zlatna Yabalka Concept'
-        }
+          title: 'Zlatna Yabalka Concept',
+        },
       ],
       roster: [
         {
@@ -89,8 +86,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GSM',
           secondary: '—',
           cost: '150,000',
-          motivation: "The zmey (dragon form) is colossal winged serpent with human-like intelligence. A guardian who protect the harvest. The idea in the team is to pick one of the Zmeys",
-          song: "Очи му са като звезди, крила му са позлатени.",
+          motivation:
+            'The zmey (dragon form) is colossal winged serpent with human-like intelligence. A guardian who protect the harvest. The idea in the team is to pick one of the Zmeys',
+          song: 'Очи му са като звезди, крила му са позлатени.',
         },
         {
           quantity: '0-1',
@@ -106,8 +104,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GAS',
           secondary: '—',
           cost: '120,000',
-          motivation: "The zmey (human form) is a powerful warrior hiding his wings and scales beneath a cloak. He walks among people to experience the world he protects. The idea in the team is to pick one of the Zmeys",
-          song: "Че змей е Стоян, мале мо, змей е и змейски ще си остане.",
+          motivation:
+            'The zmey (human form) is a powerful warrior hiding his wings and scales beneath a cloak. He walks among people to experience the world he protects. The idea in the team is to pick one of the Zmeys',
+          song: 'Че змей е Стоян, мале мо, змей е и змейски ще си остане.',
         },
         {
           quantity: '0-3',
@@ -123,8 +122,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GS',
           secondary: 'A',
           cost: '90,000',
-          motivation: "A masked ritualist draped in heavy furs and massive copper bells. They seek spiritual purification frightening away the darkness with noise and dance",
-          song: "Хлопайте, хлопки, звънете, звънци, да бягат надалеч злите духци!"
+          motivation:
+            'A masked ritualist draped in heavy furs and massive copper bells. They seek spiritual purification frightening away the darkness with noise and dance',
+          song: 'Хлопайте, хлопки, звънете, звънци, да бягат надалеч злите духци!',
         },
         {
           quantity: '0-1',
@@ -140,8 +140,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GP',
           secondary: 'A',
           cost: '90,000',
-          motivation: "The zlatna yabalka (golden apple) is a symbol of life, health, and cosmic order",
-          song: "Велике, моме цървена,\nта що си толко хубава"
+          motivation:
+            'The zlatna yabalka (golden apple) is a symbol of life, health, and cosmic order',
+          song: 'Велике, моме цървена,\nта що си толко хубава',
         },
         {
           quantity: '0-12',
@@ -157,41 +158,38 @@ export class BulgarianFumbblTabComponent {
           primary: 'GA',
           secondary: 'S',
           cost: '60,000',
-          motivation: "The symbol of the common man’s resilience. Armed only with a wooden flute and a pole (krivachka), he is the bridge between the mundane and the magical, often outsmarting ancient beings through folk wisdom and patience",
-          song: "Излезли са три сюрии,\nтри сюрии с три овчаре"
-        }
-      ]
+          motivation:
+            'The symbol of the common man’s resilience. Armed only with a wooden flute and a pole (krivachka), he is the bridge between the mundane and the magical, often outsmarting ancient beings through folk wisdom and patience',
+          song: 'Излезли са три сюрии,\nтри сюрии с три овчаре',
+        },
+      ],
     },
     {
       name: 'Zloto',
       logo: '/logo-zloto.png',
-      details: [
-        'Re-rolls: 70,000 gp.',
-        'Apothecary: No',
-        'Leagues: Chaos Clash'
-      ],
-      stl: "",
+      details: ['Re-rolls: 70,000 gp.', 'Apothecary: No', 'Leagues: Chaos Clash'],
+      stl: '',
       conceptImages: [
         {
           src: '/zloto/lamya.png',
           alt: 'Zloto 3D concept of a Lamya',
-          title: 'Lamya Concept'
+          title: 'Lamya Concept',
         },
         {
           src: '/zloto/hala.png',
           alt: 'Zloto 3D concept of a Hala',
-          title: 'Hala Concept'
+          title: 'Hala Concept',
         },
         {
           src: '/zloto/samodiva1.png',
           alt: 'Zloto 3D concept of a Samodiva',
-          title: 'Samodiva Concept I'
+          title: 'Samodiva Concept I',
         },
         {
           src: '/zloto/samodiva2.png',
           alt: 'Zloto alternate 3D concept of a Samodiva',
-          title: 'Samodiva Concept II'
-        }
+          title: 'Samodiva Concept II',
+        },
       ],
       roster: [
         {
@@ -204,12 +202,14 @@ export class BulgarianFumbblTabComponent {
           ag: '5+',
           pa: '5+',
           av: '10+',
-          skills: 'Claws, Loner 3+, Mighty Blow +1, Multiple Block, Prehensile Tail, Regeneration, Thick Skull',
+          skills:
+            'Claws, Loner 3+, Mighty Blow +1, Multiple Block, Prehensile Tail, Regeneration, Thick Skull',
           primary: 'SM',
           secondary: '—',
           cost: '150,000',
-          motivation: "A multi-headed reptilian horror with a cavernous maw. Unlike the noble Zmey, the Lamya is pure malice. She \"locks\" the communal wells and rivers, demanding human sacrifices just to allow the water to flow.",
-          song: ""
+          motivation:
+            'A multi-headed reptilian horror with a cavernous maw. Unlike the noble Zmey, the Lamya is pure malice. She "locks" the communal wells and rivers, demanding human sacrifices just to allow the water to flow.',
+          song: '',
         },
         {
           quantity: '0-2',
@@ -225,8 +225,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GSM',
           secondary: 'A',
           cost: '110,000',
-          motivation: "A monstrous, shapeless spirit of the vortex. She is the literal incarnation of the devouring storm. Her only motivation is consumption—she swallows the sun and moon during eclipses and destroys everything in her path just to feed her bottomless hunger",
-          song: ""
+          motivation:
+            'A monstrous, shapeless spirit of the vortex. She is the literal incarnation of the devouring storm. Her only motivation is consumption—she swallows the sun and moon during eclipses and destroys everything in her path just to feed her bottomless hunger',
+          song: '',
         },
         {
           quantity: '0-4',
@@ -242,8 +243,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'GD',
           secondary: 'A',
           cost: '80,000',
-          motivation: "A shadowy spirit bound to a specific place or treasure. He is a restless guardian born from blood or gold. While usually content to stay hidden, he can turn lethal if his territory is encroached upon, dragging victims into the shadows to join his eternal watch",
-          song: ""
+          motivation:
+            'A shadowy spirit bound to a specific place or treasure. He is a restless guardian born from blood or gold. While usually content to stay hidden, he can turn lethal if his territory is encroached upon, dragging victims into the shadows to join his eternal watch',
+          song: '',
         },
         {
           quantity: '0-2',
@@ -259,8 +261,9 @@ export class BulgarianFumbblTabComponent {
           primary: 'A',
           secondary: 'G',
           cost: '80,000',
-          motivation: "A forest nymph of breathtaking beauty, protector of the 'untouched'. Samodivas are notoriously fickle and vengeful. They are known to sometimes lure travelers into \"death-dances\"",
-          song: "Самодиви в бяла премена, чудни, прекрасни, песен подемат"
+          motivation:
+            'A forest nymph of breathtaking beauty, protector of the \'untouched\'. Samodivas are notoriously fickle and vengeful. They are known to sometimes lure travelers into "death-dances"',
+          song: 'Самодиви в бяла премена, чудни, прекрасни, песен подемат',
         },
         {
           quantity: '0-16',
@@ -276,16 +279,17 @@ export class BulgarianFumbblTabComponent {
           primary: 'D',
           secondary: 'AP',
           cost: '50,000',
-          motivation: "A part man, part beast, often with horse-like hooves. He is motivated by pure, chaotic mischief",
-          song: ""
-        }
-      ]
-    }
+          motivation:
+            'A part man, part beast, often with horse-like hooves. He is motivated by pure, chaotic mischief',
+          song: '',
+        },
+      ],
+    },
   ];
 
   readonly teamTabs: Array<{ id: TeamViewTab; label: string }> = [
     { id: 'roster', label: 'Roster' },
-    { id: 'concept', label: '3D Concept' }
+    { id: 'concept', label: '3D Concept' },
   ];
 
   readonly activeTeamTabs = this.teams.reduce<Record<string, TeamViewTab>>((tabs, team) => {
@@ -301,4 +305,3 @@ export class BulgarianFumbblTabComponent {
     return this.activeTeamTabs[teamName] === tabId;
   }
 }
-

@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
 
 /**
  * Side-panel card that reveals a puzzle's hints one at a time, in order, when
@@ -8,7 +8,8 @@ import { Component, computed, input, output } from '@angular/core';
   selector: 'app-hints',
   standalone: false,
   templateUrl: './hints.component.html',
-  styleUrl: './hints.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './hints.component.css',
 })
 export class HintsComponent {
   /** All hints for the puzzle, in order. */
@@ -26,4 +27,3 @@ export class HintsComponent {
     this.reveal.emit();
   }
 }
-

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, signal } from '@angular/core';
+import { Component, OnDestroy, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 
 type PlayerId = 1 | 2;
 
@@ -19,7 +19,8 @@ type PlayerId = 1 | 2;
   selector: 'app-clock',
   standalone: false,
   templateUrl: './clock.component.html',
-  styleUrl: './clock.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './clock.component.css',
 })
 export class ClockComponent implements OnDestroy {
   private static readonly WARN_MS = 15_000;
@@ -123,13 +124,21 @@ export class ClockComponent implements OnDestroy {
 
   private turnWarn(player: PlayerId): boolean {
     const turn = player === 1 ? this.p1Turn() : this.p2Turn();
-    return this.running() === player && !this.paused() && turn > 0 && turn <= ClockComponent.WARN_MS;
+    return (
+      this.running() === player && !this.paused() && turn > 0 && turn <= ClockComponent.WARN_MS
+    );
   }
 
   private bankWarn(player: PlayerId): boolean {
     const turn = player === 1 ? this.p1Turn() : this.p2Turn();
     const bank = player === 1 ? this.p1Bank() : this.p2Bank();
-    return this.running() === player && !this.paused() && turn <= 0 && bank > 0 && bank <= ClockComponent.WARN_MS;
+    return (
+      this.running() === player &&
+      !this.paused() &&
+      turn <= 0 &&
+      bank > 0 &&
+      bank <= ClockComponent.WARN_MS
+    );
   }
 
   /** True while the per-turn allowance is exhausted but the bank is still running. */
@@ -187,7 +196,10 @@ export class ClockComponent implements OnDestroy {
 
   /** A descending, bell-like fantasy flourish when a coach runs out of time. */
   private playTimeUpSound(): void {
-    const win = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
+    const win = window as unknown as {
+      AudioContext?: typeof AudioContext;
+      webkitAudioContext?: typeof AudioContext;
+    };
     const AudioCtor = win.AudioContext ?? win.webkitAudioContext;
     if (!AudioCtor) {
       return;
@@ -200,7 +212,7 @@ export class ClockComponent implements OnDestroy {
         { freq: 440.0, start: 0.0, dur: 0.9 },
         { freq: 349.23, start: 0.18, dur: 1.0 },
         { freq: 293.66, start: 0.36, dur: 1.2 },
-        { freq: 193.66, start: 0.54, dur: 1.2 }
+        { freq: 193.66, start: 0.54, dur: 1.2 },
       ];
       for (const note of notes) {
         const t0 = now + note.start;
@@ -208,7 +220,7 @@ export class ClockComponent implements OnDestroy {
         const layers = [
           { type: 'triangle' as OscillatorType, mult: 1, level: 0.5 },
           { type: 'sine' as OscillatorType, mult: 2, level: 0.14 },
-          { type: 'sine' as OscillatorType, mult: 3, level: 0.06 }
+          { type: 'sine' as OscillatorType, mult: 3, level: 0.06 },
         ];
         for (const layer of layers) {
           const osc = ctx.createOscillator();

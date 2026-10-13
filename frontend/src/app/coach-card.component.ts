@@ -1,18 +1,19 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 
 import { RankedCoachEntry, rankedBulgarianCoachEntries } from './coach-card.data';
-import {CoachInterview, getCoachInterview, hasCoachInterview} from './coach-interviews.data';
+import { CoachInterview, getCoachInterview, hasCoachInterview } from './coach-interviews.data';
 
 @Component({
   selector: 'app-coach-card',
   standalone: false,
   templateUrl: './coach-card.component.html',
-  styleUrl: './coach-card.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './coach-card.component.css',
 })
 export class CoachCardComponent {
   readonly coaches = rankedBulgarianCoachEntries.sort((a, b) => {
-    if (a.coach > b.coach) return 1
-    else return -1
+    if (a.coach > b.coach) return 1;
+    else return -1;
   });
 
   activeCoach = '';
@@ -48,4 +49,3 @@ export class CoachCardComponent {
 
   protected readonly hasCoachInterview = hasCoachInterview;
 }
-

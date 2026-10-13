@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, OnDestroy, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  OnDestroy,
+  output,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import type { Puzzle } from './puzzles.data';
 import { PuzzleLoaderService } from './puzzle-loader.service';
 import { PuzzleSessionService, WorkingPlayer } from './puzzle-session.service';
@@ -82,7 +91,8 @@ interface StandFirmChoiceState {
   selector: 'app-puzzles-tab',
   standalone: false,
   templateUrl: './puzzles-tab.component.html',
-  styleUrl: './puzzles-tab.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './puzzles-tab.component.css',
 })
 export class PuzzlesTabComponent implements OnDestroy {
   private readonly sessionService = inject(PuzzleSessionService);
@@ -155,7 +165,7 @@ export class PuzzlesTabComponent implements OnDestroy {
   });
 
   private readonly hitAndRunTargetKeys = computed(
-    () => new Set(this.hitAndRunTargets().map((s) => `${s.x},${s.y}`))
+    () => new Set(this.hitAndRunTargets().map((s) => `${s.x},${s.y}`)),
   );
 
   /** Name of the player taking a Hit and Run move (for the prompt). */
@@ -178,7 +188,12 @@ export class PuzzlesTabComponent implements OnDestroy {
    * preview where the sidestepper ends up before the user decides to follow up.
    * Null whenever the pushed defender has no Sidestep redirection to show.
    */
-  readonly sidestepPreview = computed<{ x: number; y: number; name: string; prone: boolean } | null>(() => {
+  readonly sidestepPreview = computed<{
+    x: number;
+    y: number;
+    name: string;
+    prone: boolean;
+  } | null>(() => {
     const state = this.followUpState();
     if (!state) {
       return null;
@@ -202,14 +217,17 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly blitzChoiceAttackerId = signal<string | null>(null);
   readonly offeringBlitz = computed(() => this.blitzChoiceAttackerId() !== null);
 
-
   readonly current = computed<Puzzle>(() => {
     const ps = this.puzzles();
     return ps[this.currentIndex()] ?? ps[0];
   });
 
   readonly working = computed(() =>
-    this.sessionService.board(this.current().date, this.current().data, this.current().type ?? 'score')()
+    this.sessionService.board(
+      this.current().date,
+      this.current().data,
+      this.current().type ?? 'score',
+    )(),
   );
 
   readonly selectedPlayer = computed(() => {
@@ -223,11 +241,21 @@ export class PuzzlesTabComponent implements OnDestroy {
    */
   readonly canStandUp = computed(() => {
     const p = this.selectedPlayer();
-    return !!p && p.prone && !p.activated && p.movementLeft >= 3
-      && this.revealed() && !this.solved()
-      && !this.pushing() && !this.jumping() && !this.followingUp()
-      && !this.offeringBlitz() && !this.choosingStandFirm() && !this.choosingGrab()
-      && !this.choosingHitAndRun();
+    return (
+      !!p &&
+      p.prone &&
+      !p.activated &&
+      p.movementLeft >= 3 &&
+      this.revealed() &&
+      !this.solved() &&
+      !this.pushing() &&
+      !this.jumping() &&
+      !this.followingUp() &&
+      !this.offeringBlitz() &&
+      !this.choosingStandFirm() &&
+      !this.choosingGrab() &&
+      !this.choosingHitAndRun()
+    );
   });
 
   /** The pushback squares offered for the player currently being pushed. */
@@ -277,7 +305,7 @@ export class PuzzlesTabComponent implements OnDestroy {
   });
 
   private readonly pushTargetKeys = computed(
-    () => new Set(this.pushTargets().map((s) => `${s.x},${s.y}`))
+    () => new Set(this.pushTargets().map((s) => `${s.x},${s.y}`)),
   );
 
   /** Name of the player currently being pushed (for the prompt). */
@@ -313,7 +341,7 @@ export class PuzzlesTabComponent implements OnDestroy {
   });
 
   private readonly jumpTargetKeys = computed(
-    () => new Set(this.jumpTargets().map((s) => `${s.x},${s.y}`))
+    () => new Set(this.jumpTargets().map((s) => `${s.x},${s.y}`)),
   );
 
   /** Name of the prone player being jumped over (for the prompt). */
@@ -351,7 +379,7 @@ export class PuzzlesTabComponent implements OnDestroy {
   });
 
   private readonly session = computed(() =>
-    this.sessionService.sessionState(this.current().date)()
+    this.sessionService.sessionState(this.current().date)(),
   );
 
   readonly revealed = computed(() => this.session().started);
@@ -359,7 +387,9 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   readonly timerDisplay = computed(() => {
     const total = this.session().elapsed;
-    const m = Math.floor(total / 60).toString().padStart(2, '0');
+    const m = Math.floor(total / 60)
+      .toString()
+      .padStart(2, '0');
     const s = (total % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   });
@@ -377,27 +407,35 @@ export class PuzzlesTabComponent implements OnDestroy {
     new Date(this.current().date).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
-    })
+      year: 'numeric',
+    }),
   );
 
   readonly objectiveLabel = computed(() => {
     switch (this.current().type ?? 'score') {
-      case 'surf':  return 'Surf a player';
-      case 'sack':  return 'Sack the ball';
-      case 'query': return 'Answer the question';
+      case 'surf':
+        return 'Surf a player';
+      case 'sack':
+        return 'Sack the ball';
+      case 'query':
+        return 'Answer the question';
       case 'score':
-      default:      return 'Score a touchdown';
+      default:
+        return 'Score a touchdown';
     }
   });
 
   readonly solvedTitle = computed(() => {
     switch (this.current().type ?? 'score') {
-      case 'surf':  return 'Surfed! Solved in';
-      case 'sack':  return 'Sacked! Solved in';
-      case 'query': return 'Correct! Answered in';
+      case 'surf':
+        return 'Surfed! Solved in';
+      case 'sack':
+        return 'Sacked! Solved in';
+      case 'query':
+        return 'Correct! Answered in';
       case 'score':
-      default:      return 'Touchdown! Solved in';
+      default:
+        return 'Touchdown! Solved in';
     }
   });
 
@@ -420,17 +458,17 @@ export class PuzzlesTabComponent implements OnDestroy {
   readonly queryAnswer = computed(() => this.working().queryAnswer);
 
   /** True when the solved chance is below the target (the solver could do better). */
-  readonly canDoBetter = computed(() =>
-    !this.isQuery() && this.chancePercent() < this.targetScore()
+  readonly canDoBetter = computed(
+    () => !this.isQuery() && this.chancePercent() < this.targetScore(),
   );
   /** True when the solved chance exceeds the target by 1 or more (wrong path taken),
    * or a forbidden action (e.g. a Both Down flagged `bothDown: false`) was used.
    * For query puzzles it is simply a wrong answer. */
-  readonly isIncorrectSolution = computed(() =>
-    this.working().incorrectSolution
-      || (!this.isQuery() && this.chancePercent() >= this.targetScore() + 1)
+  readonly isIncorrectSolution = computed(
+    () =>
+      this.working().incorrectSolution ||
+      (!this.isQuery() && this.chancePercent() >= this.targetScore() + 1),
   );
-
 
   readonly cells = computed<BoardCell[]>(() => this.engine.buildCells(this.working()));
 
@@ -484,7 +522,9 @@ export class PuzzlesTabComponent implements OnDestroy {
 
   /** Jump forward by SKIP_COUNT puzzles, clamped to the last puzzle. */
   skipForward(): void {
-    this.goTo(Math.min(this.puzzles().length - 1, this.currentIndex() + PuzzlesTabComponent.SKIP_COUNT));
+    this.goTo(
+      Math.min(this.puzzles().length - 1, this.currentIndex() + PuzzlesTabComponent.SKIP_COUNT),
+    );
   }
 
   startSolving(): void {
@@ -495,7 +535,11 @@ export class PuzzlesTabComponent implements OnDestroy {
   restart(): void {
     this.hoveredPlayer.set(null);
     this.closeMenu();
-    this.sessionService.resetBoard(this.current().date, this.current().data, this.current().type ?? 'score');
+    this.sessionService.resetBoard(
+      this.current().date,
+      this.current().data,
+      this.current().type ?? 'score',
+    );
     this.showResultDialog.set(true);
   }
 
@@ -565,7 +609,11 @@ export class PuzzlesTabComponent implements OnDestroy {
         this.sessionService.selectPlayer(key, data, outcome.playerId);
         break;
       case 'menu': {
-        const options = this.engine.actionOptions(this.working(), this.selectedPlayer(), outcome.target);
+        const options = this.engine.actionOptions(
+          this.working(),
+          this.selectedPlayer(),
+          outcome.target,
+        );
         if (options.length > 0) {
           this.blockStage.set(false);
           this.actionTarget.set(outcome.target);
@@ -594,7 +642,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       const current = this.selectedBlockResults();
       const alreadySelected = current.includes(id);
       this.selectedBlockResults.set(
-        alreadySelected ? current.filter(r => r !== id) : [...current, id]
+        alreadySelected ? current.filter((r) => r !== id) : [...current, id],
       );
       return;
     }
@@ -613,7 +661,11 @@ export class PuzzlesTabComponent implements OnDestroy {
       if (attacker) {
         const vomitChance = this.engine.vomitProbability(target);
         this.sessionService.applyVomit(
-          this.current().date, this.current().data, attacker.id, target.id, vomitChance
+          this.current().date,
+          this.current().data,
+          attacker.id,
+          target.id,
+          vomitChance,
         );
         this.closeMenu();
         this.checkBlitzAfterBlock(attacker.id);
@@ -625,7 +677,11 @@ export class PuzzlesTabComponent implements OnDestroy {
       if (attacker) {
         const stabChance = this.engine.stabProbability(target);
         this.sessionService.applyStab(
-          this.current().date, this.current().data, attacker.id, target.id, stabChance
+          this.current().date,
+          this.current().data,
+          attacker.id,
+          target.id,
+          stabChance,
         );
         this.closeMenu();
         this.checkBlitzAfterBlock(attacker.id);
@@ -661,7 +717,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     }
     this.hitAndRunState.set(null);
     this.sessionService.applyHitAndRun(
-      this.current().date, this.current().data, state.playerId, cell.x, cell.y
+      this.current().date,
+      this.current().data,
+      state.playerId,
+      cell.x,
+      cell.y,
     );
     this.offerBlitzOrFinalize(state.playerId);
   }
@@ -684,7 +744,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     }
     this.jumpState.set(null);
     this.sessionService.jumpOver(
-      this.current().date, this.current().data, state.proneId, cell.x, cell.y
+      this.current().date,
+      this.current().data,
+      state.proneId,
+      cell.x,
+      cell.y,
     );
   }
 
@@ -693,7 +757,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     pushback: 'puzzles/push.png',
     stumble: 'puzzles/stumble.png',
     pow: 'puzzles/pow.png',
-    bothdown: 'puzzles/bothdown.png'
+    bothdown: 'puzzles/bothdown.png',
   };
 
   /** Icon path for a block-result option, or null when it has no image. */
@@ -729,7 +793,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       firstDefenderId: state.firstDefenderId,
       knocksDown: state.knocksDown,
       removePlayerId: state.currentId,
-      isFrenzy: false // Cannot Frenzy if target is pushed off the pitch
+      isFrenzy: false, // Cannot Frenzy if target is pushed off the pitch
     });
   }
 
@@ -740,9 +804,17 @@ export class PuzzlesTabComponent implements OnDestroy {
 
     const attacker = this.selectedPlayer();
     const defender = this.actionTarget();
-    if (!attacker || !defender) { this.closeMenu(); return; }
+    if (!attacker || !defender) {
+      this.closeMenu();
+      return;
+    }
 
-    const blockChance = this.engine.blockProbabilityMulti(this.working(), attacker, defender, selected);
+    const blockChance = this.engine.blockProbabilityMulti(
+      this.working(),
+      attacker,
+      defender,
+      selected,
+    );
     const sel = new Set(selected);
 
     // Dodge (without attacker Tackle) converts a Stumble result into a plain push.
@@ -753,17 +825,21 @@ export class PuzzlesTabComponent implements OnDestroy {
     // is treated as a Push Back instead. Only applies when the attacker has neither
     // Block nor Wrestle — either of those lets them keep Both Down as a knockdown,
     // so the conversion would not be wanted.
-    const juggernautConvertsBothDown = sel.has('bothdown')
-      && this.hasSkill(attacker, 'Juggernaut') && attacker.hasMoved
-      && !this.hasSkill(attacker, 'Block') && !this.hasSkill(attacker, 'Wrestle');
+    const juggernautConvertsBothDown =
+      sel.has('bothdown') &&
+      this.hasSkill(attacker, 'Juggernaut') &&
+      attacker.hasMoved &&
+      !this.hasSkill(attacker, 'Block') &&
+      !this.hasSkill(attacker, 'Wrestle');
 
     // Board effect: if Push Back is one of the accepted outcomes the result is
     // always a plain push (the defender is not knocked prone). A Stumble that Dodge
     // converts counts as a push too, as does a Juggernaut-converted Both Down.
     // Knockdown only applies when every accepted result is a knockdown (no push).
-    const hasPushback = sel.has('pushback')
-      || (sel.has('stumble') && stumbleConvertsToPush)
-      || juggernautConvertsBothDown;
+    const hasPushback =
+      sel.has('pushback') ||
+      (sel.has('stumble') && stumbleConvertsToPush) ||
+      juggernautConvertsBothDown;
 
     // A Stumble is a knockdown only when Dodge does NOT convert it to a push.
     const stumbleKnocksDown = sel.has('stumble') && !stumbleConvertsToPush;
@@ -778,8 +854,13 @@ export class PuzzlesTabComponent implements OnDestroy {
       // Determine whether any chosen result produces a knockdown.
       const knocksDown = !hasPushback; // pow or stumble-without-dodge was selected
       this.sessionService.applyPushMoves(
-        this.current().date, this.current().data,
-        [], blockChance, attacker.id, defender.id, knocksDown
+        this.current().date,
+        this.current().data,
+        [],
+        blockChance,
+        attacker.id,
+        defender.id,
+        knocksDown,
       );
       this.closeMenu();
       this.checkBlitzAfterBlock(attacker.id);
@@ -804,7 +885,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     this.closeMenu();
   }
 
-  private startPush(result: 'push' | 'stumble' | 'pow', overrideChance?: number, allowProneInPlace = false): void {
+  private startPush(
+    result: 'push' | 'stumble' | 'pow',
+    overrideChance?: number,
+    allowProneInPlace = false,
+  ): void {
     const blocker = this.selectedPlayer();
     const defender = this.actionTarget();
     if (!blocker || !defender) {
@@ -817,10 +902,12 @@ export class PuzzlesTabComponent implements OnDestroy {
     // Sidestep: the defender (not the attacker) chooses which empty adjacent square
     // to be pushed into, predetermined by their `goTo` priority list. Resolve the
     // push to that square automatically, bypassing the normal pushback selection.
-    if (this.hasSkill(defender, 'Sidestep')
-        && this.engine.sidestepSquare(this.working(), defender)) {
-      const blockChance = overrideChance
-        ?? this.engine.blockProbability(this.working(), blocker, defender, result);
+    if (
+      this.hasSkill(defender, 'Sidestep') &&
+      this.engine.sidestepSquare(this.working(), defender)
+    ) {
+      const blockChance =
+        overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
       this.blockStage.set(false);
       this.pushState.set({
         dir,
@@ -834,7 +921,7 @@ export class PuzzlesTabComponent implements OnDestroy {
         knocksDown: result === 'stumble' || result === 'pow',
         allowProneInPlace,
         proneInPlaceOnly: false,
-        grab: false
+        grab: false,
       });
       this.autoResolveSidestep();
       return;
@@ -846,25 +933,33 @@ export class PuzzlesTabComponent implements OnDestroy {
     // Grab: the blocker may push the target into any unoccupied adjacent square,
     // provided at least one exists. Grab only works on a stationary Block — never
     // as part of a Blitz (the blocker must not have moved this activation).
-    const grabPossible = this.hasSkill(blocker, 'Grab')
-      && !blocker.hasMoved
-      && this.engine.grabSquares(this.working(), defender.x, defender.y).length > 0;
+    const grabPossible =
+      this.hasSkill(blocker, 'Grab') &&
+      !blocker.hasMoved &&
+      this.engine.grabSquares(this.working(), defender.x, defender.y).length > 0;
 
     if (options.length === 0 && !canPushOob && !grabPossible) {
       // All push squares may be blocked by away-team Stand Firm players. Apply the
       // block with the defender staying in place rather than aborting the block.
-      const blockChance2 = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
+      const blockChance2 =
+        overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
       const knocksDown = result === 'stumble' || result === 'pow';
       this.sessionService.applyPushMoves(
-        this.current().date, this.current().data,
-        [], blockChance2, blocker.id, defender.id, knocksDown
+        this.current().date,
+        this.current().data,
+        [],
+        blockChance2,
+        blocker.id,
+        defender.id,
+        knocksDown,
       );
       this.closeMenu();
       this.checkBlitzAfterBlock(blocker.id);
       return;
     }
 
-    const blockChance = overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
+    const blockChance =
+      overrideChance ?? this.engine.blockProbability(this.working(), blocker, defender, result);
     this.blockStage.set(false);
 
     const base: PushState = {
@@ -879,7 +974,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       knocksDown: result === 'stumble' || result === 'pow',
       allowProneInPlace,
       proneInPlaceOnly: false,
-      grab: grabPossible
+      grab: grabPossible,
     };
 
     // A normal (non-Grab) push chain-pushes another player only when every in-bounds
@@ -948,7 +1043,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       knocksDown: true,
       allowProneInPlace,
       proneInPlaceOnly,
-      grab: false
+      grab: false,
     });
   }
 
@@ -959,8 +1054,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     const attackerId = state.attackerId;
 
     this.sessionService.applyBothDown(
-      this.current().date, this.current().data,
-      attackerId, state.firstDefenderId, state.blockChance
+      this.current().date,
+      this.current().data,
+      attackerId,
+      state.firstDefenderId,
+      state.blockChance,
     );
     this.pushState.set(null);
     this.actionTarget.set(null);
@@ -1001,7 +1099,7 @@ export class PuzzlesTabComponent implements OnDestroy {
         firstDefenderId: state.firstDefenderId,
         knocksDown: state.knocksDown,
         removePlayerId: null,
-        isFrenzy: false
+        isFrenzy: false,
       });
     }
   }
@@ -1028,7 +1126,7 @@ export class PuzzlesTabComponent implements OnDestroy {
       knocksDown: state.knocksDown,
       allowProneInPlace: false,
       proneInPlaceOnly: false,
-      grab: false
+      grab: false,
     });
   }
 
@@ -1052,9 +1150,7 @@ export class PuzzlesTabComponent implements OnDestroy {
     }
 
     const board = this.working();
-    const occupant = board.players.find(
-      (p) => p.x === x && p.y === y && p.id !== state.currentId
-    );
+    const occupant = board.players.find((p) => p.x === x && p.y === y && p.id !== state.currentId);
     const frames = [...state.frames, { playerId: state.currentId, x, y }];
 
     if (occupant) {
@@ -1070,16 +1166,24 @@ export class PuzzlesTabComponent implements OnDestroy {
           prevState: state,
           standFirmPlayerId: occupant.id,
           framesIfAccepted: frames,
-          newDir
+          newDir,
         });
         return;
       }
 
       this.pushState.set({
-        dir: newDir, frames, currentId: occupant.id, blockChance: state.blockChance,
-        attackerId: state.attackerId, defenderX: state.defenderX, defenderY: state.defenderY,
-        firstDefenderId: state.firstDefenderId, knocksDown: state.knocksDown,
-        allowProneInPlace: false, proneInPlaceOnly: false, grab: false
+        dir: newDir,
+        frames,
+        currentId: occupant.id,
+        blockChance: state.blockChance,
+        attackerId: state.attackerId,
+        defenderX: state.defenderX,
+        defenderY: state.defenderY,
+        firstDefenderId: state.firstDefenderId,
+        knocksDown: state.knocksDown,
+        allowProneInPlace: false,
+        proneInPlaceOnly: false,
+        grab: false,
       });
       // The chain-pushed player may itself have Sidestep — auto-redirect if so.
       this.autoResolveSidestep();
@@ -1110,7 +1214,7 @@ export class PuzzlesTabComponent implements OnDestroy {
         firstDefenderId: state.firstDefenderId,
         knocksDown: state.knocksDown,
         removePlayerId: null,
-        isFrenzy: false
+        isFrenzy: false,
       });
     }
   }
@@ -1136,7 +1240,10 @@ export class PuzzlesTabComponent implements OnDestroy {
       return;
     }
     // Home-team Sidestep player with a free adjacent square: let the user choose.
-    if (current.team === 'home' && this.engine.grabSquares(board, current.x, current.y).length > 0) {
+    if (
+      current.team === 'home' &&
+      this.engine.grabSquares(board, current.x, current.y).length > 0
+    ) {
       return;
     }
     const square = this.engine.sidestepSquare(board, current);
@@ -1150,18 +1257,28 @@ export class PuzzlesTabComponent implements OnDestroy {
    * Execute the Frenzy follow-up automatically: apply the push moves with follow-up,
    * then immediately open the block menu for the second block.
    */
-  private executeFrenzyFollowUp(state: PushState, moves: { playerId: string; x: number; y: number }[]): void {
-    const movesWithFollowUp = [...moves, {
-      playerId: state.attackerId,
-      x: state.defenderX,
-      y: state.defenderY
-    }];
+  private executeFrenzyFollowUp(
+    state: PushState,
+    moves: { playerId: string; x: number; y: number }[],
+  ): void {
+    const movesWithFollowUp = [
+      ...moves,
+      {
+        playerId: state.attackerId,
+        x: state.defenderX,
+        y: state.defenderY,
+      },
+    ];
 
     this.sessionService.applyPushMoves(
-      this.current().date, this.current().data,
-      movesWithFollowUp, state.blockChance, state.attackerId,
-      state.firstDefenderId, state.knocksDown,
-      null // removePlayerId
+      this.current().date,
+      this.current().data,
+      movesWithFollowUp,
+      state.blockChance,
+      state.attackerId,
+      state.firstDefenderId,
+      state.knocksDown,
+      null, // removePlayerId
     );
 
     // Now trigger the second block
@@ -1195,7 +1312,9 @@ export class PuzzlesTabComponent implements OnDestroy {
     if (!hasMovement) {
       // Cannot perform Frenzy block without movement - finalize activation
       this.sessionService.finalizeBlockerActivation(
-        this.current().date, this.current().data, attackerId
+        this.current().date,
+        this.current().data,
+        attackerId,
       );
       return;
     }
@@ -1216,14 +1335,21 @@ export class PuzzlesTabComponent implements OnDestroy {
     }
 
     const moves = follow
-      ? [...state.pendingMoves, { playerId: state.attackerId, x: state.followUpX, y: state.followUpY }]
+      ? [
+          ...state.pendingMoves,
+          { playerId: state.attackerId, x: state.followUpX, y: state.followUpY },
+        ]
       : state.pendingMoves;
 
     this.sessionService.applyPushMoves(
-      this.current().date, this.current().data,
-      moves, state.blockChance, state.attackerId,
-      state.firstDefenderId, state.knocksDown,
-      state.removePlayerId
+      this.current().date,
+      this.current().data,
+      moves,
+      state.blockChance,
+      state.attackerId,
+      state.firstDefenderId,
+      state.knocksDown,
+      state.removePlayerId,
     );
     this.followUpState.set(null);
     this.checkBlitzAfterBlock(state.attackerId);
@@ -1260,7 +1386,9 @@ export class PuzzlesTabComponent implements OnDestroy {
     // their activation ends immediately.
     if (attacker.prone) {
       this.sessionService.finalizeBlockerActivation(
-        this.current().date, this.current().data, attackerId
+        this.current().date,
+        this.current().data,
+        attackerId,
       );
       return;
     }
@@ -1268,8 +1396,10 @@ export class PuzzlesTabComponent implements OnDestroy {
     // Hit and Run: after fully resolving the Block/Stab, a still-standing player with
     // the skill may take one free square (ignoring tackle zones) into an unmarked
     // square. Offered only when such a square exists; the user may still skip it.
-    if (this.hasSkill(attacker, 'Hit and Run')
-        && this.engine.hitAndRunSquares(board, attacker).length > 0) {
+    if (
+      this.hasSkill(attacker, 'Hit and Run') &&
+      this.engine.hitAndRunSquares(board, attacker).length > 0
+    ) {
       this.hitAndRunState.set({ playerId: attackerId });
       return;
     }
@@ -1289,7 +1419,9 @@ export class PuzzlesTabComponent implements OnDestroy {
 
     if (attacker.prone) {
       this.sessionService.finalizeBlockerActivation(
-        this.current().date, this.current().data, attackerId
+        this.current().date,
+        this.current().data,
+        attackerId,
       );
       return;
     }
@@ -1301,7 +1433,9 @@ export class PuzzlesTabComponent implements OnDestroy {
       this.blitzChoiceAttackerId.set(attackerId);
     } else {
       this.sessionService.finalizeBlockerActivation(
-        this.current().date, this.current().data, attackerId
+        this.current().date,
+        this.current().data,
+        attackerId,
       );
     }
   }
@@ -1321,10 +1455,11 @@ export class PuzzlesTabComponent implements OnDestroy {
     if (!attackerId) return;
     this.blitzChoiceAttackerId.set(null);
     this.sessionService.finalizeBlockerActivation(
-      this.current().date, this.current().data, attackerId
+      this.current().date,
+      this.current().data,
+      attackerId,
     );
   }
-
 
   private activateTargetPlayer(): void {
     const target = this.actionTarget();

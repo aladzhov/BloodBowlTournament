@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { WorkingPlayer } from './puzzle-session.service';
 
 /**
@@ -10,10 +10,10 @@ import { WorkingPlayer } from './puzzle-session.service';
   selector: 'app-player-details',
   standalone: false,
   templateUrl: './player-details.component.html',
-  styleUrl: './player-details.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './player-details.component.css',
 })
 export class PlayerDetailsComponent {
   /** The player to display, or null when nothing is hovered. */
   readonly player = input<WorkingPlayer | null>(null);
 }
-

@@ -1,5 +1,5 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 
@@ -28,17 +28,10 @@ import { QueryPanelComponent } from './query-panel.component';
     SuccessBreakdownComponent,
     HintsComponent,
     QueryPanelComponent,
-    ClockComponent
+    ClockComponent,
   ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    AppRoutingModule
-  ],
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideHttpClient()
-  ],
-  bootstrap: [App]
+  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  providers: [provideBrowserGlobalErrorListeners(), provideHttpClient(withXhr())],
+  bootstrap: [App],
 })
-export class AppModule { }
+export class AppModule {}

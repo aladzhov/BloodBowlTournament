@@ -45,15 +45,19 @@ export const allTournaments: Tournament[] = [
     name: 'Melon Field Bowl 7',
     location: 'The Other Castle, Sofia',
     dates: '07 November 2026',
-    format: 'EuroBowl 2026',
-    url: ''
+    format: 'Custom Elevens',
+    url: 'https://member.thenaf.net/index.php?module=NAF&type=tournaments&func=view&id=12304'
   },
   {
     name: 'The Rosette',
     location: 'Mox Games, Sofia',
     dates: '13 December 2026',
     format: 'Sevens',
-    url: 'https://tourplay.net/en/blood-bowl/rosette/classifications'
+    url: 'https://tourplay.net/en/blood-bowl/rosette/news',
+    sponsors: [{
+      logo: "ladwine.png",
+      url: "https://www.facebook.com/profile.php?id=61594973502143"
+    }]
   },
 ];
 

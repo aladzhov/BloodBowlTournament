@@ -1,7 +1,7 @@
 import { RankingEntry } from './app-data.model';
 
 export const standingsEntries: RankingEntry[] = [
-  { country: 'bg', coach: 'Deyan Paskalev', points: 28, touchdowns: 11, casualties: 13 },
+  { country: 'bg', coach: 'Deyan Paskalev', points: 31, touchdowns: 13, casualties: 19 },
   { country: 'bg', coach: 'Martin Pearson', points: 32, touchdowns: 16, casualties: 22 },
   { country: 'bg', coach: 'Vasil Baltadzhiev', points: 23, touchdowns: 9, casualties: 17 },
   { country: 'bg', coach: 'PigInSpace', points: 37, touchdowns: 21, casualties: 34 },

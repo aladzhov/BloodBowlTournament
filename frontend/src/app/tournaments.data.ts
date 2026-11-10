@@ -46,7 +46,8 @@ export const allTournaments: Tournament[] = [
     location: 'The Other Castle, Sofia',
     dates: '07 November 2026',
     format: 'Custom Elevens',
-    url: 'https://member.thenaf.net/index.php?module=NAF&type=tournaments&func=view&id=12304'
+    url: 'https://tourplay.net/en/blood-bowl/melon-field-bowl-7/classifications',
+    tracked: true
   },
   {
     name: 'The Rosette',
@@ -59,5 +60,12 @@ export const allTournaments: Tournament[] = [
       url: "https://www.facebook.com/profile.php?id=61594973502143"
     }]
   },
+  {
+    name: 'Surva Bowl IV',
+    location: 'The Other Castle, Sofia',
+    dates: '09 January 2027',
+    format: 'World Cup 2027 v3',
+    url: 'https://tourplay.net/en/blood-bowl/surva-bowl-iv',
+  }
 ];
 

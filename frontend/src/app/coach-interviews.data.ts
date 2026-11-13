@@ -148,6 +148,43 @@ export const coachInterviews: Record<string, CoachInterview> = {
         answer: "Actually, the game is a perfect fit for me. I love the miniatures, the lore, the variability of the dice, and the strategic depth of the game."
       }
     ]
+  },
+  'PigInSpace': {
+    intro: `Winner of Melon Field Bowl 7 and the seasonal BBB Cup 2026`,
+    questions: [
+      {
+        question: "When and how did you start playing?",
+        answer: "I first saw the computer game Blood Bowl 1 in 2009 being played at the old Black Citadel club. I enjoyed the idea and tried it on my own computer."
+      },
+      {
+        question: "Who introduced you to Blood Bowl?",
+        answer: "I bought the 3rd edition of the physical board game one year later, during a vacation in GB in 2010. Then I made the first (as far as I know) league in Bulgaria in 2011. It was short-lived, and there was a lot of bookkeeping on paper! After the Black Citadel club was no longer around, I stopped playing until 2016, when I started searching for players again and made contact with Emil."
+      },
+      {
+        question: "1-5 - how competitive are you?",
+        answer: "If there is a tournament or in most leagues, I try to play my best, so maybe 5 out of 5. I can enjoy fun and casual games as well, especially when I play stunty or Secret League with the strange and funny teams. I still try to make the right plays, but with no pressure on the result."
+      },
+      {
+        question: "Which is your favorite team?",
+        answer: "As with most coaches, I started by trying to enjoy bashy-er teams. Quickly, my preferences changed, and I came to appreciate teams like Pro Elves the most, both for their playstyle and for the appeal of the mohawks on slim, athletic elves, as well as their colourful uniforms."
+      },
+      {
+        question: "Who is your favorite player?",
+        answer: "Maybe a Pro Elf Blitzer. I have some models I got as a prize for winning the first official tournament in Bulgaria, painted with hockey-mask/Phantom of the Opera-style masks."
+      },
+      {
+        question: "If there is one thing you can change in Blood Bowl, what would it be?",
+        answer: "In the current rules (2026), there are simply way too many skills and traits and whatnot. Maybe half of them are never picked or used, and a great deal of them (like Kick/Punt) could be simplified by combining them into one. I would hate to see Blood Bowl become the rules monster that WH40K is."
+      },
+      {
+        question: "What are some of your most memorable moments?",
+        answer: "Maybe my warmest memory is from my first major tournament, in Wales, England. The organization and the food (!) were great. On the last day, we were sitting at some of the lower-ranked tables, trying our best. One random player at the table next to me started moaning and complaining about his dice. The referee nearby, a very friendly and pleasant fellow, effortlessly took the comment and turned it into a short, imaginary tale about his own woes and problems with dice... Everyone burst into laughter.\nIt is the best example, for me, of how an experienced and friendly person can ease the tension, make a philosophical point, and be funny and pleasant at the same time. And that came from an elderly person volunteering to be a referee and watch over the last (least important?) tables of the tournament."
+      },
+      {
+        question: "What do you like about Blood Bowl in general?",
+        answer: "I like that it is a great balance between how simple and deep it can be: as a hobby, collecting and painting miniatures, playing with strategy and tactics, and choosing how much time you want to invest in it."
+      }
+    ]
   }
 };
 
